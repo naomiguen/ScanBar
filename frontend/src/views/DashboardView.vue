@@ -135,8 +135,12 @@ const confirmDelete = (foodId, foodName) => {
   }).then((result) => {
     if (result.isConfirmed) {
       foodStore.deleteFood(foodId)
+      Swal.fire
+        ('Dihapus!',
+        `${foodName} telah dihapus dari jurnal Anda.`,
+        'success');
     }
-  })
+  });
 }
 </script>
 

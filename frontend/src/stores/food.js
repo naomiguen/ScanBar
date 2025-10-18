@@ -84,27 +84,6 @@ export const useFoodStore = defineStore('food', () => {
     searchedFood.value = null;
   }
 
-  async function deleteFood(foodId) {
-    try {
-      await apiClient.delete(`/api/foods/${foodId}`);
-      foods.value = foods.value.filter(food => food._id !== foodId);
-      Swal.fire({
-        icon: 'success',
-        title: 'Dihapus!',
-        text: 'Item berhasil dihapus dari jurnal.',
-        timer: 1500,
-        showConfirmButton: false,
-      });
-    } catch (error) {
-      console.error('Gagal menghapus makanan:', error);
-      Swal.fire({
-        icon: 'error',
-        title: 'Gagal',
-        text: 'Gagal menghapus item dari jurnal.',
-      });
-    }
-  }
-
   async function fetchSummary() {
     try {
       const response = await apiClient.get('/api/foods/summary');
@@ -125,6 +104,21 @@ export const useFoodStore = defineStore('food', () => {
     }
   }
 
+  //Fungsi menghapus makanan dari jurnal
+  async function deleteFood(foodId) {
+    try {
+      await apiClient.delete(`/api/foods/${foodId}`);
+      foods.value = foods.value.filter(food => food._id !== foodId);
+    } catch (error) {
+      console.error('Gagal menghapus makanan:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Gagal',
+        text: 'Gagal menghapus item dari jurnal.',
+      });
+    }
+  }
+
   return {
     foods,
     totals,
@@ -133,9 +127,9 @@ export const useFoodStore = defineStore('food', () => {
     addFood,
     fetchFoodByBarcode,
     clearSearchedFood,
-    deleteFood,
     summary,
     fetchSummary,
-    fetchSummaryByPeriod
+    fetchSummaryByPeriod,
+    deleteFood,
   };
 });

@@ -5,6 +5,7 @@ const router = express.Router();
 const auth = require('../middleware/auth'); // Memanggil satpam kita
 const Food = require('../models/Food');
 const axios = require('axios');
+const mongoose = require('mongoose');
 
 // @route   POST /api/foods
 // @desc    Menambah catatan makanan baru
@@ -92,6 +93,28 @@ router.get('/barcode/:barcode', async (req, res) => {
     res.status(500).send('Server Error saat mencari data barcode.');
   }
 });
+
+// @route   DELETE /api/foods/:id
+// @desc    Menghapus entri makanan
+// @access  Private
+router.delete('/:id', auth, async (req, res) => {
+  try {
+    const food = await Food.findById(req.params.id);
+    if (!food) {
+      return res.status(404).json({ msg: 'Makanan tidak ditemukan' });
+    }
+    // Pastikan pengguna yang menghapus adalah pemilik entri makanan
+    if (food.user.toString() !== req.user.id) {
+      return res.status(401).json({ msg: 'User tidak diotorisasi' });
+    }
+    await food.deleteOne();
+    res.json({ msg: 'Makanan dihapus' });
+  } catch (err) {
+    console.error('Delete Error:', err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
 
 // @route   GET /api/foods/summary
 // @desc    Menghitung ringkasan nutrisi (harian, mingguan, bulanan)
