@@ -100,7 +100,24 @@ router.post('/login', async (req, res) => {
       { expiresIn: '7d' }, // Token berlaku selama 7 hari
       (err, token) => {
         if (err) throw err;
-        res.json({ token, user: { name: user.name, email: user.email } });
+        // Return a safe user object (exclude password) so the frontend has goal fields immediately
+        const userResponse = {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          age: user.age || null,
+          weight: user.weight || null,
+          height: user.height || null,
+          dailyCalorieGoal: typeof user.dailyCalorieGoal !== 'undefined' ? user.dailyCalorieGoal : 0,
+          dailyProteinGoal: typeof user.dailyProteinGoal !== 'undefined' ? user.dailyProteinGoal : 0,
+          dailyCarbsGoal: typeof user.dailyCarbsGoal !== 'undefined' ? user.dailyCarbsGoal : 0,
+          dailyFatGoal: typeof user.dailyFatGoal !== 'undefined' ? user.dailyFatGoal : 0,
+          dailySugarGoal: typeof user.dailySugarGoal !== 'undefined' ? user.dailySugarGoal : 0,
+          dailySaltGoal: typeof user.dailySaltGoal !== 'undefined' ? user.dailySaltGoal : 0,
+          isVerified: !!user.isVerified,
+        };
+
+        res.json({ token, user: userResponse });
       }
     );
   } catch (err) {
@@ -115,7 +132,14 @@ router.post('/login', async (req, res) => {
 // @access  Private
 router.put('/goals', auth, async (req, res) => {
   try {
-    const { dailyCalorieGoal, dailyProteinGoal, dailyCarbsGoal, dailyFatGoal } = req.body;
+    const {
+      dailyCalorieGoal,
+      dailyProteinGoal,
+      dailyCarbsGoal,
+      dailyFatGoal,
+      dailySugarGoal,
+      dailySaltGoal,
+    } = req.body;
 
     const user = await User.findById(req.user.id);
 
@@ -127,6 +151,9 @@ router.put('/goals', auth, async (req, res) => {
     user.dailyProteinGoal = dailyProteinGoal;
     user.dailyCarbsGoal = dailyCarbsGoal;
     user.dailyFatGoal = dailyFatGoal;
+    // baru: simpan target gula & garam
+    if (typeof dailySugarGoal !== 'undefined') user.dailySugarGoal = dailySugarGoal;
+    if (typeof dailySaltGoal !== 'undefined') user.dailySaltGoal = dailySaltGoal;
 
     await user.save();
 
@@ -139,6 +166,8 @@ router.put('/goals', auth, async (req, res) => {
       dailyProteinGoal: user.dailyProteinGoal,
       dailyCarbsGoal: user.dailyCarbsGoal,
       dailyFatGoal: user.dailyFatGoal,
+      dailySugarGoal: user.dailySugarGoal || 0,
+      dailySaltGoal: user.dailySaltGoal || 0,
     };
 
     res.json(userResponse);
@@ -257,10 +286,19 @@ router.get('/profile', auth, async (req, res) => {
 // @access Private
 router.put('/profile', auth, async (req, res) => {
   try {
-    const { 
-      name, age, weight, height,
-      dailyCalorieGoal, dailyProteinGoal, dailyCarbsGoal, dailyFatGoal 
+    const {
+      name,
+      age,
+      weight,
+      height,
+      dailyCalorieGoal,
+      dailyProteinGoal,
+      dailyCarbsGoal,
+      dailyFatGoal,
+      dailySugarGoal,
+      dailySaltGoal,
     } = req.body;
+
     const user = await User.findById(req.user.id);
     if (!user) {
       return res.status(404).json({ message: 'User tidak ditemukan' });
@@ -272,11 +310,13 @@ router.put('/profile', auth, async (req, res) => {
     if (age) fieldsToUpdate.age = age;
     if (weight) fieldsToUpdate.weight = weight;
     if (height) fieldsToUpdate.height = height;
-    if (dailyCalorieGoal) fieldsToUpdate.dailyCalorieGoal = dailyCalorieGoal;
-    if (dailyProteinGoal) fieldsToUpdate.dailyProteinGoal = dailyProteinGoal;
-    if (dailyCarbsGoal) fieldsToUpdate.dailyCarbsGoal = dailyCarbsGoal;
-    if (dailyFatGoal) fieldsToUpdate.dailyFatGoal = dailyFatGoal;
-    
+    if (typeof dailyCalorieGoal !== 'undefined') fieldsToUpdate.dailyCalorieGoal = dailyCalorieGoal;
+    if (typeof dailyProteinGoal !== 'undefined') fieldsToUpdate.dailyProteinGoal = dailyProteinGoal;
+    if (typeof dailyCarbsGoal !== 'undefined') fieldsToUpdate.dailyCarbsGoal = dailyCarbsGoal;
+    if (typeof dailyFatGoal !== 'undefined') fieldsToUpdate.dailyFatGoal = dailyFatGoal;
+    if (typeof dailySugarGoal !== 'undefined') fieldsToUpdate.dailySugarGoal = dailySugarGoal;
+    if (typeof dailySaltGoal !== 'undefined') fieldsToUpdate.dailySaltGoal = dailySaltGoal;
+
     // Update pengguna dengan data baru
     const updatedUser = await User.findByIdAndUpdate(
       req.user.id,

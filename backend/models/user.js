@@ -33,6 +33,14 @@ const userSchema = new mongoose.Schema({
     type: Number,
     default: 60
   },
+  dailySugarGoal: {
+    type: Number,
+    default: 50
+  },
+  dailySaltGoal: {
+    type: Number,
+    default: 6
+  },
   isVerified: {
     type: Boolean,
     default: false, // Defaultnya false saat pertama daftar
@@ -68,6 +76,14 @@ const userSchema = new mongoose.Schema({
     default: 0,
   },
   dailyFatGoal: {
+    type: Number,
+    default: 0,
+  },
+  dailySugarGoal: {
+    type: Number,
+    default: 0,
+  },
+  dailySaltGoal: {
     type: Number,
     default: 0,
   },

@@ -109,6 +109,7 @@ export const useAuthStore = defineStore('auth', () => {
         title: 'Oops...',
         text: 'Terjadi kesalahan saat mencoba mengirim email reset.',
       });
+      console.error('Error forgotPassword:', error);
     }
   }
 
@@ -127,6 +128,7 @@ export const useAuthStore = defineStore('auth', () => {
         title: 'Gagal',
         text: error.response?.data?.message || 'Token tidak valid atau sudah kedaluwarsa.',
       });
+      console.error('Error resetPassword:', error);
     }
   }
 
@@ -152,6 +154,7 @@ export const useAuthStore = defineStore('auth', () => {
 
     } catch (error) {
       Swal.fire({ icon: 'error', title: 'Gagal', text: 'Gagal memperbarui profil.' });
+      console.error('Error updating profile:', error);
     }
   }
 

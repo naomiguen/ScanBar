@@ -32,6 +32,14 @@ const FoodSchema = new mongoose.Schema({
   barcode: {
     type: String,
   },
+  sugar: {
+    type: Number,
+    default: 0,
+  },
+  salt: {
+    type: Number,
+    default: 0,
+  },
   date: {
     type: Date,
     default: Date.now, // Otomatis mencatat waktu saat ini

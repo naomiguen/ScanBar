@@ -12,7 +12,7 @@ const mongoose = require('mongoose');
 // @access  Private (Dijaga oleh satpam 'auth')
 router.post('/', auth, async (req, res) => {
   try {
-    const { productName, calories, protein, carbs, fat, barcode } = req.body;
+    const { productName, calories, protein, carbs, fat, sugar, salt, imageUrl, barcode } = req.body;
 
     const newFood = new Food({
       user: req.user.id, // ID pengguna didapat dari satpam (middleware)
@@ -21,6 +21,9 @@ router.post('/', auth, async (req, res) => {
       protein,
       carbs,
       fat,
+      sugar,
+      salt,
+      imageUrl,
       barcode
     });
 
@@ -124,16 +127,18 @@ router.get('/summary', auth, async (req, res) => {
     const userId = new mongoose.Types.ObjectId(req.user.id);
     const now = new Date();
 
-    //Harian
-    const todayStart = new Date(now.setHours(0, 0, 0, 0));
-    const todayEnd = new Date(now.setHours(23, 59, 59, 999));
+    // Hari ini (start & end)
+    const todayStart = new Date(now);
+    todayStart.setHours(0, 0, 0, 0);
+    const todayEnd = new Date(now);
+    todayEnd.setHours(23, 59, 59, 999);
 
-    //Minggu (dimuali dari hari mingggu)
+    // Minggu (mulai dari hari minggu)
     const weekStart = new Date(todayStart);
     weekStart.setDate(weekStart.getDate() - todayStart.getDay());
 
-    //Bulanan
-    const monthStart = new date(now.getFullYear(), now.getMonth(), 1);
+    // Bulanan (awal bulan)
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 
     const calculateAverage = async (startDate) => {
       const result = await Food.aggregate([
@@ -147,6 +152,8 @@ router.get('/summary', auth, async (req, res) => {
             dailyProtein: { $sum: '$protein' },
             dailyCarbs: { $sum: '$carbs' },
             dailyFat: { $sum: '$fat' },
+            dailySugar: { $sum: '$sugar' },
+            dailySalt: { $sum: '$salt' },
           },
         },
         // 3. Hitung rata-rata dari total harian tersebut
@@ -157,6 +164,8 @@ router.get('/summary', auth, async (req, res) => {
             avgProtein: { $avg: '$dailyProtein' },
             avgCarbs: { $avg: '$dailyCarbs' },
             avgFat: { $avg: '$dailyFat' },
+            avgSugar: { $avg: '$dailySugar' },
+            avgSalt: { $avg: '$dailySalt' },
           },
         },
       ]);
@@ -173,6 +182,8 @@ router.get('/summary', auth, async (req, res) => {
             totalProtein: { $sum: '$protein' },
             totalCarbs: { $sum: '$carbs' },
             totalFat: { $sum: '$fat' },
+            totalSugar: { $sum: '$sugar' },
+            totalSalt: { $sum: '$salt' },
           } 
         }
       ]),
@@ -181,24 +192,36 @@ router.get('/summary', auth, async (req, res) => {
       // Rata-rata bulanan
       calculateAverage(monthStart),
     ]);
-
-    const summary = {
-      today: todayResult[0] || { totalCalories: 0, totalProtein: 0, totalCarbs: 0, totalFat: 0 },
-      weekly: {
-        avgCalories: Math.round(weeklyAvg.avgCalories || 0),
-        avgProtein: Math.round(weeklyAvg.avgProtein || 0),
-        avgCarbs: Math.round(weeklyAvg.avgCarbs || 0),
-        avgFat: Math.round(weeklyAvg.avgFat || 0),
-      },
-      monthly: {
-        avgCalories: Math.round(monthlyAvg.avgCalories || 0),
-        avgProtein: Math.round(monthlyAvg.avgProtein || 0),
-        avgCarbs: Math.round(monthlyAvg.avgCarbs || 0),
-        avgFat: Math.round(monthlyAvg.avgFat || 0),
-      },
+    // Normalize results
+    const todayTotals = todayResult[0] || { totalCalories: 0, totalProtein: 0, totalCarbs: 0, totalFat: 0 };
+    const weekly = {
+      avgCalories: Math.round(weeklyAvg.avgCalories || 0),
+      avgProtein: Math.round(weeklyAvg.avgProtein || 0),
+      avgCarbs: Math.round(weeklyAvg.avgCarbs || 0),
+      avgFat: Math.round(weeklyAvg.avgFat || 0),
+      avgSugar: Math.round(weeklyAvg.avgSugar || 0),
+      avgSalt: Math.round(weeklyAvg.avgSalt || 0),
+    };
+    const monthly = {
+      avgCalories: Math.round(monthlyAvg.avgCalories || 0),
+      avgProtein: Math.round(monthlyAvg.avgProtein || 0),
+      avgCarbs: Math.round(monthlyAvg.avgCarbs || 0),
+      avgFat: Math.round(monthlyAvg.avgFat || 0),
+      avgSugar: Math.round(monthlyAvg.avgSugar || 0),
+      avgSalt: Math.round(monthlyAvg.avgSalt || 0),
     };
 
-    res.json(summary);
+    // Support ?period=daily|weekly|monthly for frontend convenience
+    const period = (req.query.period || 'daily').toLowerCase();
+    if (period === 'weekly') {
+      return res.json({ calories: weekly.avgCalories, protein: weekly.avgProtein, carbs: weekly.avgCarbs, fat: weekly.avgFat, sugar: weekly.avgSugar || 0, salt: weekly.avgSalt || 0 });
+    }
+    if (period === 'monthly') {
+      return res.json({ calories: monthly.avgCalories, protein: monthly.avgProtein, carbs: monthly.avgCarbs, fat: monthly.avgFat, sugar: monthly.avgSugar || 0, salt: monthly.avgSalt || 0 });
+    }
+
+    // Default: daily totals
+    return res.json({ calories: todayTotals.totalCalories || 0, protein: todayTotals.totalProtein || 0, carbs: todayTotals.totalCarbs || 0, fat: todayTotals.totalFat || 0, sugar: todayTotals.totalSugar || 0, salt: todayTotals.totalSalt || 0 });
   } catch (err) {
     console.error('Summary Error:', err.message);
     res.status(500).send('Server Error');

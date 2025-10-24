@@ -40,9 +40,10 @@ onMounted(async () => {
         } else {
           statusText.value = 'Arahkan kamera ke barcode...';
         }
-      } catch (e) {
-         statusText.value = 'Gagal mendeteksi barcode.';
-      }
+    } catch (err) {
+      statusText.value = 'Gagal mendeteksi barcode.';
+      console.error('Barcode detection error:', err);
+    }
     }, 500); // Cek setiap 500ms
 
   } catch (error) {

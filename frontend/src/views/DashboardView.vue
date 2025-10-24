@@ -63,6 +63,14 @@
                 <span class="lemak">{{ Math.round(food.fat) }}g</span>
                 <span class="label-small">lemak</span>
               </div>
+              <div class="nutrient-box gula-box">
+                <span class="gula">{{ Math.round(food.sugar || 0) }}g</span>
+                <span class="label-small">gula</span>
+              </div>
+              <div class="nutrient-box garam-box">
+                <span class="garam">{{ (food.salt || 0).toFixed(2) }}g</span>
+                <span class="label-small">garam</span>
+              </div>
             </div>
 
             <button
@@ -94,31 +102,45 @@ onMounted(() => {
 const summaryData = computed(() => ({
   kalori: {
     label: 'Kalori',
-    value: foodStore.totals.calories,
+    value: Math.round(foodStore.totals.calories),
     max: authStore.user?.dailyCalorieGoal || 0,
     unit: 'kcal',
     class: 'kalori',
   },
   karbo: {
     label: 'Karbohidrat',
-    value: foodStore.totals.carbs,
+    value: Math.round(foodStore.totals.carbs),
     max: authStore.user?.dailyCarbsGoal || 0,
     unit: 'g',
     class: 'karbo',
   },
   protein: {
     label: 'Protein',
-    value: foodStore.totals.protein,
+    value: Math.round(foodStore.totals.protein),
     max: authStore.user?.dailyProteinGoal || 0,
     unit: 'g',
     class: 'protein',
   },
   lemak: {
     label: 'Lemak',
-    value: foodStore.totals.fat,
+    value: Math.round(foodStore.totals.fat),
     max: authStore.user?.dailyFatGoal || 0,
     unit: 'g',
     class: 'lemak',
+  },
+  gula: {
+    label: 'Gula',
+    value: Math.round(foodStore.totals.sugar || 0),
+    max: 50,
+    unit: 'g',
+    class: 'gula',
+  },
+  garam: {
+    label: 'Garam (Sodium)',
+    value: parseFloat((foodStore.totals.salt || 0).toFixed(2)),
+    max: 5,
+    unit: 'g',
+    class: 'garam',
   },
 }))
 
@@ -135,12 +157,13 @@ const confirmDelete = (foodId, foodName) => {
   }).then((result) => {
     if (result.isConfirmed) {
       foodStore.deleteFood(foodId)
-      Swal.fire
-        ('Dihapus!',
+      Swal.fire(
+        'Dihapus!',
         `${foodName} telah dihapus dari jurnal Anda.`,
-        'success');
+        'success'
+      )
     }
-  });
+  })
 }
 </script>
 
@@ -180,7 +203,7 @@ const confirmDelete = (foodId, foodName) => {
 }
 .summary-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 30px;
 }
 .summary-item .top {
@@ -214,6 +237,17 @@ const confirmDelete = (foodId, foodName) => {
 .bar.lemak {
   background-color: #d97706;
 }
+.bar.gula {
+  background-color: #a855f7;
+}
+.bar.garam {
+  background-color: #64748b;
+}
+.sisa {
+  margin-top: 8px;
+  font-size: 0.9rem;
+  color: #6b7280;
+}
 
 /* Jurnal */
 .journal-card {
@@ -225,6 +259,11 @@ const confirmDelete = (foodId, foodName) => {
 .journal-card h2 {
   color: #1746a2;
   margin-bottom: 25px;
+}
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: #6b7280;
 }
 .food-item {
   background: #f8fbff;
@@ -259,7 +298,7 @@ const confirmDelete = (foodId, foodName) => {
 }
 .nutrients {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(6, 1fr);
   flex: 1;
   gap: 10px;
 }
@@ -270,6 +309,12 @@ const confirmDelete = (foodId, foodName) => {
   padding: 12px 8px;
   border-radius: 8px;
   text-align: center;
+  font-weight: 700;
+}
+.label-small {
+  font-size: 0.75rem;
+  font-weight: 500;
+  margin-top: 4px;
 }
 .kcal-box {
   background-color: #dbeafe;
@@ -283,17 +328,35 @@ const confirmDelete = (foodId, foodName) => {
 .lemak-box {
   background-color: #fef3c7;
 }
+.gula-box {
+  background-color: #f3e8ff;
+}
+.garam-box {
+  background-color: #f1f5f9;
+}
 .kcal {
   color: #2563eb;
+  font-size: 1.1rem;
 }
 .karbo {
   color: #16a34a;
+  font-size: 1.1rem;
 }
 .protein {
   color: #ea580c;
+  font-size: 1.1rem;
 }
 .lemak {
   color: #d97706;
+  font-size: 1.1rem;
+}
+.gula {
+  color: #9333ea;
+  font-size: 1.1rem;
+}
+.garam {
+  color: #475569;
+  font-size: 1.1rem;
 }
 
 /* Tombol hapus sejajar */
@@ -314,15 +377,30 @@ const confirmDelete = (foodId, foodName) => {
   transform: scale(1.05);
 }
 
+@media (max-width: 1200px) {
+  .summary-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 @media (max-width: 768px) {
   .summary-grid {
     grid-template-columns: 1fr;
+  }
+  .nutrients {
+    grid-template-columns: repeat(3, 1fr);
   }
   .food-body {
     flex-direction: column;
   }
   .delete-btn {
     width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .nutrients {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 </style>
