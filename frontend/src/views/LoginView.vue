@@ -46,9 +46,10 @@ const handleLogin = () => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: calc(100vh - 80px); /* 100% tinggi layar dikurangi tinggi header */
-  background-color: #f8fafc; /* Warna background abu-abu sangat muda */
+  min-height: 100vh;
+  background-color: #f8fafc;
   padding: 2rem;
+  padding-top: calc(80px + 2rem); /* Tambahan untuk navbar sticky (80px navbar + 2rem spacing) */
 }
 
 .login-card {
@@ -60,12 +61,24 @@ const handleLogin = () => {
   max-width: 450px;
   text-align: center;
   border: 1px solid #e2e8f0;
+  animation: fadeInUp 0.5s ease;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .logo-icon {
   width: 60px;
   height: 60px;
-  background-color: #2563eb; /* Biru Primer */
+  background-color: #2563eb;
   color: white;
   border-radius: 12px;
   display: flex;
@@ -74,6 +87,7 @@ const handleLogin = () => {
   font-size: 1.75rem;
   font-weight: bold;
   margin: 0 auto 1.5rem auto;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
 }
 
 h1 {
@@ -125,12 +139,18 @@ h1 {
   font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: all 0.3s ease;
   margin-top: 1rem;
 }
 
 .submit-button:hover {
   background-color: #1d4ed8;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+.submit-button:active {
+  transform: translateY(0);
 }
 
 .extra-links-container {
@@ -148,9 +168,43 @@ h1 {
   color: #2563eb;
   text-decoration: none;
   font-weight: 500;
+  transition: color 0.3s;
 }
 
 .extra-links-container a:hover {
   text-decoration: underline;
+  color: #1d4ed8;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .login-page-container {
+    padding: 1.5rem;
+    padding-top: calc(80px + 1.5rem);
+  }
+
+  .login-card {
+    padding: 2rem;
+  }
+
+  h1 {
+    font-size: 1.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .login-card {
+    padding: 1.5rem;
+  }
+
+  h1 {
+    font-size: 1.5rem;
+  }
+
+  .logo-icon {
+    width: 50px;
+    height: 50px;
+    font-size: 1.5rem;
+  }
 }
 </style>

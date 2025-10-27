@@ -49,8 +49,13 @@ const handleLogout = () => {
 body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #1e293b; }
 main { padding: 0; }
 
-/* Header Styling */
+/* Header Styling - STICKY NAVBAR */
 .main-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -59,6 +64,13 @@ main { padding: 0; }
   color: white;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   height: 80px;
+  z-index: 1000;
+  transition: all 0.3s ease;
+}
+
+/* Animasi halus saat scroll */
+.main-header.scrolled {
+  box-shadow: 0 6px 12px -2px rgba(0, 0, 0, 0.15);
 }
 
 .logo a {
@@ -132,5 +144,42 @@ main { padding: 0; }
   color: white;
   border-right: 1px solid rgba(255, 255, 255, 0.3);
   padding-right: 1.5rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .main-header {
+    padding: 1rem 1.5rem;
+    flex-wrap: wrap;
+    height: auto;
+    min-height: 80px;
+  }
+
+  .main-nav .nav-links {
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .nav-button {
+    padding: 0.5rem 0.8rem;
+    font-size: 0.875rem;
+  }
+
+  .welcome-text {
+    font-size: 0.875rem;
+    padding-right: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .logo-text {
+    font-size: 1.25rem;
+  }
+
+  .logo-icon {
+    width: 35px;
+    height: 35px;
+    font-size: 1rem;
+  }
 }
 </style>

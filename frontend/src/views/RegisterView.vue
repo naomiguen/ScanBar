@@ -20,10 +20,10 @@
         </div>
         <button type="submit" class="submit-button">Register</button>
       </form>
-    </div>
 
-    <div class="extra-links-container">
-      <p><RouterLink to="/login">Sudah punya akun? Login di sini</RouterLink></p>
+      <div class="extra-links-container">
+        <p><RouterLink to="/login">Sudah punya akun? Login di sini</RouterLink></p>
+      </div>
     </div>
   </div>
 </template>
@@ -54,9 +54,10 @@ const handleRegister = () => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: calc(100vh - 80px);
+  min-height: 100vh;
   background-color: #f8fafc;
   padding: 2rem;
+  padding-top: calc(80px + 2rem); /* Tambahan untuk navbar sticky (80px navbar + 2rem spacing) */
 }
 
 .register-card {
@@ -68,6 +69,18 @@ const handleRegister = () => {
   max-width: 450px;
   text-align: center;
   border: 1px solid #e2e8f0;
+  animation: fadeInUp 0.5s ease;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .logo-icon {
@@ -82,6 +95,7 @@ const handleRegister = () => {
   font-size: 1.75rem;
   font-weight: bold;
   margin: 0 auto 1.5rem auto;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
 }
 
 h1 {
@@ -133,28 +147,72 @@ h1 {
   font-size: 1rem;
   font-weight: 700;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: all 0.3s ease;
   margin-top: 1rem;
 }
 
 .submit-button:hover {
   background-color: #1d4ed8;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+.submit-button:active {
+  transform: translateY(0);
 }
 
 .extra-links-container {
   text-align: center;
-  margin-top: 2rem;
-  border-top: 1px solid #e2e8f0;
+  margin-top: 1.5rem;
   padding-top: 1.5rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.extra-links-container p {
+  margin: 0;
 }
 
 .extra-links-container a {
   color: #2563eb;
   text-decoration: none;
   font-weight: 500;
+  transition: color 0.3s;
 }
 
 .extra-links-container a:hover {
   text-decoration: underline;
+  color: #1d4ed8;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .register-page-container {
+    padding: 1.5rem;
+    padding-top: calc(80px + 1.5rem);
+  }
+
+  .register-card {
+    padding: 2rem;
+  }
+
+  h1 {
+    font-size: 1.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .register-card {
+    padding: 1.5rem;
+  }
+
+  h1 {
+    font-size: 1.5rem;
+  }
+
+  .logo-icon {
+    width: 50px;
+    height: 50px;
+    font-size: 1.5rem;
+  }
 }
 </style>

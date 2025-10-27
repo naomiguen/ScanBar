@@ -145,6 +145,7 @@ const saveGoals = () => {
   background: linear-gradient(to bottom, #eef4ff, #ffffff);
   min-height: 100vh;
   padding: 40px 20px;
+  padding-top: 120px; /* Tambahan untuk navbar sticky (80px navbar + 40px spacing) */
   font-family: "Poppins", sans-serif;
 }
 
@@ -219,6 +220,13 @@ button {
   padding: 12px 0;
   font-size: 1rem;
   cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+button:hover {
+  background-color: #1d4ed8;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
 }
 
 .result {
@@ -300,6 +308,13 @@ button {
   width: 100%;
   cursor: pointer;
   font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.save-button:hover {
+  background-color: #15803d;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);
 }
 
 .kosong {
@@ -326,5 +341,30 @@ button {
 .login-prompt a {
   color: #2563eb;
   font-weight: 600;
+  text-decoration: none;
+}
+
+.login-prompt a:hover {
+  text-decoration: underline;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .dashboard {
+    padding: 20px 15px;
+    padding-top: 100px; /* Sesuaikan untuk mobile */
+  }
+
+  h1 {
+    font-size: 1.5rem;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .tdee-card .value {
+    font-size: 2.5rem;
+  }
 }
 </style>

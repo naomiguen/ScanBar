@@ -18,6 +18,9 @@ export const useFoodStore = defineStore('food', () => {
   // active period used for summary refresh (default: daily)
   const summaryPeriod = ref('daily');
 
+  const analysisResult = ref(null);
+  const analysisLoading = ref(false);
+
   // GETTERS (Computed)
   const totals = computed(() => {
     return foods.value.reduce(
@@ -136,6 +139,8 @@ export const useFoodStore = defineStore('food', () => {
 
   function clearSearchedFood() {
     searchedFood.value = null;
+    analysisResult.value = null;
+    analysisLoading.value = false;
   }
 
   async function fetchSummary() {
@@ -187,18 +192,36 @@ export const useFoodStore = defineStore('food', () => {
     }
   }
 
+  //fungsi AI
+  async function analyzeFood(foodData) {
+    analysisResult.value = null;
+    analysisLoading.value = true;
+
+    try {
+      const response = await apiClient.post('/api/foods/analyze', { foodData });
+      analysisResult.value = response.data.analysis;
+    } catch (error) {
+      analysisResult.value = 'Gagal menganalisis data makanan.';
+    } finally {
+      analysisLoading.value = false;
+    }
+  }
+
   return {
     foods,
     totals,
     searchedFood,
     summary,
+    analysisResult,
+    analysisLoading,
     fetchTodaysFoods,
     addFood,
     fetchFoodByBarcode,
     clearSearchedFood,
     fetchSummary,
     fetchSummaryByPeriod,
-  summaryPeriod,
+    summaryPeriod,
     deleteFood,
+    analyzeFood
   };
 });

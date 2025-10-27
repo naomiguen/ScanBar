@@ -172,6 +172,7 @@ const confirmDelete = (foodId, foodName) => {
   background-color: #e8f0fe;
   min-height: 100vh;
   padding: 40px 20px;
+  padding-top: 120px; /* Tambahan untuk navbar sticky (80px navbar + 40px spacing) */
   font-family: 'Segoe UI', sans-serif;
 }
 
@@ -384,6 +385,11 @@ const confirmDelete = (foodId, foodName) => {
 }
 
 @media (max-width: 768px) {
+  .dashboard {
+    padding: 20px 15px;
+    padding-top: 100px; /* Sesuaikan untuk mobile */
+  }
+
   .summary-grid {
     grid-template-columns: 1fr;
   }

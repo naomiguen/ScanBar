@@ -1,4 +1,3 @@
-
 <template>
   <div class="home-container">
     <!-- Hero Section -->
@@ -13,10 +12,6 @@
         <div class="hero-grid">
           <!-- Left Content -->
           <div class="hero-content">
-            <div class="hero-badge">
-              <span class="badge-icon">📦</span>
-              <span class="badge-text">Scan Barcode Kemasan Produk</span>
-            </div>
 
             <h1 class="hero-title">
               Selamat datang di <span class="brand-name">ScanBar</span>
@@ -31,25 +26,9 @@
               <button @click="scrollToScanner" class="btn-primary">
                 <span class="icon">📷</span> Mulai Pindai Sekarang
               </button>
-              <router-link to="/register" class="btn-secondary">
+              <router-link v-if="!authStore.isAuthenticated" to="/register" class="btn-secondary">
                 Daftar Gratis
               </router-link>
-            </div>
-
-            <!-- Stats -->
-            <div class="stats-grid">
-              <div class="stat-item">
-                <div class="stat-value">1000+</div>
-                <div class="stat-label">Produk Makanan</div>
-              </div>
-              <div class="stat-item">
-                <div class="stat-value">500+</div>
-                <div class="stat-label">Pengguna Aktif</div>
-              </div>
-              <div class="stat-item">
-                <div class="stat-value">99%</div>
-                <div class="stat-label">Akurasi Scan</div>
-              </div>
             </div>
           </div>
 
@@ -61,15 +40,6 @@
                 alt="Barcode scanning"
                 class="product-image"
               />
-              <div class="floating-badge">
-                <div class="badge-icon-circle">
-                  <span>📷</span>
-                </div>
-                <div class="badge-content">
-                  <div class="badge-title">Scan Cepat</div>
-                  <div class="badge-subtitle">Info nutrisi instan</div>
-                </div>
-              </div>
             </div>
             <div class="image-decoration"></div>
           </div>
@@ -149,9 +119,18 @@
         <div class="scan-card">
           <!-- Tabs -->
           <div class="tabs-container">
-            <button @click="changeTab('manual')" :class="['tab-button', { active: activeTab === 'manual' }]"><span class="tab-icon">📝</span><span class="tab-text">Manual</span></button>
-            <button @click="changeTab('camera')" :class="['tab-button', { active: activeTab === 'camera' }]"><span class="tab-icon">📷</span><span class="tab-text">Kamera</span></button>
-            <button @click="changeTab('upload')" :class="['tab-button', { active: activeTab === 'upload' }]"><span class="tab-icon">⬆️</span><span class="tab-text">Upload</span></button>
+            <button @click="changeTab('manual')" :class="['tab-button', { active: activeTab === 'manual' }]">
+              <span class="tab-icon">📝</span>
+              <span class="tab-text">Manual</span>
+            </button>
+            <button @click="changeTab('camera')" :class="['tab-button', { active: activeTab === 'camera' }]">
+              <span class="tab-icon">📷</span>
+              <span class="tab-text">Kamera</span>
+            </button>
+            <button @click="changeTab('upload')" :class="['tab-button', { active: activeTab === 'upload' }]">
+              <span class="tab-icon">⬆️</span>
+              <span class="tab-text">Upload</span>
+            </button>
           </div>
 
           <!-- Tab Content -->
@@ -177,10 +156,38 @@
                   <div v-if="cameraError" class="error-message">
                     <p>{{ cameraError }}</p>
                   </div>
-                  <button @click.prevent="startCamera" type="button" class="activate-button">
-                    <span class="icon">📷</span> Aktifkan Kamera
-                  </button>
                 </form>
+              </div>
+
+              <div v-else class="camera-active">
+                <qrcode-stream @decode="onDecode" @init="onInit" class="camera-stream"></qrcode-stream>
+                <div v-if="cameraError" class="camera-error">
+                  <p>{{ cameraError }}</p>
+                </div>
+                <div class="camera-controls">
+                  <button @click="stopCamera" class="camera-stop-button">
+                    <span class="icon">❌</span> Tutup Kamera
+                  </button>
+                </div>
+                <p class="camera-instruction">
+                  📍 Posisikan barcode di dalam frame untuk hasil terbaik
+                </p>
+              </div>
+            </div>
+
+            <!-- Camera Tab -->
+            <div v-if="activeTab === 'camera'" class="tab-panel">
+              <div v-if="!isScanning" class="camera-placeholder" @click="startCamera">
+                <div class="camera-icon-wrapper">
+                  <span class="camera-icon">📷</span>
+                </div>
+                <h3 class="placeholder-title">Aktifkan Kamera</h3>
+                <p class="placeholder-description">
+                  Klik untuk mengaktifkan kamera dan scan barcode pada kemasan produk
+                </p>
+                <p class="placeholder-note">
+                  📱 Pastikan izin kamera diaktifkan
+                </p>
               </div>
 
               <div v-else class="camera-active">
@@ -309,10 +316,12 @@
             <div class="tip-decoration"></div>
             <div class="tip-content">
               <div class="tip-icon">🍎</div>
-              <h3 class="tip-title">Protein: Fondasi Kesehatan</h3>
-              <p class="tip-description">
-                Perhatikan kandungan protein dalam label makanan kemasan. Pilih produk dengan protein minimal 5g per 100g untuk nutrisi optimal. Konsumsi harian yang disarankan: 0.8-1g protein per kg berat badan.
-              </p>
+              <div>
+                <h3 class="tip-title">Protein: Fondasi Kesehatan</h3>
+                <p class="tip-description">
+                  Perhatikan kandungan protein dalam label makanan kemasan. Pilih produk dengan protein minimal 5g per 100g untuk nutrisi optimal. Konsumsi harian yang disarankan: 0.8-1g protein per kg berat badan.
+                </p>
+              </div>
             </div>
           </div>
 
@@ -320,10 +329,12 @@
             <div class="tip-decoration"></div>
             <div class="tip-content">
               <div class="tip-icon">💖</div>
-              <h3 class="tip-title">Lemak yang Sehat</h3>
-              <p class="tip-description">
-                Periksa jenis lemak pada kemasan: total lemak, lemak jenuh, dan lemak trans. Pilih produk dengan lemak jenuh kurang dari 10% per sajian dan hindari produk dengan kandungan lemak trans.
-              </p>
+              <div>
+                <h3 class="tip-title">Lemak yang Sehat</h3>
+                <p class="tip-description">
+                  Periksa jenis lemak pada kemasan: total lemak, lemak jenuh, dan lemak trans. Pilih produk dengan lemak jenuh kurang dari 10% per sajian dan hindari produk dengan kandungan lemak trans.
+                </p>
+              </div>
             </div>
           </div>
 
@@ -331,10 +342,12 @@
             <div class="tip-decoration"></div>
             <div class="tip-content">
               <div class="tip-icon">🌿</div>
-              <h3 class="tip-title">Karbohidrat Cerdas</h3>
-              <p class="tip-description">
-                Cek total karbohidrat dan serat pada label informasi nilai gizi. Perhatikan rasio karbohidrat dengan serat untuk pilihan lebih sehat. Pilih produk dengan "whole grain" sebagai bahan utama.
-              </p>
+              <div>
+                <h3 class="tip-title">Karbohidrat Cerdas</h3>
+                <p class="tip-description">
+                  Cek total karbohidrat dan serat pada label informasi nilai gizi. Perhatikan rasio karbohidrat dengan serat untuk pilihan lebih sehat. Pilih produk dengan "whole grain" sebagai bahan utama.
+                </p>
+              </div>
             </div>
           </div>
 
@@ -342,10 +355,12 @@
             <div class="tip-decoration"></div>
             <div class="tip-content">
               <div class="tip-icon">🎯</div>
-              <h3 class="tip-title">Pentingnya Serat</h3>
-              <p class="tip-description">
-                Perhatikan kandungan "Dietary Fiber" pada label. Pilih produk minimal 3g serat per sajian untuk camilan sehat. Target harian: 25-35g serat per hari.
-              </p>
+              <div>
+                <h3 class="tip-title">Pentingnya Serat</h3>
+                <p class="tip-description">
+                  Perhatikan kandungan "Dietary Fiber" pada label. Pilih produk minimal 3g serat per sajian untuk camilan sehat. Target harian: 25-35g serat per hari.
+                </p>
+              </div>
             </div>
           </div>
 
@@ -353,10 +368,12 @@
             <div class="tip-decoration"></div>
             <div class="tip-content">
               <div class="tip-icon">⚡</div>
-              <h3 class="tip-title">Bijak dengan Gula</h3>
-              <p class="tip-description">
-                Cek daftar gula pada ingredient list. Waspadai nama lain gula: syrup, dextrose, sucrose. Batasan gula tambahan: maksimal 25g (6 sendok teh) per hari.
-              </p>
+              <div>
+                <h3 class="tip-title">Bijak dengan Gula</h3>
+                <p class="tip-description">
+                  Cek daftar gula pada ingredient list. Waspadai nama lain gula: syrup, dextrose, sucrose. Batasan gula tambahan: maksimal 25g (6 sendok teh) per hari.
+                </p>
+              </div>
             </div>
           </div>
 
@@ -364,10 +381,12 @@
             <div class="tip-decoration"></div>
             <div class="tip-content">
               <div class="tip-icon">🛡️</div>
-              <h3 class="tip-title">Kendali Asupan Garam</h3>
-              <p class="tip-description">
-                Perhatikan kandungan "Sodium" atau "Garam" pada label. Pilih produk dengan sodium kurang dari 20% Daily Value per sajian. Batasan harian: maksimal 2000mg sodium.
-              </p>
+              <div>
+                <h3 class="tip-title">Kendali Asupan Garam</h3>
+                <p class="tip-description">
+                  Perhatikan kandungan "Sodium" atau "Garam" pada label. Pilih produk dengan sodium kurang dari 20% Daily Value per sajian. Batasan harian: maksimal 2000mg sodium.
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -375,7 +394,7 @@
     </section>
 
     <!-- CTA Section -->
-    <section class="cta-section">
+    <section v-if="!authStore.isAuthenticated" class="cta-section">
       <div class="cta-bg-decoration">
         <div class="cta-circle cta-circle-1"></div>
         <div class="cta-circle cta-circle-2"></div>
@@ -398,6 +417,48 @@
         </div>
       </div>
     </section>
+
+    <!-- Footer Section -->
+    <footer class="footer-section">
+      <div class="container">
+        <div class="footer-grid">
+          <!-- Left: Logo & Description -->
+          <div class="footer-brand">
+            <div class="footer-logo">
+              <div class="footer-logo-icon">SB</div>
+              <span class="footer-logo-text">ScanBar</span>
+            </div>
+            <p class="footer-description">
+              Pilih metode scan favorit Anda untuk mendapatkan informasi nutrisi dari kemasan makanan & minuman lengkap
+            </p>
+          </div>
+
+          <!-- Right: Contact Info -->
+          <div class="footer-contact">
+            <h3 class="footer-title">Kontak</h3>
+            <div class="contact-items">
+              <div class="contact-item">
+                <span class="contact-icon">📧</span>
+                <span>Email: info@scanbar.com</span>
+              </div>
+              <div class="contact-item">
+                <span class="contact-icon">📞</span>
+                <span>Telepon: (021) 1234 5678</span>
+              </div>
+              <div class="contact-item">
+                <span class="contact-icon">📍</span>
+                <span>Alamat: Balikpapan, Indonesia</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer Bottom -->
+        <div class="footer-bottom">
+          <p>&copy; 2025 ScanBar. All rights reserved.</p>
+        </div>
+      </div>
+    </footer>
   </div>
 </template>
 
@@ -515,7 +576,6 @@ const handleSubmit = async () => {
     }
   }
 
-  // Pass the currently active summary period (from store) so the store refreshes the correct period
   await foodStore.addFood(foodData, foodStore.summaryPeriod || 'daily');
   handleCancel();
 };
@@ -538,6 +598,7 @@ const handleCancel = () => {
 .home-container {
   min-height: 100vh;
   background: white;
+  padding-top: 80px; /* Tambahan untuk navbar sticky */
 }
 
 .container {
@@ -546,7 +607,9 @@ const handleCancel = () => {
   padding: 0 1rem;
 }
 
-/* HERO SECTION */
+/* ============================================
+   HERO SECTION
+   ============================================ */
 .hero-section {
   position: relative;
   background: linear-gradient(135deg, #eff6ff 0%, #e0e7ff 50%, #f3e8ff 100%);
@@ -798,7 +861,9 @@ const handleCancel = () => {
   filter: blur(40px);
 }
 
-/* HOW IT WORKS SECTION */
+/* ============================================
+   HOW IT WORKS SECTION
+   ============================================ */
 .how-it-works-section {
   position: relative;
   padding: 5rem 0;
@@ -946,7 +1011,9 @@ const handleCancel = () => {
   font-size: 0.9375rem;
 }
 
-/* SCANNER SECTION */
+/* ============================================
+   SCANNER SECTION
+   ============================================ */
 .scanner-section {
   position: relative;
   padding: 6rem 0;
@@ -1009,14 +1076,9 @@ const handleCancel = () => {
   z-index: 1;
 }
 
-@media (max-width: 640px) {
-  .hero-grid { grid-template-columns: 1fr; }
-  .hero-section { padding: 3rem 0; }
-  .product-image { height: 320px; }
-  .scan-card { padding: 1rem; }
-}
-
-/* TABS */
+/* ============================================
+   TABS
+   ============================================ */
 .tabs-container {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -1062,7 +1124,9 @@ const handleCancel = () => {
   font-size: 0.875rem;
 }
 
-/* TAB CONTENT */
+/* ============================================
+   TAB CONTENT
+   ============================================ */
 .tab-content {
   min-height: 300px;
 }
@@ -1082,7 +1146,9 @@ const handleCancel = () => {
   }
 }
 
-/* FORM STYLES */
+/* ============================================
+   FORM STYLES
+   ============================================ */
 .search-form {
   display: flex;
   flex-direction: column;
@@ -1163,7 +1229,9 @@ const handleCancel = () => {
   margin-right: 0.5rem;
 }
 
-/* CAMERA STYLES */
+/* ============================================
+   CAMERA & UPLOAD PLACEHOLDER STYLES
+   ============================================ */
 .camera-placeholder,
 .upload-placeholder {
   background: linear-gradient(135deg, #eff6ff 0%, #e0e7ff 100%);
@@ -1242,7 +1310,9 @@ const handleCancel = () => {
   box-shadow: 0 8px 20px rgba(37, 99, 235, 0.4);
 }
 
-/* CAMERA ACTIVE */
+/* ============================================
+   CAMERA ACTIVE STYLES
+   ============================================ */
 .camera-active {
   display: flex;
   flex-direction: column;
@@ -1298,7 +1368,9 @@ const handleCancel = () => {
   color: #64748b;
 }
 
-/* UPLOAD STYLES */
+/* ============================================
+   UPLOAD STYLES
+   ============================================ */
 .uploaded-preview {
   display: flex;
   flex-direction: column;
@@ -1342,25 +1414,193 @@ const handleCancel = () => {
   margin-top: 1rem;
 }
 
-/* Tips / Tip cards styling (improved visuals like screenshot) */
+/* ============================================
+   RESULTS SECTION
+   ============================================ */
+.results-section {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 2px solid #f1f5f9;
+}
+
+.result-image-wrapper {
+  width: 100%;
+  max-width: 300px;
+  margin: 0 auto 1.5rem;
+}
+
+.result-image {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 1rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+.result-title {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #1e293b;
+  text-align: center;
+  margin-bottom: 0.5rem;
+}
+
+.result-subtitle {
+  font-size: 1rem;
+  color: #64748b;
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.nutrients-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.nutrient-card {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  padding: 1.5rem 1rem;
+  border-radius: 1rem;
+  text-align: center;
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.nutrient-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+.nutrient-card.calories {
+  border-color: #fbbf24;
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+}
+
+.nutrient-card.carbs {
+  border-color: #60a5fa;
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+}
+
+.nutrient-card.protein {
+  border-color: #f472b6;
+  background: linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%);
+}
+
+.nutrient-card.fat {
+  border-color: #a78bfa;
+  background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%);
+}
+
+.nutrient-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #64748b;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.nutrient-value {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #1e293b;
+  margin-bottom: 0.25rem;
+}
+
+.nutrient-unit {
+  font-size: 0.875rem;
+  color: #94a3b8;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.action-button {
+  padding: 1rem 2rem;
+  border-radius: 0.75rem;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+  text-decoration: none;
+  display: inline-block;
+  text-align: center;
+}
+
+.action-button.primary {
+  background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+.action-button.primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.4);
+}
+
+.action-button.secondary {
+  background: white;
+  color: #475569;
+  border-color: #cbd5e1;
+}
+
+.action-button.secondary:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+}
+
+/* ============================================
+   TIPS SECTION
+   ============================================ */
+.tips-section {
+  position: relative;
+  padding: 6rem 0;
+  background: linear-gradient(to bottom, white 0%, #f8fafc 100%);
+  overflow: hidden;
+}
+
+.tips-bg-decoration {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.dot {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background: #cbd5e1;
+  border-radius: 50%;
+  opacity: 0.4;
+}
+
+.dot-1 {
+  top: 10%;
+  left: 5%;
+}
+
+.dot-2 {
+  top: 60%;
+  right: 10%;
+}
+
+.dot-3 {
+  bottom: 20%;
+  left: 15%;
+}
+
 .tips-grid {
   display: grid;
-  /* Desktop: 3 columns max; smaller screens adapt */
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1.25rem;
   align-items: stretch;
-}
-
-@media (max-width: 1024px) {
-  .tips-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 640px) {
-  .tips-grid {
-    grid-template-columns: 1fr;
-  }
 }
 
 .tip-card {
@@ -1398,7 +1638,6 @@ const handleCancel = () => {
   align-items: flex-start;
 }
 
-/* Allow flex items containing text to shrink properly and wrap */
 .tip-content > :not(.tip-icon) {
   min-width: 0;
 }
@@ -1430,15 +1669,244 @@ const handleCancel = () => {
   font-size: 0.95rem;
   overflow-wrap: anywhere;
   word-break: break-word;
-}
-
-/* Clamp description to ~3 lines and show ellipsis */
-.tip-description {
   display: -webkit-box;
   -webkit-line-clamp: 5;
   line-clamp: 5;
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* ============================================
+   CTA SECTION
+   ============================================ */
+.cta-section {
+  position: relative;
+  padding: 6rem 0;
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  overflow: hidden;
+}
+
+.cta-bg-decoration {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.cta-circle {
+  position: absolute;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+  opacity: 0.1;
+  filter: blur(60px);
+}
+
+.cta-circle-1 {
+  width: 500px;
+  height: 500px;
+  top: -200px;
+  left: -200px;
+}
+
+.cta-circle-2 {
+  width: 600px;
+  height: 600px;
+  bottom: -250px;
+  right: -250px;
+}
+
+.cta-content {
+  text-align: center;
+  position: relative;
+  z-index: 1;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.cta-title {
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 800;
+  color: white;
+  margin-bottom: 1rem;
+}
+
+.cta-description {
+  font-size: 1.25rem;
+  color: #cbd5e1;
+  margin-bottom: 2.5rem;
+  line-height: 1.8;
+}
+
+.cta-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.cta-button {
+  padding: 1rem 2rem;
+  border-radius: 0.75rem;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.cta-button.primary {
+  background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%);
+  color: white;
+  box-shadow: 0 10px 25px rgba(37, 99, 235, 0.4);
+}
+
+.cta-button.primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 15px 35px rgba(37, 99, 235, 0.5);
+}
+
+.cta-button.secondary {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.cta-button.secondary:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+@media (max-width: 1024px) {
+  .tips-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .hero-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-section {
+    padding: 3rem 0;
+  }
+
+  .product-image {
+    height: 320px;
+  }
+
+  .scan-card {
+    padding: 1rem;
+  }
+
+  .tips-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .footer-grid {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+}
+
+/* ============================================
+   FOOTER SECTION
+   ============================================ */
+.footer-section {
+  background: #2563eb;
+  color: white;
+  padding: 3rem 0 1.5rem;
+}
+
+.footer-grid {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 4rem;
+  margin-bottom: 2rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.footer-brand {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.footer-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.footer-logo-icon {
+  width: 50px;
+  height: 50px;
+  background-color: white;
+  color: #2563eb;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  font-weight: bold;
+}
+
+.footer-logo-text {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: white;
+}
+
+.footer-description {
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.7;
+  max-width: 400px;
+}
+
+.footer-contact {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.footer-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  color: white;
+}
+
+.contact-items {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.contact-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.95rem;
+}
+
+.contact-icon {
+  font-size: 1.25rem;
+  width: 30px;
+  text-align: center;
+}
+
+.footer-bottom {
+  text-align: center;
+  padding-top: 1.5rem;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.875rem;
 }
 </style>

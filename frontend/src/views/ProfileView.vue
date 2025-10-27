@@ -241,11 +241,17 @@ const bmiStyle = computed(() => {
 </script>
 
 <style scoped>
-.profile-page { background-color: #f8fafc; min-height: 100vh; padding: 40px 20px; font-family: 'Segoe UI', sans-serif; }
+.profile-page {
+  background-color: #f8fafc;
+  min-height: 100vh;
+  padding: 40px 20px;
+  padding-top: 120px; /* Tambahan untuk navbar sticky (80px navbar + 40px spacing) */
+  font-family: 'Segoe UI', sans-serif;
+}
 .profile-container { max-width: 1200px; margin: auto; }
 .loading-state { text-align: center; padding: 4rem; font-size: 1.2rem; color: #64748b; }
 
-.profile-banner-card { background: linear-gradient(135deg, #2563eb, #3b82f6); color: white; border-radius: 20px; padding: 30px; display: flex; align-items: center; gap: 30px; margin-bottom: 30px; }
+.profile-banner-card { background: linear-gradient(135deg, #2563eb, #3b82f6); color: white; border-radius: 20px; padding: 30px; display: flex; align-items: center; gap: 30px; margin-bottom: 30px; box-shadow: 0 4px 20px rgba(37, 99, 235, 0.3); }
 .avatar { width: 100px; height: 100px; border-radius: 50%; background-color: rgba(255, 255, 255, 0.2); display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: 700; flex-shrink: 0; text-transform: uppercase; }
 .user-info { flex-grow: 1; }
 .user-info h1 { margin: 0; font-size: 2.5rem; }
@@ -408,4 +414,34 @@ h3 { margin: 0; font-size: 1.2rem; }
   text-decoration: underline;
 }
 
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .profile-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .nutrient-grid-colored {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .profile-page {
+    padding: 20px 15px;
+    padding-top: 100px; /* Sesuaikan untuk mobile */
+  }
+
+  .profile-banner-card {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .user-info h1 {
+    font-size: 1.8rem;
+  }
+
+  .user-stats {
+    flex-wrap: wrap;
+  }
+}
 </style>

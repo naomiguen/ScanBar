@@ -7,6 +7,13 @@ const Food = require('../models/Food');
 const axios = require('axios');
 const mongoose = require('mongoose');
 
+//impor Google Generative AI
+const {GoogleGenerativeAI} = require('@google/generative-ai');
+
+//Inisiasi Gemini dengan API Key dari .env
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const model = genAI.getGenerativeModel({model: 'gemini-1.5-flash'});
+
 // @route   POST /api/foods
 // @desc    Menambah catatan makanan baru
 // @access  Private (Dijaga oleh satpam 'auth')
@@ -227,6 +234,42 @@ router.get('/summary', auth, async (req, res) => {
     res.status(500).send('Server Error');
   }
 });
+
+// @route   POST /api/foods/analyze
+// @desc    Menganalisis nutrisi makanan menggunakan AI
+// @access  Private
+
+router.post('/analyze', auth, async (req, res) => {
+  try {
+    const { productName, calories, protein, carbs, fat, sugar, salt } = req.body;
+
+    const prompt = `
+      Anda adalah seorang ahli gizi yang ramah.
+      Analisis produk makanan berikut ini untuk pengguna di Indonesia:
+      Nama Produk: ${productName}
+      Kalori (per 100g): ${calories} kcal
+      Karbohidrat (per 100g): ${carbs} g
+      Protein (per 100g): ${protein} g
+      Lemak (per 100g): ${fat} g
+      Gula (per 100g): ${sugar} g
+      Garam/Sodium (per 100g): ${salt} g
+
+      Berikan analisis singkat (maksimal 2 kalimat) tentang kesehatan produk ini, fokus pada aspek yang paling menonjol (misalnya, tinggi gula, tinggi protein, dll.).
+      Setelah itu, berikan 2 rekomendasi alternatif yang lebih sehat dan umum ditemukan di Indonesia dalam format bullet point.
+    `;
+
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const analysisText = response.text();
+
+    res.json({ analysis: analysisText });
+
+  } catch (err) {
+    console.error('AI Analysis Error:', error);
+    res.status(500).send('Server Error saat menganalisis data makanan.');
+  }
+});
+
 
 
 module.exports = router;
