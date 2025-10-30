@@ -252,6 +252,26 @@
               />
             </div>
 
+            <!-- Improved image rendering: try multiple fields and show placeholder when missing -->
+            <div v-else class="result-image-wrapper">
+        <img v-if="imageSrcValue && !imageLoadFailed"
+          :src="imageSrcValue"
+          :alt="foodStore.searchedFood.productName"
+          class="result-image"
+          @error="onImageError" />
+              <div v-else class="result-image placeholder">
+                <!-- simple inline SVG placeholder -->
+                <svg width="100%" height="100%" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="no image">
+                  <rect width="100%" height="100%" fill="#f1f5f9" />
+                  <g fill="#cbd5e1">
+                    <rect x="40" y="80" width="320" height="160" rx="12" />
+                    <circle cx="120" cy="160" r="28" fill="#e2e8f0" />
+                  </g>
+                  <text x="200" y="40" fill="#94a3b8" font-size="20" font-family="Arial, sans-serif" text-anchor="middle">Gambar tidak tersedia</text>
+                </svg>
+              </div>
+            </div>
+
             <h2 class="result-title">{{ foodStore.searchedFood.productName }}</h2>
             <p class="result-subtitle">Informasi Nilai Gizi per Sajian</p>
 
@@ -276,6 +296,110 @@
                 <p class="nutrient-value">{{ Math.round(foodStore.searchedFood.fat) }}</p>
                 <p class="nutrient-unit">gram</p>
               </div>
+              <div class="nutrient-card sodium">
+                <p class="nutrient-label">Garam</p>
+                <p class="nutrient-value">{{ Math.round(foodStore.searchedFood.sodium || 0) }}</p>
+                <p class="nutrient-unit">mg</p>
+              </div>
+              <div class="nutrient-card sugar">
+                <p class="nutrient-label">Gula</p>
+                <p class="nutrient-value">{{ Math.round(foodStore.searchedFood.sugar || 0) }}</p>
+                <p class="nutrient-unit">gram</p>
+              </div>
+            </div>
+
+            <!-- Analysis Card: Show AI Analysis with nice UI -->
+            <div v-if="foodStore.analysisResult || foodStore.analysisLoading" class="analysis-card">
+              <h3 class="analysis-title">
+                <span class="analysis-icon">🤖</span> Analisis AI
+              </h3>
+
+              <!-- Loading State -->
+              <div v-if="foodStore.analysisLoading" class="analysis-loading">
+                <div class="analysis-loading-icon">⏳</div>
+                <div class="analysis-loading-text">Menganalisis nutrisi makanan...</div>
+              </div>
+
+              <!-- Analysis Result -->
+              <template v-else>
+                <!-- If we have a structured response (object) -->
+                <div v-if="typeof foodStore.analysisResult === 'object'" class="analysis-content">
+                  <!-- Summary -->
+                  <div v-if="foodStore.analysisResult.summary" class="analysis-summary">
+                    {{ foodStore.analysisResult.summary }}
+                  </div>
+
+                  <!-- Health Risks -->
+                  <div v-if="foodStore.analysisResult.risks" class="analysis-risks">
+                    <h4>Risiko Kesehatan:</h4>
+                    <ul class="risks-list">
+                      <template v-if="Array.isArray(foodStore.analysisResult.risks)">
+                        <li v-for="(risk, index) in foodStore.analysisResult.risks" :key="index">
+                          {{ risk }}
+                        </li>
+                      </template>
+                      <template v-else>
+                        <!-- If backend returned a single string, render as one list item -->
+                        <li>{{ foodStore.analysisResult.risks }}</li>
+                      </template>
+                    </ul>
+                  </div>
+
+                  <!-- Warnings -->
+                  <div v-if="foodStore.analysisResult.warnings" class="analysis-warnings">
+                    <h4>Peringatan:</h4>
+                    <div class="warnings-grid">
+                      <template v-if="Array.isArray(foodStore.analysisResult.warnings)">
+                        <div v-for="(warning, index) in foodStore.analysisResult.warnings"
+                             :key="index"
+                             class="warning-badge">
+                          ⚠️ {{ warning }}
+                        </div>
+                      </template>
+                      <template v-else>
+                        <!-- If backend returned a single string, render it as one badge -->
+                        <div class="warning-badge">⚠️ {{ foodStore.analysisResult.warnings }}</div>
+                      </template>
+                    </div>
+                  </div>
+
+                  <!-- Diet Suitability -->
+                  <div v-if="foodStore.analysisResult.dietSuitability" class="analysis-diet">
+                    <h4>Kesesuaian Diet:</h4>
+                    <div class="diet-info">
+                      {{ foodStore.analysisResult.dietSuitability }}
+                    </div>
+                  </div>
+
+                  <!-- Recommendations -->
+                  <div v-if="foodStore.analysisResult.recommendations" class="analysis-recommendations">
+                    <h4>Rekomendasi Alternatif:</h4>
+                    <ul class="recommendations-list">
+                      <template v-if="Array.isArray(foodStore.analysisResult.recommendations)">
+                        <li v-for="(rec, index) in foodStore.analysisResult.recommendations"
+                            :key="index"
+                            class="recommendation-item">
+                          🔄 {{ rec }}
+                        </li>
+                      </template>
+                      <template v-else>
+                        <!-- If backend returned a single string, render as one recommendation -->
+                        <li class="recommendation-item">🔄 {{ foodStore.analysisResult.recommendations }}</li>
+                      </template>
+                    </ul>
+                  </div>
+
+                  <!-- Disclaimer -->
+                  <div v-if="foodStore.analysisResult.disclaimer" class="analysis-disclaimer">
+                    {{ foodStore.analysisResult.disclaimer }}
+                  </div>
+                </div>
+
+                <!-- Fallback for non-structured (string) response -->
+                <div v-else class="analysis-fallback">
+                  {{ foodStore.analysisResult }}
+                </div>
+              </template>
             </div>
 
             <div class="action-buttons">
@@ -463,7 +587,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, watch, computed } from 'vue';
 import { useFoodStore } from '@/stores/food';
 import { useAuthStore } from '@/stores/auth';
 import { QrcodeStream } from 'vue-qrcode-reader';
@@ -484,6 +608,64 @@ const scrollToScanner = () => {
   scannerSection.value?.scrollIntoView({ behavior: 'smooth' });
 };
 
+// Normalize barcode: remove non-digits, trim, and convert UPC-A (12 digits) to EAN-13 by prepending 0
+const normalizeBarcode = (raw) => {
+  if (!raw) return '';
+  let b = String(raw).trim();
+  // Remove all non-digit characters
+  b = b.replace(/\D/g, '');
+  // If UPC-A (12 digits) convert to EAN-13
+  if (b.length === 12) b = '0' + b;
+  return b;
+};
+
+// imageSrcValue: computed best image URL for the currently loaded product
+const imageSrcValue = computed(() => {
+  const product = foodStore.searchedFood;
+  if (!product) return null;
+  if (product.imageUrl) return product.imageUrl;
+  const raw = product._raw || product;
+  if (!raw || typeof raw !== 'object') return null;
+
+  if (raw.image_url) return raw.image_url;
+  if (raw.image) return raw.image;
+  if (raw.image_front_url) return raw.image_front_url;
+  if (raw.image_front_small_url) return raw.image_front_small_url;
+
+  if (raw.selected_images && raw.selected_images.front && raw.selected_images.front.display) {
+    const disp = raw.selected_images.front.display;
+    if (disp.en) return disp.en;
+    const first = Object.values(disp)[0];
+    if (first) return first;
+  }
+
+  if (raw.images && raw.images.front) {
+    const front = raw.images.front;
+    if (front.small && front.small.url) return front.small.url;
+    if (front.thumb && front.thumb.url) return front.thumb.url;
+    if (front.display && front.display.en) return front.display.en;
+  }
+
+  if (raw._images && raw._images.front && raw._images.front.small && raw._images.front.small.url) {
+    return raw._images.front.small.url;
+  }
+
+  return null;
+});
+
+// Track if the currently displayed image failed to load (so we can show placeholder)
+const imageLoadFailed = ref(false);
+
+const onImageError = (event) => {
+  // hide broken image and mark failed so template shows placeholder
+  try {
+    event?.target && (event.target.style.display = 'none');
+  } catch {
+    // ignore
+  }
+  imageLoadFailed.value = true;
+};
+
 // Camera functions
 const onInit = async (promise) => {
   try {
@@ -502,8 +684,10 @@ const onInit = async (promise) => {
 
 const onDecode = (decodedString) => {
   if (decodedString) {
-    barcodeInput.value = decodedString;
-    foodStore.fetchFoodByBarcode(decodedString);
+    // Normalize decoded barcode before using it
+    const normalized = normalizeBarcode(decodedString);
+    barcodeInput.value = normalized;
+    foodStore.fetchFoodByBarcode(normalized);
     stopCamera();
     activeTab.value = 'manual';
   }
@@ -533,9 +717,10 @@ const onFileChange = (event) => {
 
     uploadError.value = "Memproses gambar...";
     setTimeout(() => {
-      const fakeBarcode = "8992761134017";
-      barcodeInput.value = fakeBarcode;
-      foodStore.fetchFoodByBarcode(fakeBarcode);
+        const fakeBarcode = "8992761134017";
+        const normalized = normalizeBarcode(fakeBarcode);
+        barcodeInput.value = normalized;
+        foodStore.fetchFoodByBarcode(normalized);
       uploadError.value = '';
     }, 1500);
   };
@@ -561,7 +746,10 @@ const changeTab = (tabName) => {
 
 const handleSearch = async () => {
   if (!barcodeInput.value) return;
-  await foodStore.fetchFoodByBarcode(barcodeInput.value);
+  const normalized = normalizeBarcode(barcodeInput.value);
+  if (!normalized) return;
+  barcodeInput.value = normalized;
+  await foodStore.fetchFoodByBarcode(normalized);
 };
 
 const handleSubmit = async () => {
@@ -586,6 +774,21 @@ const handleCancel = () => {
   uploadedImage.value = null;
   stopCamera();
 };
+
+const handleAnalyze = async () => {
+  if (!foodStore.searchedFood) return;
+  await foodStore.analyzeFood(foodStore.searchedFood);
+};
+
+// Automatically run AI analysis when a new product is loaded
+watch(() => foodStore.searchedFood, (newVal) => {
+  if (newVal) {
+    // reset image load failure when product changes
+    imageLoadFailed.value = false;
+    // don't await here to keep UI responsive; store manages loading state
+    handleAnalyze();
+  }
+});
 </script>
 
 <style scoped>
@@ -598,7 +801,7 @@ const handleCancel = () => {
 .home-container {
   min-height: 100vh;
   background: white;
-  padding-top: 80px; /* Tambahan untuk navbar sticky */
+  padding-top: 80px;
 }
 
 .container {
@@ -669,35 +872,6 @@ const handleCancel = () => {
   gap: 1.5rem;
 }
 
-.hero-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(10px);
-  color: #2563eb;
-  padding: 0.75rem 1.5rem;
-  border-radius: 9999px;
-  border: 1px solid #bfdbfe;
-  box-shadow: 0 10px 25px rgba(37, 99, 235, 0.1);
-  align-self: flex-start;
-  animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.05); }
-}
-
-.badge-icon {
-  font-size: 1.125rem;
-}
-
-.badge-text {
-  font-weight: 600;
-  font-size: 0.875rem;
-}
-
 .hero-title {
   font-size: clamp(2rem, 5vw, 3.5rem);
   font-weight: 800;
@@ -762,29 +936,6 @@ const handleCancel = () => {
   border-color: #2563eb;
 }
 
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: 1rem;
-  margin-top: 1rem;
-}
-
-.stat-item {
-  text-align: left;
-}
-
-.stat-value {
-  font-size: 2.5rem;
-  font-weight: 800;
-  color: #2563eb;
-  margin-bottom: 0.25rem;
-}
-
-.stat-label {
-  font-size: 0.875rem;
-  color: #64748b;
-}
-
 /* Hero Image */
 .hero-image {
   position: relative;
@@ -808,45 +959,6 @@ const handleCancel = () => {
   object-fit: cover;
   border-radius: 1.5rem;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-}
-
-.floating-badge {
-  position: absolute;
-  bottom: -1.5rem;
-  right: -1.5rem;
-  background: white;
-  padding: 1.5rem;
-  border-radius: 1rem;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.badge-icon-circle {
-  width: 48px;
-  height: 48px;
-  background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.5rem;
-}
-
-.badge-content {
-  display: flex;
-  flex-direction: column;
-}
-
-.badge-title {
-  font-weight: 700;
-  color: #1e293b;
-}
-
-.badge-subtitle {
-  font-size: 0.875rem;
-  color: #64748b;
 }
 
 .image-decoration {
@@ -1216,19 +1328,6 @@ const handleCancel = () => {
   font-size: 0.875rem;
 }
 
-.info-box {
-  padding: 1rem;
-  background: #eff6ff;
-  border: 1px solid #bfdbfe;
-  border-radius: 0.75rem;
-  color: #1e40af;
-  font-size: 0.875rem;
-}
-
-.info-icon {
-  margin-right: 0.5rem;
-}
-
 /* ============================================
    CAMERA & UPLOAD PLACEHOLDER STYLES
    ============================================ */
@@ -1288,26 +1387,6 @@ const handleCancel = () => {
   font-size: 0.875rem;
   color: #94a3b8;
   margin-bottom: 2rem;
-}
-
-.activate-button {
-  padding: 1rem 2rem;
-  background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%);
-  color: white;
-  border: none;
-  border-radius: 0.75rem;
-  font-weight: 700;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
-  transition: all 0.3s ease;
-}
-
-.activate-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.4);
 }
 
 /* ============================================
@@ -1425,16 +1504,17 @@ const handleCancel = () => {
 
 .result-image-wrapper {
   width: 100%;
-  max-width: 300px;
+  max-width: 400px;
   margin: 0 auto 1.5rem;
 }
 
 .result-image {
   width: 100%;
-  height: 200px;
-  object-fit: cover;
+  height: 300px;
+  object-fit: contain;
   border-radius: 1rem;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  background: white;
 }
 
 .result-title {
@@ -1493,6 +1573,16 @@ const handleCancel = () => {
   background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%);
 }
 
+.nutrient-card.sodium {
+  border-color: #f97316;
+  background: linear-gradient(135deg, #ffedd5 0%, #fed7aa 100%);
+}
+
+.nutrient-card.sugar {
+  border-color: #ec4899;
+  background: linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%);
+}
+
 .nutrient-label {
   font-size: 0.875rem;
   font-weight: 600;
@@ -1514,6 +1604,187 @@ const handleCancel = () => {
   color: #94a3b8;
 }
 
+/* ============================================
+   ANALYSIS CARD
+   ============================================ */
+.analysis-card {
+  background: white;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 4px 16px rgba(16, 24, 40, 0.08);
+  margin-bottom: 2rem;
+  border: 1px solid #e2e8f0;
+}
+
+.analysis-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #1e293b;
+  border-bottom: 2px solid #f1f5f9;
+  padding-bottom: 0.75rem;
+}
+
+.analysis-icon {
+  font-size: 1.5rem;
+}
+
+.analysis-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  color: #64748b;
+}
+
+.analysis-loading-icon {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+  animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.analysis-loading-text {
+  font-size: 0.875rem;
+}
+
+.analysis-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.analysis-summary {
+  color: #475569;
+  line-height: 1.7;
+  background: #eff6ff;
+  padding: 1rem;
+  border-radius: 0.75rem;
+}
+
+.analysis-risks {
+  background: #fef2f2;
+  padding: 1rem;
+  border-radius: 0.75rem;
+}
+
+.analysis-risks h4 {
+  color: #dc2626;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.risks-list {
+  list-style: disc;
+  padding-left: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  color: #dc2626;
+}
+
+.analysis-warnings {
+  background: #fffbeb;
+  padding: 1rem;
+  border-radius: 0.75rem;
+}
+
+.analysis-warnings h4 {
+  color: #d97706;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.warnings-grid {
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+.warning-badge {
+  background: #fef3c7;
+  color: #92400e;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.analysis-diet {
+  background: #f0fdf4;
+  padding: 1rem;
+  border-radius: 0.75rem;
+}
+
+.analysis-diet h4 {
+  color: #16a34a;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.diet-info {
+  color: #166534;
+}
+
+.analysis-recommendations {
+  background: #faf5ff;
+  padding: 1rem;
+  border-radius: 0.75rem;
+}
+
+.analysis-recommendations h4 {
+  color: #9333ea;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.recommendations-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.recommendation-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #7c3aed;
+}
+
+.analysis-disclaimer {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  font-style: italic;
+  margin-top: 1rem;
+  border-top: 1px solid #e2e8f0;
+  padding-top: 1rem;
+}
+
+.analysis-fallback {
+  color: #475569;
+  white-space: pre-wrap;
+  background: #f8fafc;
+  padding: 1rem;
+  border-radius: 0.75rem;
+}
+
+/* ============================================
+   ACTION BUTTONS
+   ============================================ */
 .action-buttons {
   display: flex;
   gap: 1rem;

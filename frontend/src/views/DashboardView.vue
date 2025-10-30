@@ -9,7 +9,7 @@
     <div class="summary-card">
       <h2>📈 Ringkasan Harian</h2>
       <div class="summary-grid">
-        <div class="summary-item" v-for="(goal, label) in summaryData" :key="label">
+        <div class="summary-item" v-for="(goal, key) in summaryData" :key="key">
           <div class="top">
             <span class="label">{{ goal.label }}</span>
             <span class="value">{{ goal.value }} / {{ goal.max }} {{ goal.unit }}</span>
@@ -68,7 +68,7 @@
                 <span class="label-small">gula</span>
               </div>
               <div class="nutrient-box garam-box">
-                <span class="garam">{{ (food.salt || 0).toFixed(2) }}g</span>
+                <span class="garam">{{ Math.round(food.sodium || 0) }}mg</span>
                 <span class="label-small">garam</span>
               </div>
             </div>
@@ -103,43 +103,43 @@ const summaryData = computed(() => ({
   kalori: {
     label: 'Kalori',
     value: Math.round(foodStore.totals.calories),
-    max: authStore.user?.dailyCalorieGoal || 0,
+    max: authStore.user?.user_metadata?.dailyCalorieGoal || 2000,
     unit: 'kcal',
     class: 'kalori',
   },
   karbo: {
     label: 'Karbohidrat',
     value: Math.round(foodStore.totals.carbs),
-    max: authStore.user?.dailyCarbsGoal || 0,
+    max: authStore.user?.user_metadata?.dailyCarbsGoal || 300,
     unit: 'g',
     class: 'karbo',
   },
   protein: {
     label: 'Protein',
     value: Math.round(foodStore.totals.protein),
-    max: authStore.user?.dailyProteinGoal || 0,
+    max: authStore.user?.user_metadata?.dailyProteinGoal || 50,
     unit: 'g',
     class: 'protein',
   },
   lemak: {
     label: 'Lemak',
     value: Math.round(foodStore.totals.fat),
-    max: authStore.user?.dailyFatGoal || 0,
+    max: authStore.user?.user_metadata?.dailyFatGoal || 70,
     unit: 'g',
     class: 'lemak',
   },
   gula: {
     label: 'Gula',
     value: Math.round(foodStore.totals.sugar || 0),
-    max: 50,
+    max: authStore.user?.user_metadata?.dailySugarGoal || 50,
     unit: 'g',
     class: 'gula',
   },
   garam: {
-    label: 'Garam (Sodium)',
-    value: parseFloat((foodStore.totals.salt || 0).toFixed(2)),
-    max: 5,
-    unit: 'g',
+    label: 'Garam',
+    value: Math.round(foodStore.totals.sodium || 0),
+    max: authStore.user?.user_metadata?.dailySodiumGoal || 2000,
+    unit: 'mg',
     class: 'garam',
   },
 }))
@@ -172,7 +172,7 @@ const confirmDelete = (foodId, foodName) => {
   background-color: #e8f0fe;
   min-height: 100vh;
   padding: 40px 20px;
-  padding-top: 120px; /* Tambahan untuk navbar sticky (80px navbar + 40px spacing) */
+  padding-top: 120px;
   font-family: 'Segoe UI', sans-serif;
 }
 
@@ -387,7 +387,7 @@ const confirmDelete = (foodId, foodName) => {
 @media (max-width: 768px) {
   .dashboard {
     padding: 20px 15px;
-    padding-top: 100px; /* Sesuaikan untuk mobile */
+    padding-top: 100px;
   }
 
   .summary-grid {

@@ -1,188 +1,193 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import { useRouter } from 'vue-router';
+import { supabase } from '@/supabaseClient';
 import Swal from 'sweetalert2';
-import apiClient from '@/axios-config.js';
 
 export const useAuthStore = defineStore('auth', () => {
-  const user = ref(JSON.parse(localStorage.getItem('user')) || null);
-  const token = ref(localStorage.getItem('token') || null);
-  const router = useRouter();
+  const user = ref(null);
+  const profile = ref(null); // ✅ tambahan untuk data profil dari tabel
 
-  const isAuthenticated = computed(() => !!token.value);
+  const isAuthenticated = computed(() => !!user.value);
 
-  async function register(credentials) {
-    try {
-      const response = await apiClient.post('/api/users/register', credentials);
-      Swal.fire({
-        icon: 'success',
-        title: 'Registrasi Berhasil!',
-        text: response.data.message || 'Silakan cek email Anda untuk verifikasi.',
-      });
-      router.push('/login');
-    } catch (error) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Registrasi Gagal',
-        text: error.response?.data?.message || 'Terjadi kesalahan saat registrasi.',
-      });
-      console.error('Error registrasi:', error);
+  // ✅ Cek sesi login saat halaman di-refresh
+  async function checkSession() {
+    const { data } = await supabase.auth.getSession();
+    user.value = data.session?.user || null;
+
+    // Kalau user login, otomatis ambil profilnya
+    if (user.value) {
+      await fetchUserProfile();
     }
   }
 
+  // ✅ Update user state saat login/logout berubah
+  supabase.auth.onAuthStateChange((_event, session) => {
+    user.value = session?.user || null;
+    if (session?.user) {
+      fetchUserProfile();
+    } else {
+      profile.value = null;
+    }
+  });
+
+  // ✅ Login
   async function login(credentials) {
     try {
-      const response = await apiClient.post('/api/users/login', credentials);
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: credentials.email,
+        password: credentials.password,
+      });
+      if (error) throw error;
 
-      const data = response.data;
-      token.value = data.token;
       user.value = data.user;
-
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
-
-      Swal.fire({
-        icon: 'success',
-        title: `Selamat datang, ${data.user.name}!`,
-        text: 'Anda berhasil login.',
-        timer: 2000,
-        showConfirmButton: false,
-      });
-      router.push('/dashboard');
+      await fetchUserProfile();
+      return true;
     } catch (error) {
+      console.error('Login Error:', error.message);
       Swal.fire({
         icon: 'error',
-        title: 'Login Gagal',
-        text: error.response?.data?.message || 'Email atau password salah.',
+        title: 'Gagal Masuk',
+        text: error.message || 'Email atau password salah.',
       });
-      console.error('Error login:', error);
+      return false;
     }
   }
 
-  function logout() {
-    user.value = null;
-    token.value = null;
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    router.push('/login');
-    Swal.fire({
-      icon: 'info',
-      title: 'Logout Berhasil',
-      text: 'Anda telah keluar dari akun.',
-      timer: 1500,
-      showConfirmButton: false,
-    });
-  }
-
-  async function saveUserGoals(goals) {
+  // ✅ Register
+  async function register(credentials) {
     try {
-      const response = await apiClient.put('/api/users/goals', goals);
-      user.value = response.data;
-      localStorage.setItem('user', JSON.stringify(response.data));
+      const { error } = await supabase.auth.signUp({
+        email: credentials.email,
+        password: credentials.password,
+        options: { data: { name: credentials.name } },
+      });
+      if (error) throw error;
+
       Swal.fire({
         icon: 'success',
-        title: 'Berhasil!',
-        text: 'Target harian Anda berhasil disimpan.',
+        title: 'Berhasil Mendaftar!',
+        text: 'Silakan verifikasi email Anda sebelum login.',
       });
-      router.push('/dashboard');
+
+      return true;
     } catch (error) {
+      console.error('Register Error:', error.message);
       Swal.fire({
         icon: 'error',
-        title: 'Gagal',
-        text: 'Gagal menyimpan target harian Anda.',
+        title: 'Pendaftaran Gagal',
+        text: error.message,
       });
-      console.error('Gagal menyimpan target:', error);
+      return false;
     }
   }
 
-  async function forgotPassword(email) {
+  // ✅ Logout
+  async function logout() {
     try {
-      const response = await apiClient.post('/api/users/forgotpassword', { email });
-      Swal.fire({
-        icon: 'success',
-        title: 'Email Terkirim',
-        text: response.data.message,
-      });
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      user.value = null;
+      profile.value = null;
+      return true;
     } catch (error) {
+      console.error('Logout Error:', error.message);
       Swal.fire({
         icon: 'error',
-        title: 'Oops...',
-        text: 'Terjadi kesalahan saat mencoba mengirim email reset.',
+        title: 'Gagal Keluar',
+        text: error.message,
       });
-      console.error('Error forgotPassword:', error);
+      return false;
     }
   }
 
-  async function resetPassword({ token, password }) {
-    try {
-      const response = await apiClient.put(`/api/users/resetpassword/${token}`, { password });
-      Swal.fire({
-        icon: 'success',
-        title: 'Berhasil!',
-        text: response.data.message,
-      });
-      router.push('/login');
-    } catch (error) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Gagal',
-        text: error.response?.data?.message || 'Token tidak valid atau sudah kedaluwarsa.',
-      });
-      console.error('Error resetPassword:', error);
-    }
-  }
-
+  // ✅ Update Profil
   async function updateProfile(dataToUpdate) {
     try {
-      const response = await apiClient.put('/api/users/profile', dataToUpdate);
-      // Perbarui state user lokal dengan data lengkap dari server
-      user.value = response.data;
-      localStorage.setItem('user', JSON.stringify(user.value));
+      const { data, error } = await supabase.auth.updateUser({
+        data: dataToUpdate,
+      });
+      if (error) throw error;
 
+      user.value = data.user;
+      await fetchUserProfile(); // setelah update, ambil ulang profil
       Swal.fire({
         icon: 'success',
         title: 'Berhasil!',
         text: 'Profil Anda telah diperbarui.',
-        timer: 2000,
-        showConfirmButton: false
       });
-
-      // Jika data yang diupdate adalah target kalori, arahkan ke dashboard
-      if (dataToUpdate.dailyCalorieGoal) {
-        router.push('/dashboard');
-      }
-
     } catch (error) {
-      Swal.fire({ icon: 'error', title: 'Gagal', text: 'Gagal memperbarui profil.' });
-      console.error('Error updating profile:', error);
+      console.error('Update Profile Error:', error.message);
+      Swal.fire({
+        icon: 'error',
+        title: 'Gagal',
+        text: 'Gagal memperbarui profil.',
+      });
     }
   }
 
+  // ✅ Fetch profil dari tabel "profiles"
   async function fetchUserProfile() {
-    try {
-      const response = await apiClient.get('/api/users/profile');
-      user.value = response.data;
-      localStorage.setItem('user', JSON.stringify(user.value));
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching user profile:', error);
+    if (!user.value) return;
+
+    const { data, error } = await supabase
+      .from('profiles') // pastikan tabel ini ada di Supabase
+      .select('*')
+      .eq('id', user.value.id)
+      .single();
+
+    if (error) {
+      console.warn('Gagal mengambil profil:', error.message);
+      profile.value = null;
       return null;
     }
+
+    profile.value = data;
+    return data;
   }
 
+  // ✅ Lupa Password
+  async function forgotPassword(email) {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: 'http://localhost:5173/reset-password',
+    });
 
+    if (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Gagal',
+        text: error.message,
+      });
+    } else {
+      Swal.fire({
+        icon: 'success',
+        title: 'Email Terkirim',
+        text: 'Silakan cek email Anda untuk reset password.',
+      });
+    }
+  }
 
+  // ✅ Nama pengguna (fallback ke metadata/email)
+  const userFullName = computed(() => {
+    return (
+      profile.value?.name ||
+      user.value?.user_metadata?.name ||
+      user.value?.email ||
+      'Pengguna'
+    );
+  });
+
+  // ✅ Return semua fungsi
   return {
     user,
-    token,
+    profile,
     isAuthenticated,
+    checkSession,
     register,
     login,
     logout,
-    saveUserGoals,
-    forgotPassword,
-    resetPassword,
-    updateProfile,
     fetchUserProfile,
+    updateProfile,
+    forgotPassword,
+    userFullName,
   };
 });

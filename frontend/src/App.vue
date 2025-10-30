@@ -15,7 +15,7 @@
       </div>
 
       <div v-else class="nav-links">
-        <span class="welcome-text">Halo, {{ authStore.user?.name }}</span>
+        <span class="welcome-text">Halo, {{ user?.user_metadata?.name || 'Pengguna' }}</span>
         <router-link to="/" class="nav-button">Home</router-link>
 
         <router-link to="/dashboard" class="nav-button">Dashboard</router-link>

@@ -12,7 +12,7 @@ app.use(express.json());
 app.use(cors());
 
 // Arahkan semua permintaan ke /api/users ke "loket" users.js
-app.use('/api/users', require('./routes/users'));
+
 app.use('/api/foods', require('./routes/foods')); 
 
 app.get('/', (req, res) => {

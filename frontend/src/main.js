@@ -1,23 +1,18 @@
 // frontend/src/main.js
-
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
-
-// 1. Impor library SweetAlert2 dan CSS-nya
-import VueSweetalert2 from 'vue-sweetalert2';
-import 'sweetalert2/dist/sweetalert2.min.css';
-// Global stylesheet for the app (ensure main/global styles are included)
-import '@/assets/main.css';
-
 import App from './App.vue'
 import router from './router'
 
+// Hapus import authStore dari sini
+
 const app = createApp(App)
 
+// 1. Gunakan Pinia DULU
 app.use(createPinia())
+// 2. BARU Gunakan Router
 app.use(router)
 
-// 2. Gunakan plugin SweetAlert2
-app.use(VueSweetalert2)
-
+// 3. Terakhir, mount aplikasi
 app.mount('#app')
+

@@ -10,6 +10,51 @@ const parseNumber = (value) => {
   return isNaN(num) ? 0 : num;
 };
 
+// Try many possible image fields that OpenFoodFacts or local DB might return
+const extractImageUrl = (product) => {
+  if (!product || typeof product !== 'object') return null;
+
+  const candidates = [
+    'imageUrl',
+    'image_url',
+    'image',
+    'image_front_url',
+    'image_front_small_url',
+    'image_front_thumb_url',
+    'image_small_url',
+    'image_thumb_url',
+    'image_front',
+  ];
+
+  for (const key of candidates) {
+    if (product[key]) return product[key];
+  }
+
+  // OpenFoodFacts v2/v0 sometimes nests images under selected_images or images
+  // v2: selected_images.front.display.en (preferred)
+  if (product.selected_images && product.selected_images.front && product.selected_images.front.display) {
+    const disp = product.selected_images.front.display;
+    if (disp.en) return disp.en;
+    const first = Object.values(disp)[0];
+    if (first) return first;
+  }
+
+  // older formats: images.front.small or images.front.thumb
+  if (product.images && product.images.front) {
+    const front = product.images.front;
+    if (front.small && front.small.url) return front.small.url;
+    if (front.thumb && front.thumb.url) return front.thumb.url;
+    if (front.display && front.display.en) return front.display.en;
+  }
+
+  // _images or other nested keys
+  if (product._images && product._images.front && product._images.front.small && product._images.front.small.url) {
+    return product._images.front.small.url;
+  }
+
+  return null;
+};
+
 export const useFoodStore = defineStore('food', () => {
   // STATE
   const foods = ref([]);
@@ -86,7 +131,39 @@ export const useFoodStore = defineStore('food', () => {
     try {
       // Coba ambil dari backend terlebih dahulu
       const response = await apiClient.get(`/api/foods/barcode/${barcode}`);
-      searchedFood.value = response.data;
+
+      // Backend historically returned either { product: {...} } or the product object directly.
+      // Normalize both shapes into the `searchedFood` shape the frontend expects.
+      const normalizeProduct = (data) => {
+        if (!data) return null;
+        // If backend wrapped as { product }
+        const product = data.product ? data.product : data;
+
+        // If this is already a saved Food object (from our DB), prefer its camelCase fields
+        const nutriments = product.nutriments || {};
+
+        const caloriesVal = product.calories ?? nutriments.energy_kcal_100g ?? nutriments['energy-kcal_100g'] ?? nutriments.energy_100g ?? null;
+        const proteinVal = product.protein ?? nutriments.proteins_100g ?? nutriments['proteins_100g'] ?? null;
+        const carbsVal = product.carbs ?? product.carbohydrates ?? nutriments.carbohydrates_100g ?? nutriments['carbohydrates_100g'] ?? null;
+        const fatVal = product.fat ?? nutriments.fat_100g ?? nutriments['fat_100g'] ?? null;
+        const sugarVal = product.sugar ?? nutriments.sugars_100g ?? nutriments['sugars_100g'] ?? null;
+        const saltVal = product.salt ?? nutriments.salt_100g ?? nutriments['salt_100g'] ?? nutriments.sodium_100g ?? null;
+
+        return {
+          productName: product.productName || product.product_name || product.name || '',
+          calories: parseNumber(caloriesVal),
+          protein: parseNumber(proteinVal),
+          carbs: parseNumber(carbsVal),
+          fat: parseNumber(fatVal),
+          sugar: parseNumber(sugarVal),
+          salt: parseNumber(saltVal),
+    imageUrl: extractImageUrl(product) || null,
+          // include raw product in case callers want original shape
+          _raw: product
+        };
+      };
+
+      searchedFood.value = normalizeProduct(response.data);
       Swal.fire({
         icon: 'info',
         title: 'Produk Ditemukan!',
@@ -101,18 +178,18 @@ export const useFoodStore = defineStore('food', () => {
 
         if (offResponse.data && offResponse.data.status === 1) {
           const product = offResponse.data.product;
-          const nutriments = product.nutriments || {};
 
-          // Menggunakan fungsi bantuan untuk memastikan semua nilai adalah angka
+          // Normalize the OpenFoodFacts product into the same shape
           searchedFood.value = {
-            productName: product.product_name || 'Nama tidak ditemukan',
-            calories: parseNumber(nutriments.energy_kcal_100g || nutriments['energy-kcal_100g']),
-            protein: parseNumber(nutriments.proteins_100g),
-            carbs: parseNumber(nutriments.carbohydrates_100g),
-            fat: parseNumber(nutriments.fat_100g),
-            sugar: parseNumber(nutriments.sugars_100g),
-            salt: parseNumber(nutriments.salt_100g),
-            imageUrl: product.image_url || null
+            productName: product.product_name || product.productName || 'Nama tidak ditemukan',
+            calories: parseNumber(product.nutriments?.energy_kcal_100g || product.nutriments?.['energy-kcal_100g'] || product.nutriments?.energy_100g),
+            protein: parseNumber(product.nutriments?.proteins_100g),
+            carbs: parseNumber(product.nutriments?.carbohydrates_100g),
+            fat: parseNumber(product.nutriments?.fat_100g),
+            sugar: parseNumber(product.nutriments?.sugars_100g),
+            salt: parseNumber(product.nutriments?.salt_100g),
+            imageUrl: extractImageUrl(product) || null,
+            _raw: product
           };
 
           Swal.fire({
@@ -192,16 +269,57 @@ export const useFoodStore = defineStore('food', () => {
     }
   }
 
-  //fungsi AI
+  // Analisis AI: Minta analisis gizi dari backend yang menggunakan Google Generative AI
   async function analyzeFood(foodData) {
     analysisResult.value = null;
     analysisLoading.value = true;
 
     try {
-      const response = await apiClient.post('/api/foods/analyze', { foodData });
+      // Siapkan data untuk dikirim (backend membutuhkan properti: productName, calories, protein, dll)
+      const payload = {
+        productName: foodData.productName || foodData.product_name || '',
+        calories: foodData.calories ?? 0,
+        protein: foodData.protein ?? 0,
+        carbs: foodData.carbs ?? foodData.carbohydrates ?? 0,
+        fat: foodData.fat ?? 0,
+        sugar: foodData.sugar ?? 0,
+        salt: foodData.salt ?? 0,
+      };
+
+  // Pilih endpoint: jika ada token gunakan endpoint yang dilindungi (/analyze),
+  // jika tidak ada token gunakan endpoint pengujian yang tidak dilindungi (/analyze-test)
+  const token = localStorage.getItem('token');
+  const endpoint = token ? '/api/foods/analyze' : '/api/foods/analyze-test';
+  const response = await apiClient.post(endpoint, payload);
+
+      // Backend mengembalikan objek terstruktur (jika berhasil di-parse)
+      // atau teks (fallback). Set ke state untuk ditampilkan.
       analysisResult.value = response.data.analysis;
+
+      // Tampilkan pesan sukses kecil jika berhasil
+      if (response.data.analysis) {
+        Swal.fire({
+          icon: 'success',
+          title: 'Analisis Selesai',
+          text: 'Analisis nutrisi berhasil dimuat.',
+          timer: 1500,
+          showConfirmButton: false,
+          position: 'bottom-end'
+        });
+      }
     } catch (error) {
-      analysisResult.value = 'Gagal menganalisis data makanan.';
+      // Tampilkan pesan error yang lebih spesifik ke pengguna
+      console.error('Gagal menganalisis:', error);
+      analysisResult.value = 'Gagal menganalisis data makanan. Silakan coba lagi nanti.';
+
+      // Jika backend mengirim pesan yang jelas, tampilkan; jika tidak, fallback ke status text
+      const serverMsg = error.response?.data?.error || error.response?.data?.message || error.message;
+      Swal.fire({
+        icon: 'error',
+        title: 'Gagal Menganalisis',
+        text: serverMsg || 'Terjadi kesalahan saat menganalisis makanan.',
+        timer: 4000
+      });
     } finally {
       analysisLoading.value = false;
     }
