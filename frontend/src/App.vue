@@ -15,7 +15,7 @@
       </div>
 
       <div v-else class="nav-links">
-        <span class="welcome-text">Halo, {{ user?.user_metadata?.name || 'Pengguna' }}</span>
+        <span class="welcome-text">Halo, {{ authStore.userFullName }}</span>
         <router-link to="/" class="nav-button">Home</router-link>
 
         <router-link to="/dashboard" class="nav-button">Dashboard</router-link>
@@ -33,13 +33,15 @@
 </template>
 
 <script setup>
-import { RouterLink, RouterView } from 'vue-router';
+import { RouterLink, RouterView, useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 
 const authStore = useAuthStore();
+const router = useRouter()
 
-const handleLogout = () => {
-  authStore.logout();
+const handleLogout = async () => {
+  await authStore.logout()
+  router.push('/login')
 };
 </script>
 

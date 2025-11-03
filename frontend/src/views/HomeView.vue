@@ -1,94 +1,137 @@
 <template>
-  <div class="home-container">
-    <!-- Hero Section -->
-    <section class="hero-section">
-      <div class="hero-bg-decoration">
-        <div class="decoration-circle decoration-1"></div>
-        <div class="decoration-circle decoration-2"></div>
-        <div class="decoration-circle decoration-3"></div>
+  <div class="min-h-screen bg-white pt-20">
+
+    <!-- HERO SECTION -->
+    <section class="relative bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 overflow-hidden py-24">
+      <!-- Background Decorations -->
+      <div class="absolute inset-0 overflow-hidden">
+        <div class="absolute w-[500px] h-[500px] bg-blue-500 rounded-full opacity-20 blur-[60px] -top-[200px] -right-[200px]"></div>
+        <div class="absolute w-[600px] h-[600px] bg-purple-500 rounded-full opacity-20 blur-[60px] top-[40%] -left-[250px]"></div>
+        <div class="absolute w-[400px] h-[400px] bg-indigo-500 rounded-full opacity-20 blur-[60px] bottom-[10%] right-[10%]"></div>
       </div>
 
-      <div class="container">
-        <div class="hero-grid">
-          <!-- Left Content -->
-          <div class="hero-content">
-
-            <h1 class="hero-title">
-              Selamat datang di <span class="brand-name">ScanBar</span>
+      <div class="max-w-7xl mx-auto px-4">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center relative z-10">
+          <!-- Hero Content -->
+          <div class="flex flex-col gap-6">
+            <h1 class="text-4xl md:text-5xl lg:text-6xl font-extrabold text-slate-800 leading-tight">
+              Selamat datang di
+              <span class="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                ScanBar
+              </span>
             </h1>
 
-            <p class="hero-description">
-              Scan barcode pada kemasan makanan & minuman untuk mendapatkan informasi nutrisi lengkap.
-              Pantau asupan harian dengan mudah dan capai target kesehatan Anda.
+            <p class="text-lg text-slate-600 leading-relaxed">
+              Scan barcode pada kemasan makanan & minuman untuk mendapatkan informasi nutrisi lengkap. Pantau asupan harian dengan mudah dan capai target kesehatan Anda.
             </p>
 
-            <div class="hero-buttons">
-              <button @click="scrollToScanner" class="btn-primary">
-                <span class="icon">📷</span> Mulai Pindai Sekarang
+            <div class="flex gap-4 flex-wrap">
+              <button
+                @click="scrollToScanner"
+                class="px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-bold text-base shadow-lg shadow-blue-500/30 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-blue-500/40 transition-all duration-300 inline-flex items-center gap-2"
+              >
+                <span>📷</span> Mulai Pindai Sekarang
               </button>
-              <router-link v-if="!authStore.isAuthenticated" to="/register" class="btn-secondary">
+
+              <router-link
+                v-if="!authStore.isAuthenticated"
+                to="/register"
+                class="px-8 py-4 bg-white/50 backdrop-blur-md text-slate-700 rounded-xl font-bold text-base border-2 border-slate-300 hover:bg-white hover:border-blue-600 transition-all duration-300 inline-flex items-center gap-2"
+              >
                 Daftar Gratis
               </router-link>
             </div>
           </div>
 
-          <!-- Right Image -->
-          <div class="hero-image">
-            <div class="image-wrapper">
+          <!-- Hero Image -->
+          <div class="hidden lg:block relative">
+            <div class="relative z-10">
               <img
-                src="https://images.unsplash.com/photo-1607619056574-7b8d3ee536b2?w=600&h=600&fit=crop"
+                src="https://flexypack.com/wp-content/uploads/2021/11/Contoh-Kemasan-Standing-Pouch-Snack-Makanan-Ringan-1024x627.jpg"
                 alt="Barcode scanning"
-                class="product-image"
+                class="w-full h-[500px] object-cover rounded-3xl shadow-2xl"
               />
+              <div class="absolute top-8 -left-8 w-32 h-32 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-3xl opacity-20 blur-[40px]"></div>
             </div>
-            <div class="image-decoration"></div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- How It Works Section -->
-    <section class="how-it-works-section">
-      <div class="section-bg-gradient"></div>
+    <!-- HOW IT WORKS SECTION -->
+    <section id="how-it-works" class="relative py-20 bg-white">
+      <div class="absolute inset-0 bg-gradient-to-b from-blue-50 via-white to-white opacity-50"></div>
 
-      <div class="container">
-        <div class="section-header">
-          <div class="section-badge">Cara Kerja</div>
-          <h2 class="section-title">Tiga Langkah Mudah</h2>
-          <p class="section-subtitle">
+      <div class="max-w-7xl mx-auto px-4 relative z-10">
+        <!-- Section Header -->
+        <div class="text-center mb-16">
+          <span class="inline-block bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-full font-semibold text-sm shadow-lg shadow-blue-500/30 mb-4">
+            Cara Kerja
+          </span>
+
+          <h2 class="text-4xl md:text-5xl font-extrabold text-slate-800 mb-4">
+            Tiga Langkah Mudah
+          </h2>
+
+          <p class="text-lg text-slate-600 max-w-2xl mx-auto">
             Mulai tracking nutrisi harian Anda dengan proses yang simpel dan cepat
           </p>
         </div>
 
-        <div class="steps-grid">
-          <div class="step-card step-1">
-            <div class="step-decoration"></div>
-            <div class="step-content">
-              <div class="step-number">1</div>
-              <h3 class="step-title">Scan Barcode</h3>
-              <p class="step-description">
+        <!-- Steps Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <!-- Step 1 -->
+          <div class="bg-white p-8 rounded-2xl shadow-lg border border-slate-100 relative overflow-hidden hover:-translate-y-2 hover:shadow-2xl transition-all duration-200 group">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-blue-500 rounded-full -mr-16 -mt-16 opacity-10 group-hover:scale-150 transition-transform duration-500"></div>
+
+            <div class="relative z-10">
+              <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-3xl font-extrabold text-white mb-6 shadow-lg shadow-blue-500/30">
+                1
+              </div>
+
+              <h3 class="text-2xl font-bold text-slate-800 mb-3">
+                Scan Barcode
+              </h3>
+
+              <p class="text-slate-600 leading-relaxed text-[15px]">
                 Arahkan kamera ke barcode produk makanan atau masukkan kode secara manual
               </p>
             </div>
           </div>
 
-          <div class="step-card step-2">
-            <div class="step-decoration"></div>
-            <div class="step-content">
-              <div class="step-number">2</div>
-              <h3 class="step-title">Lihat Info Nutrisi</h3>
-              <p class="step-description">
+          <!-- Step 2 -->
+          <div class="bg-white p-8 rounded-2xl shadow-lg border border-slate-100 relative overflow-hidden hover:-translate-y-2 hover:shadow-2xl transition-all duration-200 group">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-indigo-500 rounded-full -mr-16 -mt-16 opacity-10 group-hover:scale-150 transition-transform duration-500"></div>
+
+            <div class="relative z-10">
+              <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center text-3xl font-extrabold text-white mb-6 shadow-lg shadow-indigo-500/30">
+                2
+              </div>
+
+              <h3 class="text-2xl font-bold text-slate-800 mb-3">
+                Lihat Info Nutrisi
+              </h3>
+
+              <p class="text-slate-600 leading-relaxed text-[15px]">
                 Dapatkan informasi lengkap kalori, protein, karbohidrat, dan lemak secara instan
               </p>
             </div>
           </div>
 
-          <div class="step-card step-3">
-            <div class="step-decoration"></div>
-            <div class="step-content">
-              <div class="step-number">3</div>
-              <h3 class="step-title">Pantau Konsumsi</h3>
-              <p class="step-description">
+          <!-- Step 3 -->
+          <div class="bg-white p-8 rounded-2xl shadow-lg border border-slate-100 relative overflow-hidden hover:-translate-y-2 hover:shadow-2xl transition-all duration-200 group">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-purple-500 rounded-full -mr-16 -mt-16 opacity-10 group-hover:scale-150 transition-transform duration-500"></div>
+
+            <div class="relative z-10">
+              <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center text-3xl font-extrabold text-white mb-6 shadow-lg shadow-purple-500/30">
+                3
+              </div>
+
+              <h3 class="text-2xl font-bold text-slate-800 mb-3">
+                Pantau Konsumsi
+              </h3>
+
+              <p class="text-slate-600 leading-relaxed text-[15px]">
                 Simpan data makanan dan pantau asupan nutrisi harian Anda di dashboard
               </p>
             </div>
@@ -97,171 +140,238 @@
       </div>
     </section>
 
-    <!-- Scanner Section -->
-    <section class="scanner-section" ref="scannerSection">
-      <div class="scanner-bg-decoration">
-        <div class="decoration-blob blob-1"></div>
-        <div class="decoration-blob blob-2"></div>
+    <!-- SCANNER SECTION -->
+    <section ref="scannerSection" class="relative py-24 bg-white">
+      <!-- Background Decorations -->
+      <div class="absolute inset-0 z-0">
+        <div class="absolute w-[400px] h-[400px] bg-blue-200 rounded-full blur-[60px] opacity-20 top-20 left-10"></div>
+        <div class="absolute w-[400px] h-[400px] bg-purple-200 rounded-full blur-[60px] opacity-20 bottom-20 right-10"></div>
       </div>
 
-      <div class="container">
-        <div class="section-header">
-          <div class="scanner-badge">
+      <div class="max-w-7xl mx-auto px-4 relative z-10">
+        <div class="text-center mb-12">
+          <div class="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-full font-semibold shadow-lg shadow-blue-500/30 mb-6 text-base">
             <span>📱</span>
             <span>Mudah & Cepat</span>
           </div>
-          <h2 class="section-title">Scan Barcode Kemasan Produk</h2>
-          <p class="section-subtitle">
+
+          <h2 class="text-4xl md:text-5xl font-extrabold text-slate-800 mb-4">
+            Scan Barcode Kemasan Produk
+          </h2>
+
+          <p class="text-lg text-slate-600 max-w-2xl mx-auto">
             Pilih metode scan favorit untuk mendapatkan informasi nutrisi dari kemasan makanan & minuman
           </p>
         </div>
 
-        <div class="scan-card">
+        <div class="bg-white p-6 rounded-2xl shadow-xl max-w-4xl w-full mx-auto border border-slate-100">
           <!-- Tabs -->
-          <div class="tabs-container">
-            <button @click="changeTab('manual')" :class="['tab-button', { active: activeTab === 'manual' }]">
-              <span class="tab-icon">📝</span>
-              <span class="tab-text">Manual</span>
+          <div class="grid grid-cols-3 gap-2 bg-white border border-slate-200 rounded-2xl p-2 mb-8">
+            <button
+              @click="changeTab('manual')"
+              :class="[
+                'flex flex-col items-center justify-center gap-2 p-4 rounded-xl font-semibold transition-all duration-300',
+                activeTab === 'manual'
+                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/40'
+                  : 'bg-transparent text-slate-600 hover:bg-slate-50'
+              ]"
+            >
+              <span class="text-2xl">📝</span>
+              <span class="text-sm">Manual</span>
             </button>
-            <button @click="changeTab('camera')" :class="['tab-button', { active: activeTab === 'camera' }]">
-              <span class="tab-icon">📷</span>
-              <span class="tab-text">Kamera</span>
+
+            <button
+              @click="changeTab('camera')"
+              :class="[
+                'flex flex-col items-center justify-center gap-2 p-4 rounded-xl font-semibold transition-all duration-300',
+                activeTab === 'camera'
+                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/40'
+                  : 'bg-transparent text-slate-600 hover:bg-slate-50'
+              ]"
+            >
+              <span class="text-2xl">📷</span>
+              <span class="text-sm">Kamera</span>
             </button>
-            <button @click="changeTab('upload')" :class="['tab-button', { active: activeTab === 'upload' }]">
-              <span class="tab-icon">⬆️</span>
-              <span class="tab-text">Upload</span>
+
+            <button
+              @click="changeTab('upload')"
+              :class="[
+                'flex flex-col items-center justify-center gap-2 p-4 rounded-xl font-semibold transition-all duration-300',
+                activeTab === 'upload'
+                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/40'
+                  : 'bg-transparent text-slate-600 hover:bg-slate-50'
+              ]"
+            >
+              <span class="text-2xl">⬆️</span>
+              <span class="text-sm">Upload</span>
             </button>
           </div>
 
           <!-- Tab Content -->
-          <div class="tab-content">
+          <div class="min-h-[300px]">
             <!-- Manual Tab -->
-            <div v-if="activeTab === 'manual'" class="tab-panel">
+            <div v-if="activeTab === 'manual'" class="animate-fade-in">
               <div v-if="!isScanning">
-                <form @submit.prevent="handleSearch" class="search-form">
-                  <label for="barcode" class="form-label">Input Kode Barcode dari Kemasan</label>
-                  <div class="input-wrapper">
+                <form @submit.prevent="handleSearch" class="flex flex-col gap-6">
+                  <label class="block font-semibold text-base text-slate-800">
+                    Input Kode Barcode dari Kemasan
+                  </label>
+
+                  <div class="flex flex-col gap-3">
                     <input
-                      type="text"
-                      id="barcode"
                       v-model="barcodeInput"
+                      type="text"
                       placeholder="Contoh: 8992761111113"
-                      class="form-input"
+                      class="w-full px-5 py-4 border-2 border-slate-200 rounded-xl text-base focus:outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-600/10 transition-all duration-300"
                       required
                     />
-                    <button type="submit" class="submit-button">
-                      <span class="icon">🔍</span> Cari Produk
-                    </button>
+
+                    <p v-if="cameraError" class="text-sm text-red-600">
+                      {{ cameraError }}
+                    </p>
                   </div>
-                  <div v-if="cameraError" class="error-message">
-                    <p>{{ cameraError }}</p>
-                  </div>
+
+                  <button
+                    type="submit"
+                    class="w-full px-6 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-bold text-base hover:-translate-y-0.5 hover:shadow-xl hover:shadow-blue-500/40 transition-all duration-300 flex items-center justify-center gap-2 shadow-md shadow-blue-500/30"
+                  >
+                    <span>🔍</span> Cari Produk
+                  </button>
                 </form>
               </div>
 
-              <div v-else class="camera-active">
-                <qrcode-stream @decode="onDecode" @init="onInit" class="camera-stream"></qrcode-stream>
-                <div v-if="cameraError" class="camera-error">
-                  <p>{{ cameraError }}</p>
-                </div>
-                <div class="camera-controls">
-                  <button @click="stopCamera" class="camera-stop-button">
-                    <span class="icon">❌</span> Tutup Kamera
-                  </button>
-                </div>
-                <p class="camera-instruction">
+              <div v-else class="flex flex-col gap-4">
+                <qrcode-stream @decode="onDecode" @init="onInit" class="w-full h-[400px] rounded-xl overflow-hidden bg-black"></qrcode-stream>
+
+                <p v-if="cameraError" class="p-8 bg-red-50 border border-red-200 rounded-xl text-red-600 text-center">
+                  {{ cameraError }}
+                </p>
+
+                <button
+                  @click="stopCamera"
+                  class="w-full px-4 py-3 bg-white text-slate-700 border-2 border-slate-300 rounded-xl font-bold hover:bg-slate-50 hover:border-slate-400 transition-all duration-300 flex items-center justify-center gap-2"
+                >
+                  <span>❌</span> Tutup Kamera
+                </button>
+
+                <p class="text-center text-sm text-slate-600">
                   📍 Posisikan barcode di dalam frame untuk hasil terbaik
                 </p>
               </div>
             </div>
 
             <!-- Camera Tab -->
-            <div v-if="activeTab === 'camera'" class="tab-panel">
-              <div v-if="!isScanning" class="camera-placeholder" @click="startCamera">
-                <div class="camera-icon-wrapper">
-                  <span class="camera-icon">📷</span>
+            <div v-if="activeTab === 'camera'" class="animate-fade-in">
+              <div v-if="!isScanning">
+                <div
+                  @click="startCamera"
+                  class="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-dashed border-blue-300 rounded-3xl py-16 px-8 text-center cursor-pointer hover:border-blue-600 hover:bg-gradient-to-br hover:from-blue-100 hover:to-purple-100 hover:shadow-lg hover:shadow-blue-500/15 transition-all duration-300"
+                >
+                  <div class="w-20 h-20 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-blue-500/30">
+                    <span class="text-white text-4xl">📷</span>
+                  </div>
+
+                  <h3 class="text-2xl font-bold text-slate-800 mb-3">
+                    Aktifkan Kamera
+                  </h3>
+
+                  <p class="text-base text-slate-600 mb-4 max-w-md mx-auto">
+                    Klik untuk mengaktifkan kamera dan scan barcode pada kemasan produk
+                  </p>
+
+                  <p class="text-sm text-slate-500">
+                    📱 Pastikan izin kamera diaktifkan
+                  </p>
                 </div>
-                <h3 class="placeholder-title">Aktifkan Kamera</h3>
-                <p class="placeholder-description">
-                  Klik untuk mengaktifkan kamera dan scan barcode pada kemasan produk
-                </p>
-                <p class="placeholder-note">
-                  📱 Pastikan izin kamera diaktifkan
-                </p>
               </div>
 
-              <div v-else class="camera-active">
-                <qrcode-stream @decode="onDecode" @init="onInit" class="camera-stream"></qrcode-stream>
-                <div v-if="cameraError" class="camera-error">
-                  <p>{{ cameraError }}</p>
-                </div>
-                <div class="camera-controls">
-                  <button @click="stopCamera" class="camera-stop-button">
-                    <span class="icon">❌</span> Tutup Kamera
-                  </button>
-                </div>
-                <p class="camera-instruction">
+              <div v-else class="flex flex-col gap-4">
+                <qrcode-stream @decode="onDecode" @init="onInit" class="w-full h-[400px] rounded-xl overflow-hidden bg-black"></qrcode-stream>
+
+                <p v-if="cameraError" class="p-8 bg-red-50 border border-red-200 rounded-xl text-red-600 text-center">
+                  {{ cameraError }}
+                </p>
+
+                <button
+                  @click="stopCamera"
+                  class="w-full px-4 py-3 bg-white text-slate-700 border-2 border-slate-300 rounded-xl font-bold hover:bg-slate-50 hover:border-slate-400 transition-all duration-300 flex items-center justify-center gap-2"
+                >
+                  <span>❌</span> Tutup Kamera
+                </button>
+
+                <p class="text-center text-sm text-slate-600">
                   📍 Posisikan barcode di dalam frame untuk hasil terbaik
                 </p>
               </div>
             </div>
 
             <!-- Upload Tab -->
-            <div v-if="activeTab === 'upload'" class="tab-panel">
-              <label class="form-label">Upload Foto Barcode Kemasan</label>
+            <div v-if="activeTab === 'upload'" class="animate-fade-in">
+              <label class="block font-semibold text-base text-slate-800 mb-4">
+                Upload Foto Barcode Kemasan
+              </label>
 
               <input
                 type="file"
                 @change="onFileChange"
                 ref="fileInput"
                 accept="image/*"
-                style="display: none;"
+                class="hidden"
               />
 
-              <div v-if="!uploadedImage" class="upload-placeholder" @click="triggerFileInput">
-                <div class="upload-icon-wrapper">
-                  <span class="upload-icon">⬆️</span>
+              <div v-if="!uploadedImage">
+                <div
+                  @click="triggerFileInput"
+                  class="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-dashed border-blue-300 rounded-3xl py-16 px-8 text-center cursor-pointer hover:border-blue-600 hover:bg-gradient-to-br hover:from-blue-100 hover:to-purple-100 hover:shadow-lg hover:shadow-blue-500/15 transition-all duration-300"
+                >
+                  <div class="w-20 h-20 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-blue-500/30">
+                    <span class="text-white text-4xl">⬆️</span>
+                  </div>
+
+                  <h3 class="text-2xl font-bold text-slate-800 mb-3">
+                    Upload Foto Barcode
+                  </h3>
+
+                  <p class="text-base text-slate-600 mb-4 max-w-md mx-auto">
+                    Pilih foto barcode yang sudah Anda ambil dari kemasan produk
+                  </p>
+
+                  <p class="text-sm text-slate-500">
+                    📄 Format: JPG, PNG (Max 5MB)
+                  </p>
                 </div>
-                <h3 class="placeholder-title">Upload Foto Barcode</h3>
-                <p class="placeholder-description">
-                  Pilih foto barcode yang sudah Anda ambil dari kemasan produk
-                </p>
-                <p class="placeholder-note">
-                  📄 Format: JPG, PNG (Max 5MB)
-                </p>
               </div>
 
-              <div v-else class="uploaded-preview">
-                <img :src="uploadedImage" alt="Uploaded barcode" class="preview-image" />
-                <button @click="clearUpload" class="change-button">
-                  <span class="icon">⬆️</span> Upload Foto Lain
+              <div v-else class="flex flex-col gap-4">
+                <img :src="uploadedImage" alt="Uploaded barcode" class="w-full h-[300px] object-cover rounded-xl bg-slate-100" />
+
+                <button
+                  @click="clearUpload"
+                  class="w-full px-4 py-3 bg-white text-slate-700 border-2 border-slate-300 rounded-xl font-bold hover:bg-slate-50 hover:border-blue-600 hover:text-blue-600 transition-all duration-300 flex items-center justify-center gap-2"
+                >
+                  <span>⬆️</span> Upload Foto Lain
                 </button>
               </div>
 
-              <p v-if="uploadError" class="upload-message">{{ uploadError }}</p>
+              <p v-if="uploadError" class="mt-4 text-center text-blue-600 font-semibold">
+                {{ uploadError }}
+              </p>
             </div>
           </div>
 
-          <!-- Results -->
-          <div v-if="foodStore.searchedFood" class="results-section">
-            <div v-if="foodStore.searchedFood.imageUrl" class="result-image-wrapper">
+          <!-- Results Section -->
+          <div v-if="foodStore.searchedFood" class="mt-8 pt-8 border-t-2 border-slate-100">
+            <!-- Product Image -->
+            <div class="w-full max-w-md mx-auto mb-6">
               <img
-                :src="foodStore.searchedFood.imageUrl"
+                v-if="imageSrcValue && !imageLoadFailed"
+                :src="imageSrcValue"
                 :alt="foodStore.searchedFood.productName"
-                class="result-image"
+                @error="onImageError"
+                class="w-full h-[300px] object-contain rounded-xl shadow-lg bg-white"
               />
-            </div>
-
-            <!-- Improved image rendering: try multiple fields and show placeholder when missing -->
-            <div v-else class="result-image-wrapper">
-        <img v-if="imageSrcValue && !imageLoadFailed"
-          :src="imageSrcValue"
-          :alt="foodStore.searchedFood.productName"
-          class="result-image"
-          @error="onImageError" />
-              <div v-else class="result-image placeholder">
-                <!-- simple inline SVG placeholder -->
-                <svg width="100%" height="100%" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="no image">
+              <div v-else class="w-full h-[300px] bg-slate-100 rounded-xl flex items-center justify-center">
+                <svg width="100%" height="100%" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
                   <rect width="100%" height="100%" fill="#f1f5f9" />
                   <g fill="#cbd5e1">
                     <rect x="40" y="80" width="320" height="160" rx="12" />
@@ -272,144 +382,184 @@
               </div>
             </div>
 
-            <h2 class="result-title">{{ foodStore.searchedFood.productName }}</h2>
-            <p class="result-subtitle">Informasi Nilai Gizi per Sajian</p>
+            <h2 class="text-3xl font-extrabold text-slate-800 text-center mb-2">
+              {{ foodStore.searchedFood.productName }}
+            </h2>
 
-            <div class="nutrients-grid">
-              <div class="nutrient-card calories">
-                <p class="nutrient-label">Kalori</p>
-                <p class="nutrient-value">{{ Math.round(foodStore.searchedFood.calories) }}</p>
-                <p class="nutrient-unit">kcal</p>
+            <p class="text-base text-slate-600 text-center mb-8">
+              Informasi Nilai Gizi per Sajian
+            </p>
+
+            <!-- Nutrients Grid -->
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
+              <!-- Calories -->
+              <div class="bg-gradient-to-br from-amber-50 to-amber-100 border-2 border-amber-400 p-6 rounded-2xl text-center hover:-translate-y-1 hover:shadow-xl transition-all duration-300">
+                <p class="text-sm font-semibold text-slate-600 uppercase tracking-wide mb-2">Kalori</p>
+                <p class="text-4xl font-extrabold text-slate-800 mb-1">{{ Math.round(foodStore.searchedFood.calories) }}</p>
+                <p class="text-sm text-slate-500">kcal</p>
               </div>
-              <div class="nutrient-card carbs">
-                <p class="nutrient-label">Karbohidrat</p>
-                <p class="nutrient-value">{{ Math.round(foodStore.searchedFood.carbs) }}</p>
-                <p class="nutrient-unit">gram</p>
+
+              <!-- Carbs -->
+              <div class="bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-blue-400 p-6 rounded-2xl text-center hover:-translate-y-1 hover:shadow-xl transition-all duration-300">
+                <p class="text-sm font-semibold text-slate-600 uppercase tracking-wide mb-2">Karbohidrat</p>
+                <p class="text-4xl font-extrabold text-slate-800 mb-1">{{ Math.round(foodStore.searchedFood.carbs) }}</p>
+                <p class="text-sm text-slate-500">gram</p>
               </div>
-              <div class="nutrient-card protein">
-                <p class="nutrient-label">Protein</p>
-                <p class="nutrient-value">{{ Math.round(foodStore.searchedFood.protein) }}</p>
-                <p class="nutrient-unit">gram</p>
+
+              <!-- Protein -->
+              <div class="bg-gradient-to-br from-pink-50 to-pink-100 border-2 border-pink-400 p-6 rounded-2xl text-center hover:-translate-y-1 hover:shadow-xl transition-all duration-300">
+                <p class="text-sm font-semibold text-slate-600 uppercase tracking-wide mb-2">Protein</p>
+                <p class="text-4xl font-extrabold text-slate-800 mb-1">{{ Math.round(foodStore.searchedFood.protein) }}</p>
+                <p class="text-sm text-slate-500">gram</p>
               </div>
-              <div class="nutrient-card fat">
-                <p class="nutrient-label">Lemak</p>
-                <p class="nutrient-value">{{ Math.round(foodStore.searchedFood.fat) }}</p>
-                <p class="nutrient-unit">gram</p>
+
+              <!-- Fat -->
+              <div class="bg-gradient-to-br from-purple-50 to-purple-100 border-2 border-purple-400 p-6 rounded-2xl text-center hover:-translate-y-1 hover:shadow-xl transition-all duration-300">
+                <p class="text-sm font-semibold text-slate-600 uppercase tracking-wide mb-2">Lemak</p>
+                <p class="text-4xl font-extrabold text-slate-800 mb-1">{{ Math.round(foodStore.searchedFood.fat) }}</p>
+                <p class="text-sm text-slate-500">gram</p>
               </div>
-              <div class="nutrient-card sodium">
-                <p class="nutrient-label">Garam</p>
-                <p class="nutrient-value">{{ Math.round(foodStore.searchedFood.sodium || 0) }}</p>
-                <p class="nutrient-unit">mg</p>
+
+              <!-- Sodium -->
+              <div class="bg-gradient-to-br from-orange-50 to-orange-100 border-2 border-orange-400 p-6 rounded-2xl text-center hover:-translate-y-1 hover:shadow-xl transition-all duration-300">
+                <p class="text-sm font-semibold text-slate-600 uppercase tracking-wide mb-2">Garam</p>
+                <p class="text-4xl font-extrabold text-slate-800 mb-1">{{ Math.round((foodStore.searchedFood?.salt || 0) * 1000) }}</p>
+                <p class="text-sm text-slate-500">mg</p>
               </div>
-              <div class="nutrient-card sugar">
-                <p class="nutrient-label">Gula</p>
-                <p class="nutrient-value">{{ Math.round(foodStore.searchedFood.sugar || 0) }}</p>
-                <p class="nutrient-unit">gram</p>
+
+              <!-- Sugar -->
+              <div class="bg-gradient-to-br from-pink-50 to-pink-100 border-2 border-pink-400 p-6 rounded-2xl text-center hover:-translate-y-1 hover:shadow-xl transition-all duration-300">
+                <p class="text-sm font-semibold text-slate-600 uppercase tracking-wide mb-2">Gula</p>
+                <p class="text-4xl font-extrabold text-slate-800 mb-1">{{ Math.round(foodStore.searchedFood.sugar || 0) }}</p>
+                <p class="text-sm text-slate-500">gram</p>
               </div>
             </div>
 
-            <!-- Analysis Card: Show AI Analysis with nice UI -->
-            <div v-if="foodStore.analysisResult || foodStore.analysisLoading" class="analysis-card">
-              <h3 class="analysis-title">
-                <span class="analysis-icon">🤖</span> Analisis AI
+            <!-- AI Analysis Card -->
+            <div v-if="foodStore.analysisResult || foodStore.analysisLoading" class="bg-white border border-slate-200 rounded-2xl p-6 md:p-8 mb-8 shadow-lg">
+              <h3 class="text-2xl md:text-3xl font-bold text-slate-800 mb-6 flex items-center gap-3 border-b-2 border-slate-100 pb-4">
+                <span class="text-4xl"></span> Analisis AI
               </h3>
 
               <!-- Loading State -->
-              <div v-if="foodStore.analysisLoading" class="analysis-loading">
-                <div class="analysis-loading-icon">⏳</div>
-                <div class="analysis-loading-text">Menganalisis nutrisi makanan...</div>
+              <div v-if="foodStore.analysisLoading" class="flex flex-col items-center justify-center py-12 text-slate-600">
+                <div class="text-5xl mb-4 animate-spin">⏳</div>
+                <div class="text-base font-medium">Menganalisis nutrisi makanan...</div>
               </div>
 
               <!-- Analysis Result -->
               <template v-else>
-                <!-- If we have a structured response (object) -->
-                <div v-if="typeof foodStore.analysisResult === 'object'" class="analysis-content">
+                <div v-if="typeof foodStore.analysisResult === 'object'" class="flex flex-col gap-6">
                   <!-- Summary -->
-                  <div v-if="foodStore.analysisResult.summary" class="analysis-summary">
-                    {{ foodStore.analysisResult.summary }}
+                  <div v-if="foodStore.analysisResult.summary" class="bg-blue-50 border-l-4 border-blue-500 p-5 rounded-xl">
+                    <p class="text-slate-800 leading-relaxed text-base">
+                      {{ foodStore.analysisResult.summary }}
+                    </p>
                   </div>
 
                   <!-- Health Risks -->
-                  <div v-if="foodStore.analysisResult.risks" class="analysis-risks">
-                    <h4>Risiko Kesehatan:</h4>
-                    <ul class="risks-list">
+                  <div v-if="foodStore.analysisResult.risks" class="bg-red-50 border-l-4 border-red-500 p-5 rounded-xl">
+                    <h4 class="text-red-700 font-bold text-lg mb-3 flex items-center gap-2">
+                      <span class="text-xl"></span> Risiko Kesehatan
+                    </h4>
+                    <ul class="list-disc pl-6 flex flex-col gap-2 text-red-700">
                       <template v-if="Array.isArray(foodStore.analysisResult.risks)">
-                        <li v-for="(risk, index) in foodStore.analysisResult.risks" :key="index">
+                        <li v-for="(risk, index) in foodStore.analysisResult.risks" :key="index" class="text-base leading-relaxed">
                           {{ risk }}
                         </li>
                       </template>
                       <template v-else>
-                        <!-- If backend returned a single string, render as one list item -->
-                        <li>{{ foodStore.analysisResult.risks }}</li>
+                        <li class="text-base leading-relaxed">{{ foodStore.analysisResult.risks }}</li>
                       </template>
                     </ul>
                   </div>
 
                   <!-- Warnings -->
-                  <div v-if="foodStore.analysisResult.warnings" class="analysis-warnings">
-                    <h4>Peringatan:</h4>
-                    <div class="warnings-grid">
+                  <div v-if="foodStore.analysisResult.warnings" class="bg-amber-50 border-l-4 border-amber-500 p-5 rounded-xl">
+                    <h4 class="text-amber-800 font-bold text-lg mb-4 flex items-center gap-2">
+                      <span class="text-xl">⚠️</span> Peringatan
+                    </h4>
+                    <div class="flex flex-col gap-3">
                       <template v-if="Array.isArray(foodStore.analysisResult.warnings)">
-                        <div v-for="(warning, index) in foodStore.analysisResult.warnings"
-                             :key="index"
-                             class="warning-badge">
-                          ⚠️ {{ warning }}
+                        <div v-for="(warning, index) in foodStore.analysisResult.warnings" :key="index" class="bg-amber-100 border border-amber-300 text-amber-900 px-4 py-3 rounded-lg flex items-start gap-3 text-base leading-relaxed">
+                          <span>{{ warning }}</span>
                         </div>
                       </template>
                       <template v-else>
-                        <!-- If backend returned a single string, render it as one badge -->
-                        <div class="warning-badge">⚠️ {{ foodStore.analysisResult.warnings }}</div>
+                        <div class="text-amber-900 text-base leading-relaxed">
+
+                          <span>{{ foodStore.analysisResult.warnings }}</span>
+                        </div>
                       </template>
                     </div>
                   </div>
 
                   <!-- Diet Suitability -->
-                  <div v-if="foodStore.analysisResult.dietSuitability" class="analysis-diet">
-                    <h4>Kesesuaian Diet:</h4>
-                    <div class="diet-info">
+                  <div v-if="foodStore.analysisResult.dietSuitability" class="bg-green-50 border-l-4 border-green-500 p-5 rounded-xl">
+                    <h4 class="text-green-700 font-bold text-lg mb-3 flex items-center gap-2">
+                      <span class="text-xl">✅</span> Kesesuaian Diet
+                    </h4>
+                    <p class="text-green-800 text-base leading-relaxed">
                       {{ foodStore.analysisResult.dietSuitability }}
-                    </div>
+                    </p>
                   </div>
 
                   <!-- Recommendations -->
-                  <div v-if="foodStore.analysisResult.recommendations" class="analysis-recommendations">
-                    <h4>Rekomendasi Alternatif:</h4>
-                    <ul class="recommendations-list">
+                  <div v-if="foodStore.analysisResult.recommendations" class="bg-purple-50 border-l-4 border-purple-500 p-5 rounded-xl">
+                    <h4 class="text-purple-700 font-bold text-lg mb-4 flex items-center gap-2">
+                      <span class="text-xl">💡</span> Rekomendasi Alternatif
+                    </h4>
+                    <ul class="flex flex-col gap-3">
                       <template v-if="Array.isArray(foodStore.analysisResult.recommendations)">
-                        <li v-for="(rec, index) in foodStore.analysisResult.recommendations"
-                            :key="index"
-                            class="recommendation-item">
-                          🔄 {{ rec }}
+                        <li v-for="(rec, index) in foodStore.analysisResult.recommendations" :key="index" class="flex items-start gap-3 text-purple-800 text-base leading-relaxed">
+                          <span class="text-lg flex-shrink-0">🔄</span>
+                          <span>{{ rec }}</span>
                         </li>
                       </template>
                       <template v-else>
-                        <!-- If backend returned a single string, render as one recommendation -->
-                        <li class="recommendation-item">🔄 {{ foodStore.analysisResult.recommendations }}</li>
+                        <li class="flex items-start gap-3 text-purple-800 text-base leading-relaxed">
+                          <span class="text-lg flex-shrink-0">🔄</span>
+                          <span>{{ foodStore.analysisResult.recommendations }}</span>
+                        </li>
                       </template>
                     </ul>
                   </div>
 
                   <!-- Disclaimer -->
-                  <div v-if="foodStore.analysisResult.disclaimer" class="analysis-disclaimer">
-                    {{ foodStore.analysisResult.disclaimer }}
+                  <div v-if="foodStore.analysisResult.disclaimer" class="text-sm text-slate-600 italic mt-2 pt-4 border-t border-slate-200 leading-relaxed">
+                    <span class="font-semibold">Catatan:</span> {{ foodStore.analysisResult.disclaimer }}
                   </div>
                 </div>
 
-                <!-- Fallback for non-structured (string) response -->
-                <div v-else class="analysis-fallback">
+                <!-- Fallback for non-structured response -->
+                <div v-else class="text-slate-800 text-base whitespace-pre-wrap bg-slate-50 p-5 rounded-xl leading-relaxed">
                   {{ foodStore.analysisResult }}
                 </div>
               </template>
             </div>
 
-            <div class="action-buttons">
-              <button v-if="authStore.isAuthenticated" @click="handleSubmit" class="action-button primary">
+            <!-- Action Buttons -->
+            <div class="flex gap-4 justify-center flex-wrap">
+              <button
+                v-if="authStore.isAuthenticated"
+                @click="handleSubmit"
+                class="px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-bold text-base shadow-lg shadow-blue-500/30 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-blue-500/40 transition-all duration-300"
+              >
                 Tambah ke Jurnal
               </button>
-              <router-link v-else to="/login" class="action-button primary">
+
+              <router-link
+                v-else
+                to="/login"
+                class="px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-bold text-base shadow-lg shadow-blue-500/30 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-blue-500/40 transition-all duration-300"
+              >
                 Login untuk Menyimpan Makanan
               </router-link>
-              <button @click="handleCancel" class="action-button secondary">
+
+              <button
+                @click="handleCancel"
+                class="px-8 py-4 bg-white text-slate-700 border-2 border-slate-300 rounded-xl font-bold hover:bg-slate-50 hover:border-slate-400 transition-all duration-300"
+              >
                 Batal
               </button>
             </div>
@@ -418,97 +568,148 @@
       </div>
     </section>
 
-    <!-- Tips Section -->
-    <section class="tips-section">
-      <div class="tips-bg-decoration">
-        <div class="dot dot-1"></div>
-        <div class="dot dot-2"></div>
-        <div class="dot dot-3"></div>
+    <!-- TIPS SECTION -->
+    <section class="relative py-24 bg-gradient-to-b from-white to-slate-50 overflow-hidden">
+      <!-- Dot decorations -->
+      <div class="absolute inset-0 z-0">
+        <div class="absolute w-1.5 h-1.5 bg-slate-300 rounded-full opacity-40 top-[10%] left-[5%]"></div>
+        <div class="absolute w-1.5 h-1.5 bg-slate-300 rounded-full opacity-40 top-[60%] right-[10%]"></div>
+        <div class="absolute w-1.5 h-1.5 bg-slate-300 rounded-full opacity-40 bottom-[20%] left-[15%]"></div>
       </div>
 
-      <div class="container">
-        <div class="section-header">
-          <div class="section-badge tips-badge">💡 Edukasi Gizi</div>
-          <h2 class="section-title">Tips & Fakta Gizi</h2>
-          <p class="section-subtitle">
+      <div class="max-w-7xl mx-auto px-4 relative z-10">
+        <!-- Section Header -->
+        <div class="text-center mb-16">
+          <span class="inline-block bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-full font-semibold text-sm shadow-lg shadow-blue-500/30 mb-4">
+            💡 Edukasi Gizi
+          </span>
+
+          <h2 class="text-4xl md:text-5xl font-extrabold text-slate-800 mb-4">
+            Tips & Fakta Gizi
+          </h2>
+
+          <p class="text-lg text-slate-600 max-w-2xl mx-auto">
             Pelajari cara membaca label nutrisi dengan benar untuk pilihan makanan yang lebih sehat
           </p>
         </div>
 
-        <div class="tips-grid">
-          <div class="tip-card tip-blue">
-            <div class="tip-decoration"></div>
-            <div class="tip-content">
-              <div class="tip-icon">🍎</div>
-              <div>
-                <h3 class="tip-title">Protein: Fondasi Kesehatan</h3>
-                <p class="tip-description">
-                  Perhatikan kandungan protein dalam label makanan kemasan. Pilih produk dengan protein minimal 5g per 100g untuk nutrisi optimal. Konsumsi harian yang disarankan: 0.8-1g protein per kg berat badan.
+        <!-- Tips Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 items-stretch">
+          <!-- Tip 1 -->
+          <div class="bg-white rounded-2xl p-5 relative shadow-lg border border-slate-50 hover:-translate-y-1.5 hover:shadow-2xl transition-all duration-200 min-h-[190px]">
+            <div class="absolute -top-3.5 -right-3.5 w-16 h-16 rounded-full bg-gradient-to-br from-blue-500/15 to-indigo-500/10 blur-sm pointer-events-none"></div>
+
+            <div class="flex gap-4 items-start">
+              <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-white to-slate-50 shadow-lg shadow-blue-500/10 flex items-center justify-center text-slate-800 text-[1.4rem] flex-shrink-0">
+                🍎
+              </div>
+
+              <div class="min-w-0">
+                <h3 class="text-[1.05rem] font-extrabold text-slate-900 mb-1">
+                  Protein: Fondasi Kesehatan
+                </h3>
+                <p class="text-slate-700 leading-[1.65] text-[0.95rem]">
+                  Perhatikan kandungan protein dalam label makanan kemasan. Pilih produk dengan protein minimal 5g per 100g untuk nutrisi optimal
                 </p>
               </div>
             </div>
           </div>
 
-          <div class="tip-card tip-pink">
-            <div class="tip-decoration"></div>
-            <div class="tip-content">
-              <div class="tip-icon">💖</div>
-              <div>
-                <h3 class="tip-title">Lemak yang Sehat</h3>
-                <p class="tip-description">
-                  Periksa jenis lemak pada kemasan: total lemak, lemak jenuh, dan lemak trans. Pilih produk dengan lemak jenuh kurang dari 10% per sajian dan hindari produk dengan kandungan lemak trans.
+          <!-- Tip 2 -->
+          <div class="bg-white rounded-2xl p-5 relative shadow-lg border border-slate-50 hover:-translate-y-1.5 hover:shadow-2xl transition-all duration-200 min-h-[190px]">
+            <div class="absolute -top-3.5 -right-3.5 w-16 h-16 rounded-full bg-gradient-to-br from-blue-500/15 to-indigo-500/10 blur-sm pointer-events-none"></div>
+
+            <div class="flex gap-4 items-start">
+              <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-white to-slate-50 shadow-lg shadow-blue-500/10 flex items-center justify-center text-slate-800 text-[1.4rem] flex-shrink-0">
+                💖
+              </div>
+
+              <div class="min-w-0">
+                <h3 class="text-[1.05rem] font-extrabold text-slate-900 mb-1">
+                  Lemak yang Sehat
+                </h3>
+                <p class="text-slate-700 leading-[1.65] text-[0.95rem]">
+                  Periksa jenis lemak pada kemasan: total lemak, lemak jenuh, dan lemak trans. Pilih produk dengan lemak jenuh kurang dari 10% per sajian
                 </p>
               </div>
             </div>
           </div>
 
-          <div class="tip-card tip-green">
-            <div class="tip-decoration"></div>
-            <div class="tip-content">
-              <div class="tip-icon">🌿</div>
-              <div>
-                <h3 class="tip-title">Karbohidrat Cerdas</h3>
-                <p class="tip-description">
-                  Cek total karbohidrat dan serat pada label informasi nilai gizi. Perhatikan rasio karbohidrat dengan serat untuk pilihan lebih sehat. Pilih produk dengan "whole grain" sebagai bahan utama.
+          <!-- Tip 3 -->
+          <div class="bg-white rounded-2xl p-5 relative shadow-lg border border-slate-50 hover:-translate-y-1.5 hover:shadow-2xl transition-all duration-200 min-h-[190px]">
+            <div class="absolute -top-3.5 -right-3.5 w-16 h-16 rounded-full bg-gradient-to-br from-blue-500/15 to-indigo-500/10 blur-sm pointer-events-none"></div>
+
+            <div class="flex gap-4 items-start">
+              <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-white to-slate-50 shadow-lg shadow-blue-500/10 flex items-center justify-center text-slate-800 text-[1.4rem] flex-shrink-0">
+                🌿
+              </div>
+
+              <div class="min-w-0">
+                <h3 class="text-[1.05rem] font-extrabold text-slate-900 mb-1">
+                  Karbohidrat Cerdas
+                </h3>
+                <p class="text-slate-700 leading-[1.65] text-[0.95rem]">
+                  Cek total karbohidrat dan serat pada label informasi nilai gizi. Pilih produk dengan "whole grain" sebagai bahan utama
                 </p>
               </div>
             </div>
           </div>
 
-          <div class="tip-card tip-purple">
-            <div class="tip-decoration"></div>
-            <div class="tip-content">
-              <div class="tip-icon">🎯</div>
-              <div>
-                <h3 class="tip-title">Pentingnya Serat</h3>
-                <p class="tip-description">
-                  Perhatikan kandungan "Dietary Fiber" pada label. Pilih produk minimal 3g serat per sajian untuk camilan sehat. Target harian: 25-35g serat per hari.
+          <!-- Tip 4 -->
+          <div class="bg-white rounded-2xl p-5 relative shadow-lg border border-slate-50 hover:-translate-y-1.5 hover:shadow-2xl transition-all duration-200 min-h-[190px]">
+            <div class="absolute -top-3.5 -right-3.5 w-16 h-16 rounded-full bg-gradient-to-br from-blue-500/15 to-indigo-500/10 blur-sm pointer-events-none"></div>
+
+            <div class="flex gap-4 items-start">
+              <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-white to-slate-50 shadow-lg shadow-blue-500/10 flex items-center justify-center text-slate-800 text-[1.4rem] flex-shrink-0">
+                🎯
+              </div>
+
+              <div class="min-w-0">
+                <h3 class="text-[1.05rem] font-extrabold text-slate-900 mb-1">
+                  Pentingnya Serat
+                </h3>
+                <p class="text-slate-700 leading-[1.65] text-[0.95rem]">
+                  Perhatikan kandungan "Dietary Fiber" pada label. Pilih produk minimal 3g serat per sajian untuk camilan sehat
                 </p>
               </div>
             </div>
           </div>
 
-          <div class="tip-card tip-orange">
-            <div class="tip-decoration"></div>
-            <div class="tip-content">
-              <div class="tip-icon">⚡</div>
-              <div>
-                <h3 class="tip-title">Bijak dengan Gula</h3>
-                <p class="tip-description">
-                  Cek daftar gula pada ingredient list. Waspadai nama lain gula: syrup, dextrose, sucrose. Batasan gula tambahan: maksimal 25g (6 sendok teh) per hari.
+          <!-- Tip 5 -->
+          <div class="bg-white rounded-2xl p-5 relative shadow-lg border border-slate-50 hover:-translate-y-1.5 hover:shadow-2xl transition-all duration-200 min-h-[190px]">
+            <div class="absolute -top-3.5 -right-3.5 w-16 h-16 rounded-full bg-gradient-to-br from-blue-500/15 to-indigo-500/10 blur-sm pointer-events-none"></div>
+
+            <div class="flex gap-4 items-start">
+              <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-white to-slate-50 shadow-lg shadow-blue-500/10 flex items-center justify-center text-slate-800 text-[1.4rem] flex-shrink-0">
+                ⚡
+              </div>
+
+              <div class="min-w-0">
+                <h3 class="text-[1.05rem] font-extrabold text-slate-900 mb-1">
+                  Bijak dengan Gula
+                </h3>
+                <p class="text-slate-700 leading-[1.65] text-[0.95rem]">
+                  Cek daftar gula pada ingredient list. Waspadai nama lain gula: syrup, dextrose, sucrose. Batasan: maksimal 25g per hari
                 </p>
               </div>
             </div>
           </div>
 
-          <div class="tip-card tip-indigo">
-            <div class="tip-decoration"></div>
-            <div class="tip-content">
-              <div class="tip-icon">🛡️</div>
-              <div>
-                <h3 class="tip-title">Kendali Asupan Garam</h3>
-                <p class="tip-description">
-                  Perhatikan kandungan "Sodium" atau "Garam" pada label. Pilih produk dengan sodium kurang dari 20% Daily Value per sajian. Batasan harian: maksimal 2000mg sodium.
+          <!-- Tip 6 -->
+          <div class="bg-white rounded-2xl p-5 relative shadow-lg border border-slate-50 hover:-translate-y-1.5 hover:shadow-2xl transition-all duration-200 min-h-[190px]">
+            <div class="absolute -top-3.5 -right-3.5 w-16 h-16 rounded-full bg-gradient-to-br from-blue-500/15 to-indigo-500/10 blur-sm pointer-events-none"></div>
+
+            <div class="flex gap-4 items-start">
+              <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-white to-slate-50 shadow-lg shadow-blue-500/10 flex items-center justify-center text-slate-800 text-[1.4rem] flex-shrink-0">
+                🛡️
+              </div>
+
+              <div class="min-w-0">
+                <h3 class="text-[1.05rem] font-extrabold text-slate-900 mb-1">
+                  Kendali Asupan Garam
+                </h3>
+                <p class="text-slate-700 leading-[1.65] text-[0.95rem]">
+                  Perhatikan kandungan "Sodium" atau "Garam" pada label. Pilih produk dengan sodium kurang dari 20% Daily Value per sajian
                 </p>
               </div>
             </div>
@@ -517,736 +718,300 @@
       </div>
     </section>
 
-    <!-- CTA Section -->
-    <section v-if="!authStore.isAuthenticated" class="cta-section">
-      <div class="cta-bg-decoration">
-        <div class="cta-circle cta-circle-1"></div>
-        <div class="cta-circle cta-circle-2"></div>
+    <!-- CTA SECTION -->
+    <section v-if="!authStore.isAuthenticated" class="relative py-24 bg-gradient-to-br from-slate-800 to-slate-900 overflow-hidden">
+      <!-- Background Decorations -->
+      <div class="absolute inset-0 overflow-hidden">
+        <div class="absolute w-[500px] h-[500px] rounded-full bg-gradient-to-br from-blue-500 to-purple-500 opacity-10 blur-[60px] -top-[200px] -left-[200px]"></div>
+        <div class="absolute w-[600px] h-[600px] rounded-full bg-gradient-to-br from-blue-500 to-purple-500 opacity-10 blur-[60px] -bottom-[250px] -right-[250px]"></div>
       </div>
 
-      <div class="container">
-        <div class="cta-content">
-          <h2 class="cta-title">Mulai Perjalanan Sehat Anda Hari Ini</h2>
-          <p class="cta-description">
-            Bergabunglah dengan ribuan pengguna yang telah meningkatkan kesehatan mereka dengan ScanBar
-          </p>
-          <div class="cta-buttons">
-            <router-link to="/register" class="cta-button primary">
-              Daftar Gratis Sekarang
-            </router-link>
-            <router-link to="/login" class="cta-button secondary">
-              Sudah Punya Akun?
-            </router-link>
-          </div>
+      <div class="text-center relative z-10 max-w-3xl mx-auto px-4">
+        <h2 class="text-4xl md:text-5xl font-extrabold text-white mb-4">
+          Mulai Perjalanan Sehat Anda Hari Ini
+        </h2>
+
+        <p class="text-xl text-slate-300 mb-10 leading-relaxed">
+          Bergabunglah dengan ribuan pengguna yang telah meningkatkan kesehatan mereka dengan ScanBar
+        </p>
+
+        <div class="flex gap-4 justify-center flex-wrap">
+          <router-link
+            to="/register"
+            class="px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-bold text-base shadow-lg shadow-blue-500/40 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-blue-500/50 transition-all duration-300"
+          >
+            Daftar Gratis Sekarang
+          </router-link>
+
+          <router-link
+            to="/login"
+            class="px-8 py-4 bg-white/10 backdrop-blur-md text-white rounded-xl font-bold text-base border-2 border-white/20 hover:bg-white/15 hover:border-white/30 transition-all duration-300"
+          >
+            Sudah Punya Akun?
+          </router-link>
         </div>
       </div>
     </section>
 
-    <!-- Footer Section -->
-    <footer class="footer-section">
-      <div class="container">
-        <div class="footer-grid">
-          <!-- Left: Logo & Description -->
-          <div class="footer-brand">
-            <div class="footer-logo">
-              <div class="footer-logo-icon">SB</div>
-              <span class="footer-logo-text">ScanBar</span>
+    <!-- FOOTER SECTION -->
+    <footer class="bg-blue-600 text-white py-12">
+      <div class="max-w-7xl mx-auto px-4">
+        <div class="grid grid-cols-1 md:grid-cols-[1.5fr_1fr] gap-16 mb-8 pb-8 border-b border-white/10">
+          <!-- Brand -->
+          <div class="flex flex-col gap-4">
+            <div class="flex items-center gap-3 mb-2">
+              <div class="w-[50px] h-[50px] bg-white text-blue-600 rounded-xl flex items-center justify-center text-xl font-bold">
+                SB
+              </div>
+              <span class="text-[1.75rem] font-bold text-white">
+                ScanBar
+              </span>
             </div>
-            <p class="footer-description">
+
+            <p class="text-white/80 leading-relaxed max-w-md">
               Pilih metode scan favorit Anda untuk mendapatkan informasi nutrisi dari kemasan makanan & minuman lengkap
             </p>
           </div>
 
-          <!-- Right: Contact Info -->
-          <div class="footer-contact">
-            <h3 class="footer-title">Kontak</h3>
-            <div class="contact-items">
-              <div class="contact-item">
-                <span class="contact-icon">📧</span>
+          <!-- Contact -->
+          <div class="flex flex-col gap-4">
+            <h3 class="text-2xl font-bold mb-2 text-white">
+              Kontak
+            </h3>
+
+            <div class="flex flex-col gap-4">
+              <div class="flex items-center gap-3 text-white/90 text-[0.95rem]">
+                <span class="text-xl w-[30px] text-center">📧</span>
                 <span>Email: info@scanbar.com</span>
               </div>
-              <div class="contact-item">
-                <span class="contact-icon">📞</span>
+
+              <div class="flex items-center gap-3 text-white/90 text-[0.95rem]">
+                <span class="text-xl w-[30px] text-center">📞</span>
                 <span>Telepon: (021) 1234 5678</span>
               </div>
-              <div class="contact-item">
-                <span class="contact-icon">📍</span>
+
+              <div class="flex items-center gap-3 text-white/90 text-[0.95rem]">
+                <span class="text-xl w-[30px] text-center">📍</span>
                 <span>Alamat: Balikpapan, Indonesia</span>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Footer Bottom -->
-        <div class="footer-bottom">
-          <p>&copy; 2025 ScanBar. All rights reserved.</p>
+        <div class="text-center pt-6 text-white/70 text-sm">
+          © 2025 ScanBar. All rights reserved.
         </div>
       </div>
     </footer>
+
   </div>
 </template>
 
 <script setup>
-import { ref, watch, computed } from 'vue';
-import { useFoodStore } from '@/stores/food';
-import { useAuthStore } from '@/stores/auth';
-import { QrcodeStream } from 'vue-qrcode-reader';
+import { ref, computed, watch } from 'vue'
+import { useFoodStore } from '@/stores/food'
+import { useAuthStore } from '@/stores/auth'
+import { QrcodeStream } from 'vue-qrcode-reader'
 
-const activeTab = ref('manual');
-const barcodeInput = ref('');
-const cameraError = ref('');
-const uploadError = ref('');
-const uploadedImage = ref(null);
-const isScanning = ref(false);
-const fileInput = ref(null);
-const scannerSection = ref(null);
-const foodStore = useFoodStore();
-const authStore = useAuthStore();
+// Stores
+const foodStore = useFoodStore()
+const authStore = useAuthStore()
+
+// State
+const activeTab = ref('manual')
+const barcodeInput = ref('')
+const cameraError = ref('')
+const uploadError = ref('')
+const uploadedImage = ref(null)
+const isScanning = ref(false)
+const fileInput = ref(null)
+const scannerSection = ref(null)
+
+// Image handling
+const imageLoadFailed = ref(false)
 
 // Scroll to scanner
 const scrollToScanner = () => {
-  scannerSection.value?.scrollIntoView({ behavior: 'smooth' });
-};
+  scannerSection.value?.scrollIntoView({ behavior: 'smooth' })
+}
 
-// Normalize barcode: remove non-digits, trim, and convert UPC-A (12 digits) to EAN-13 by prepending 0
+// Normalize barcode
 const normalizeBarcode = (raw) => {
-  if (!raw) return '';
-  let b = String(raw).trim();
-  // Remove all non-digit characters
-  b = b.replace(/\D/g, '');
-  // If UPC-A (12 digits) convert to EAN-13
-  if (b.length === 12) b = '0' + b;
-  return b;
-};
+  if (!raw) return ''
+  let b = String(raw).trim()
+  b = b.replace(/\D/g, '')
+  if (b.length === 12) b = '0' + b
+  return b
+}
 
-// imageSrcValue: computed best image URL for the currently loaded product
+// Computed image source
 const imageSrcValue = computed(() => {
-  const product = foodStore.searchedFood;
-  if (!product) return null;
-  if (product.imageUrl) return product.imageUrl;
-  const raw = product._raw || product;
-  if (!raw || typeof raw !== 'object') return null;
+  const product = foodStore.searchedFood
+  if (!product) return null
 
-  if (raw.image_url) return raw.image_url;
-  if (raw.image) return raw.image;
-  if (raw.image_front_url) return raw.image_front_url;
-  if (raw.image_front_small_url) return raw.image_front_small_url;
+  const raw = product._raw || product
+  if (!raw || typeof raw !== 'object') return null
 
-  if (raw.selected_images && raw.selected_images.front && raw.selected_images.front.display) {
-    const disp = raw.selected_images.front.display;
-    if (disp.en) return disp.en;
-    const first = Object.values(disp)[0];
-    if (first) return first;
+  const proxyUrl = (url) => {
+    if (!url) return null
+    return `/api/foods/image-proxy?url=${encodeURIComponent(url)}`
   }
 
-  if (raw.images && raw.images.front) {
-    const front = raw.images.front;
-    if (front.small && front.small.url) return front.small.url;
-    if (front.thumb && front.thumb.url) return front.thumb.url;
-    if (front.display && front.display.en) return front.display.en;
+  if (product.imageUrl) return proxyUrl(product.imageUrl)
+  if (raw.image_url) return proxyUrl(raw.image_url)
+  if (raw.image) return proxyUrl(raw.image)
+  if (raw.image_front_url) return proxyUrl(raw.image_front_url)
+  if (raw.image_front_small_url) return proxyUrl(raw.image_front_small_url)
+
+  if (raw.selected_images?.front?.display) {
+    const disp = raw.selected_images.front.display
+    if (disp.en) return proxyUrl(disp.en)
+    const first = Object.values(disp)[0]
+    if (first) return proxyUrl(first)
   }
 
-  if (raw._images && raw._images.front && raw._images.front.small && raw._images.front.small.url) {
-    return raw._images.front.small.url;
+  if (raw.images?.front) {
+    const front = raw.images.front
+    if (front.small?.url) return proxyUrl(front.small.url)
+    if (front.thumb?.url) return proxyUrl(front.thumb.url)
+    if (front.display?.en) return proxyUrl(front.display.en)
   }
 
-  return null;
-});
+  return null
+})
 
-// Track if the currently displayed image failed to load (so we can show placeholder)
-const imageLoadFailed = ref(false);
-
+// Image error handler
 const onImageError = (event) => {
-  // hide broken image and mark failed so template shows placeholder
   try {
-    event?.target && (event.target.style.display = 'none');
-  } catch {
-    // ignore
-  }
-  imageLoadFailed.value = true;
-};
+    if (event?.target) event.target.style.display = 'none'
+  } catch {}
+  imageLoadFailed.value = true
+}
 
 // Camera functions
 const onInit = async (promise) => {
   try {
-    await promise;
-    cameraError.value = '';
+    await promise
+    cameraError.value = ''
   } catch (error) {
     if (error.name === 'NotAllowedError') {
-      cameraError.value = "Izin kamera diperlukan untuk menggunakan fitur ini.";
+      cameraError.value = "Izin kamera diperlukan untuk menggunakan fitur ini."
     } else if (error.name === 'NotFoundError') {
-      cameraError.value = "Tidak ada kamera yang ditemukan di perangkat ini.";
+      cameraError.value = "Tidak ada kamera yang ditemukan di perangkat ini."
     } else {
-      cameraError.value = "Terjadi kesalahan saat mengakses kamera.";
+      cameraError.value = "Terjadi kesalahan saat mengakses kamera."
     }
   }
-};
+}
 
 const onDecode = (decodedString) => {
   if (decodedString) {
-    // Normalize decoded barcode before using it
-    const normalized = normalizeBarcode(decodedString);
-    barcodeInput.value = normalized;
-    foodStore.fetchFoodByBarcode(normalized);
-    stopCamera();
-    activeTab.value = 'manual';
+    const normalized = normalizeBarcode(decodedString)
+    barcodeInput.value = normalized
+    foodStore.fetchFoodByBarcode(normalized)
+    stopCamera()
+    activeTab.value = 'manual'
   }
-};
+}
 
 const startCamera = () => {
-  isScanning.value = true;
-};
+  isScanning.value = true
+}
 
 const stopCamera = () => {
-  isScanning.value = false;
-};
+  isScanning.value = false
+}
 
 // Upload functions
 const triggerFileInput = () => {
-  uploadError.value = '';
-  fileInput.value.click();
-};
+  uploadError.value = ''
+  fileInput.value.click()
+}
 
 const onFileChange = (event) => {
-  const file = event.target.files[0];
-  if (!file) return;
+  const file = event.target.files[0]
+  if (!file) return
 
-  const reader = new FileReader();
+  const reader = new FileReader()
   reader.onload = (e) => {
-    uploadedImage.value = e.target.result;
+    uploadedImage.value = e.target.result
 
-    uploadError.value = "Memproses gambar...";
+    uploadError.value = "Memproses gambar..."
     setTimeout(() => {
-        const fakeBarcode = "8992761134017";
-        const normalized = normalizeBarcode(fakeBarcode);
-        barcodeInput.value = normalized;
-        foodStore.fetchFoodByBarcode(normalized);
-      uploadError.value = '';
-    }, 1500);
-  };
-  reader.readAsDataURL(file);
+      const fakeBarcode = "8992761134017"
+      const normalized = normalizeBarcode(fakeBarcode)
+      barcodeInput.value = normalized
+      foodStore.fetchFoodByBarcode(normalized)
+      uploadError.value = ''
+    }, 1500)
+  }
+  reader.readAsDataURL(file)
 
-  event.target.value = '';
-};
+  event.target.value = ''
+}
 
 const clearUpload = () => {
-  uploadedImage.value = null;
-  barcodeInput.value = '';
-  foodStore.clearSearchedFood();
-};
+  uploadedImage.value = null
+  barcodeInput.value = ''
+  foodStore.clearSearchedFood()
+}
 
 // Main functions
 const changeTab = (tabName) => {
-  activeTab.value = tabName;
-  foodStore.clearSearchedFood();
-  barcodeInput.value = '';
-  uploadedImage.value = null;
-  stopCamera();
-};
+  activeTab.value = tabName
+  foodStore.clearSearchedFood()
+  barcodeInput.value = ''
+  uploadedImage.value = null
+  stopCamera()
+}
 
 const handleSearch = async () => {
-  if (!barcodeInput.value) return;
-  const normalized = normalizeBarcode(barcodeInput.value);
-  if (!normalized) return;
-  barcodeInput.value = normalized;
-  await foodStore.fetchFoodByBarcode(normalized);
-};
+  if (!barcodeInput.value) return
+  const normalized = normalizeBarcode(barcodeInput.value)
+  if (!normalized) return
+  barcodeInput.value = normalized
+  await foodStore.fetchFoodByBarcode(normalized)
+}
 
 const handleSubmit = async () => {
-  if (!foodStore.searchedFood) return;
-  const foodData = { ...foodStore.searchedFood };
+  if (!foodStore.searchedFood) return
+  const foodData = { ...foodStore.searchedFood }
 
   for (const key of ['calories', 'protein', 'carbs', 'fat']) {
     if (typeof foodData[key] === 'string' && foodData[key].trim() !== '') {
-      foodData[key] = parseFloat(foodData[key].replace(',', '.'));
+      foodData[key] = parseFloat(foodData[key].replace(',', '.'))
     } else if (foodData[key] === null || foodData[key] === undefined) {
-      foodData[key] = 0;
+      foodData[key] = 0
     }
   }
 
-  await foodStore.addFood(foodData, foodStore.summaryPeriod || 'daily');
-  handleCancel();
-};
+  await foodStore.addFood(foodData, foodStore.summaryPeriod || 'daily')
+  handleCancel()
+}
 
 const handleCancel = () => {
-  barcodeInput.value = '';
-  foodStore.clearSearchedFood();
-  uploadedImage.value = null;
-  stopCamera();
-};
+  barcodeInput.value = ''
+  foodStore.clearSearchedFood()
+  uploadedImage.value = null
+  stopCamera()
+}
 
 const handleAnalyze = async () => {
-  if (!foodStore.searchedFood) return;
-  await foodStore.analyzeFood(foodStore.searchedFood);
-};
+  if (!foodStore.searchedFood) return
+  await foodStore.analyzeFood(foodStore.searchedFood)
+}
 
-// Automatically run AI analysis when a new product is loaded
+// Watch for product changes to trigger AI analysis
 watch(() => foodStore.searchedFood, (newVal) => {
   if (newVal) {
-    // reset image load failure when product changes
-    imageLoadFailed.value = false;
-    // don't await here to keep UI responsive; store manages loading state
-    handleAnalyze();
+    imageLoadFailed.value = false
+    handleAnalyze()
   }
-});
+})
 </script>
 
 <style scoped>
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-.home-container {
-  min-height: 100vh;
-  background: white;
-  padding-top: 80px;
-}
-
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 1rem;
-}
-
-/* ============================================
-   HERO SECTION
-   ============================================ */
-.hero-section {
-  position: relative;
-  background: linear-gradient(135deg, #eff6ff 0%, #e0e7ff 50%, #f3e8ff 100%);
-  overflow: hidden;
-  padding: 6rem 0;
-}
-
-.hero-bg-decoration {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-}
-
-.decoration-circle {
-  position: absolute;
-  border-radius: 50%;
-  opacity: 0.2;
-  filter: blur(60px);
-}
-
-.decoration-1 {
-  width: 500px;
-  height: 500px;
-  background: #3b82f6;
-  top: -200px;
-  right: -200px;
-}
-
-.decoration-2 {
-  width: 600px;
-  height: 600px;
-  background: #8b5cf6;
-  top: 40%;
-  left: -250px;
-}
-
-.decoration-3 {
-  width: 400px;
-  height: 400px;
-  background: #6366f1;
-  bottom: 10%;
-  right: 10%;
-}
-
-.hero-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 4rem;
-  align-items: center;
-  position: relative;
-  z-index: 1;
-}
-
-.hero-content {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.hero-title {
-  font-size: clamp(2rem, 5vw, 3.5rem);
-  font-weight: 800;
-  color: #1e293b;
-  line-height: 1.2;
-}
-
-.brand-name {
-  background: linear-gradient(135deg, #2563eb 0%, #4f46e5 50%, #7c3aed 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  display: inline-block;
-}
-
-.hero-description {
-  font-size: 1.125rem;
-  color: #64748b;
-  line-height: 1.8;
-}
-
-.hero-buttons {
-  display: flex;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-.btn-primary, .btn-secondary {
-  padding: 1rem 2rem;
-  border-radius: 0.75rem;
-  font-weight: 700;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  text-decoration: none;
-  border: 2px solid transparent;
-}
-
-.btn-primary {
-  background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%);
-  color: white;
-  box-shadow: 0 10px 25px rgba(37, 99, 235, 0.3);
-}
-
-.btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 15px 35px rgba(37, 99, 235, 0.4);
-}
-
-.btn-secondary {
-  background: rgba(255, 255, 255, 0.5);
-  backdrop-filter: blur(10px);
-  color: #334155;
-  border-color: #cbd5e1;
-}
-
-.btn-secondary:hover {
-  background: white;
-  border-color: #2563eb;
-}
-
-/* Hero Image */
-.hero-image {
-  position: relative;
-  display: none;
-}
-
-@media (min-width: 1024px) {
-  .hero-image {
-    display: block;
-  }
-}
-
-.image-wrapper {
-  position: relative;
-  z-index: 10;
-}
-
-.product-image {
-  width: 100%;
-  height: 500px;
-  object-fit: cover;
-  border-radius: 1.5rem;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-}
-
-.image-decoration {
-  position: absolute;
-  top: 2rem;
-  left: -2rem;
-  width: 8rem;
-  height: 8rem;
-  background: linear-gradient(135deg, #3b82f6 0%, #4f46e5 100%);
-  border-radius: 1.5rem;
-  opacity: 0.2;
-  filter: blur(40px);
-}
-
-/* ============================================
-   HOW IT WORKS SECTION
-   ============================================ */
-.how-it-works-section {
-  position: relative;
-  padding: 5rem 0;
-  background: white;
-}
-
-.section-bg-gradient {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to bottom, #eff6ff 0%, white 50%, white 100%);
-  opacity: 0.5;
-}
-
-.section-header {
-  text-align: center;
-  margin-bottom: 4rem;
-  position: relative;
-  z-index: 1;
-}
-
-.section-badge {
-  display: inline-block;
-  background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%);
-  color: white;
-  padding: 0.75rem 1.5rem;
-  border-radius: 9999px;
-  font-weight: 600;
-  font-size: 0.875rem;
-  box-shadow: 0 10px 25px rgba(37, 99, 235, 0.3);
-  margin-bottom: 1rem;
-}
-
-.tips-badge {
-  background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%);
-}
-
-.section-title {
-  font-size: clamp(2rem, 4vw, 3rem);
-  font-weight: 800;
-  color: #1e293b;
-  margin-bottom: 1rem;
-}
-
-.section-subtitle {
-  font-size: 1.125rem;
-  color: #64748b;
-  max-width: 600px;
-  margin: 0 auto;
-}
-
-.steps-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 2rem;
-  position: relative;
-  z-index: 1;
-}
-
-.step-card {
-  background: white;
-  padding: 2rem 1.5rem;
-  border-radius: 1rem;
-  box-shadow: 0 6px 26px rgba(16,24,40,0.06);
-  border: 1px solid #f1f5f9;
-  position: relative;
-  overflow: hidden;
-  transition: transform 0.22s ease, box-shadow 0.22s ease;
-}
-
-.step-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
-}
-
-.step-decoration {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 8rem;
-  height: 8rem;
-  border-radius: 50%;
-  margin-right: -4rem;
-  margin-top: -4rem;
-  opacity: 0.1;
-  transition: all 0.5s ease;
-}
-
-.step-card:hover .step-decoration {
-  transform: scale(1.5);
-}
-
-.step-1 .step-decoration {
-  background: #3b82f6;
-}
-
-.step-2 .step-decoration {
-  background: #6366f1;
-}
-
-.step-3 .step-decoration {
-  background: #8b5cf6;
-}
-
-.step-content {
-  position: relative;
-  z-index: 1;
-}
-
-.step-number {
-  width: 4rem;
-  height: 4rem;
-  border-radius: 1rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.875rem;
-  font-weight: 800;
-  color: white;
-  margin-bottom: 1.5rem;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-}
-
-.step-1 .step-number {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-}
-
-.step-2 .step-number {
-  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
-}
-
-.step-3 .step-number {
-  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
-}
-
-.step-title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #1e293b;
-  margin-bottom: 0.75rem;
-}
-
-.step-description {
-  color: #64748b;
-  line-height: 1.7;
-  font-size: 0.9375rem;
-}
-
-/* ============================================
-   SCANNER SECTION
-   ============================================ */
-.scanner-section {
-  position: relative;
-  padding: 6rem 0;
-  background: white;
-}
-
-.scanner-bg-decoration {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-}
-
-.decoration-blob {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(60px);
-  opacity: 0.2;
-}
-
-.blob-1 {
-  width: 400px;
-  height: 400px;
-  background: #bfdbfe;
-  top: 5rem;
-  left: 2.5rem;
-}
-
-.blob-2 {
-  width: 400px;
-  height: 400px;
-  background: #ddd6fe;
-  bottom: 5rem;
-  right: 2.5rem;
-}
-
-.scanner-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%);
-  color: white;
-  padding: 0.75rem 1.5rem;
-  border-radius: 9999px;
-  font-weight: 600;
-  box-shadow: 0 10px 25px rgba(37, 99, 235, 0.3);
-  margin-bottom: 1.5rem;
-  font-size: 1rem;
-}
-
-.scan-card {
-  background: white;
-  padding: 1.5rem;
-  border-radius: 1rem;
-  box-shadow: 0 10px 30px rgba(16,24,40,0.06);
-  max-width: 1000px;
-  width: 100%;
-  margin: 0 auto;
-  border: 1px solid #f1f5f9;
-  position: relative;
-  z-index: 1;
-}
-
-/* ============================================
-   TABS
-   ============================================ */
-.tabs-container {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.5rem;
-  background: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 1rem;
-  padding: 0.5rem;
-  margin-bottom: 2rem;
-}
-
-.tab-button {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 1rem;
-  border: none;
-  border-radius: 0.75rem;
-  background: transparent;
-  color: #64748b;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.tab-button:hover {
-  background: #f8fafc;
-}
-
-.tab-button.active {
-  background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%);
-  color: white;
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
-}
-
-.tab-icon {
-  font-size: 1.5rem;
-}
-
-.tab-text {
-  font-size: 0.875rem;
-}
-
-/* ============================================
-   TAB CONTENT
-   ============================================ */
-.tab-content {
-  min-height: 300px;
-}
-
-.tab-panel {
-  animation: fadeIn 0.3s ease;
-}
-
+/* Fade in animation */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -1258,926 +1023,13 @@ watch(() => foodStore.searchedFood, (newVal) => {
   }
 }
 
-/* ============================================
-   FORM STYLES
-   ============================================ */
-.search-form {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
+.animate-fade-in {
+  animation: fadeIn 0.3s ease;
 }
 
-.form-label {
-  display: block;
-  font-weight: 600;
-  font-size: 1rem;
-  color: #1e293b;
-  margin-bottom: 1rem;
-}
-
-.input-wrapper {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.form-input {
-  width: 100%;
-  padding: 1rem 1.25rem;
-  border: 2px solid #e2e8f0;
-  border-radius: 0.75rem;
-  font-size: 1rem;
-  transition: all 0.3s ease;
-}
-
-.form-input:focus {
-  outline: none;
-  border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-}
-
-.submit-button {
-  width: 100%;
-  padding: 1rem 1.5rem;
-  background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%);
-  color: white;
-  border: none;
-  border-radius: 0.75rem;
-  font-weight: 700;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
-}
-
-.submit-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.4);
-}
-
-.error-message {
-  padding: 1rem;
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-  border-radius: 0.75rem;
-  color: #b91c1c;
-  font-size: 0.875rem;
-}
-
-/* ============================================
-   CAMERA & UPLOAD PLACEHOLDER STYLES
-   ============================================ */
-.camera-placeholder,
-.upload-placeholder {
-  background: linear-gradient(135deg, #eff6ff 0%, #e0e7ff 100%);
-  border: 2px dashed #93c5fd;
-  border-radius: 1.5rem;
-  padding: 4rem 2rem;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.camera-placeholder:hover,
-.upload-placeholder:hover {
-  border-color: #2563eb;
-  background: linear-gradient(135deg, #dbeafe 0%, #ddd6fe 100%);
-  box-shadow: 0 8px 25px rgba(37, 99, 235, 0.15);
-}
-
-.camera-icon-wrapper,
-.upload-icon-wrapper {
-  width: 5rem;
-  height: 5rem;
-  background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 1.5rem;
-  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3);
-}
-
-.camera-icon,
-.upload-icon {
-  font-size: 2.5rem;
-}
-
-.placeholder-title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #1e293b;
-  margin-bottom: 0.75rem;
-}
-
-.placeholder-description {
-  font-size: 1rem;
-  color: #64748b;
-  margin-bottom: 1rem;
-  max-width: 400px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.placeholder-note {
-  font-size: 0.875rem;
-  color: #94a3b8;
-  margin-bottom: 2rem;
-}
-
-/* ============================================
-   CAMERA ACTIVE STYLES
-   ============================================ */
-.camera-active {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.camera-stream {
-  width: 100%;
-  height: 400px;
-  border-radius: 1rem;
-  overflow: hidden;
-  background: black;
-}
-
-.camera-error {
-  padding: 2rem;
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-  border-radius: 1rem;
-  color: #b91c1c;
-  text-align: center;
-}
-
-.camera-controls {
-  display: flex;
-  gap: 0.75rem;
-}
-
-.camera-stop-button {
-  width: 100%;
-  padding: 1rem;
-  background: white;
-  color: #475569;
-  border: 2px solid #cbd5e1;
-  border-radius: 0.75rem;
-  font-weight: 700;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  transition: all 0.3s ease;
-}
-
-.camera-stop-button:hover {
-  background: #f8fafc;
-  border-color: #94a3b8;
-}
-
-.camera-instruction {
-  text-align: center;
-  font-size: 0.875rem;
-  color: #64748b;
-}
-
-/* ============================================
-   UPLOAD STYLES
-   ============================================ */
-.uploaded-preview {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.preview-image {
-  width: 100%;
-  height: 300px;
-  object-fit: cover;
-  border-radius: 1rem;
-  background: #f1f5f9;
-}
-
-.change-button {
-  width: 100%;
-  padding: 1rem;
-  background: white;
-  color: #475569;
-  border: 2px solid #cbd5e1;
-  border-radius: 0.75rem;
-  font-weight: 700;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  transition: all 0.3s ease;
-}
-
-.change-button:hover {
-  background: #f8fafc;
-  border-color: #2563eb;
-  color: #2563eb;
-}
-
-.upload-message {
-  text-align: center;
-  color: #2563eb;
-  font-weight: 600;
-  margin-top: 1rem;
-}
-
-/* ============================================
-   RESULTS SECTION
-   ============================================ */
-.results-section {
-  margin-top: 2rem;
-  padding-top: 2rem;
-  border-top: 2px solid #f1f5f9;
-}
-
-.result-image-wrapper {
-  width: 100%;
-  max-width: 400px;
-  margin: 0 auto 1.5rem;
-}
-
-.result-image {
-  width: 100%;
-  height: 300px;
-  object-fit: contain;
-  border-radius: 1rem;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-  background: white;
-}
-
-.result-title {
-  font-size: 1.75rem;
-  font-weight: 800;
-  color: #1e293b;
-  text-align: center;
-  margin-bottom: 0.5rem;
-}
-
-.result-subtitle {
-  font-size: 1rem;
-  color: #64748b;
-  text-align: center;
-  margin-bottom: 2rem;
-}
-
-.nutrients-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 1rem;
-  margin-bottom: 2rem;
-}
-
-.nutrient-card {
-  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-  padding: 1.5rem 1rem;
-  border-radius: 1rem;
-  text-align: center;
-  border: 2px solid transparent;
-  transition: all 0.3s ease;
-}
-
-.nutrient-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-}
-
-.nutrient-card.calories {
-  border-color: #fbbf24;
-  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-}
-
-.nutrient-card.carbs {
-  border-color: #60a5fa;
-  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
-}
-
-.nutrient-card.protein {
-  border-color: #f472b6;
-  background: linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%);
-}
-
-.nutrient-card.fat {
-  border-color: #a78bfa;
-  background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%);
-}
-
-.nutrient-card.sodium {
-  border-color: #f97316;
-  background: linear-gradient(135deg, #ffedd5 0%, #fed7aa 100%);
-}
-
-.nutrient-card.sugar {
-  border-color: #ec4899;
-  background: linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%);
-}
-
-.nutrient-label {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #64748b;
-  margin-bottom: 0.5rem;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.nutrient-value {
-  font-size: 2rem;
-  font-weight: 800;
-  color: #1e293b;
-  margin-bottom: 0.25rem;
-}
-
-.nutrient-unit {
-  font-size: 0.875rem;
-  color: #94a3b8;
-}
-
-/* ============================================
-   ANALYSIS CARD
-   ============================================ */
-.analysis-card {
-  background: white;
-  border-radius: 1rem;
-  padding: 1.5rem;
-  box-shadow: 0 4px 16px rgba(16, 24, 40, 0.08);
-  margin-bottom: 2rem;
-  border: 1px solid #e2e8f0;
-}
-
-.analysis-title {
-  font-size: 1.25rem;
-  font-weight: 700;
-  margin-bottom: 1rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: #1e293b;
-  border-bottom: 2px solid #f1f5f9;
-  padding-bottom: 0.75rem;
-}
-
-.analysis-icon {
-  font-size: 1.5rem;
-}
-
-.analysis-loading {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 2rem;
-  color: #64748b;
-}
-
-.analysis-loading-icon {
-  font-size: 2rem;
-  margin-bottom: 0.5rem;
-  animation: spin 2s linear infinite;
-}
-
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.analysis-loading-text {
-  font-size: 0.875rem;
-}
-
-.analysis-content {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.analysis-summary {
-  color: #475569;
-  line-height: 1.7;
-  background: #eff6ff;
-  padding: 1rem;
-  border-radius: 0.75rem;
-}
-
-.analysis-risks {
-  background: #fef2f2;
-  padding: 1rem;
-  border-radius: 0.75rem;
-}
-
-.analysis-risks h4 {
-  color: #dc2626;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-}
-
-.risks-list {
-  list-style: disc;
-  padding-left: 1.25rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  color: #dc2626;
-}
-
-.analysis-warnings {
-  background: #fffbeb;
-  padding: 1rem;
-  border-radius: 0.75rem;
-}
-
-.analysis-warnings h4 {
-  color: #d97706;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-}
-
-.warnings-grid {
-  display: grid;
-  gap: 0.5rem;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-}
-
-.warning-badge {
-  background: #fef3c7;
-  color: #92400e;
-  padding: 0.5rem;
-  border-radius: 0.5rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.875rem;
-}
-
-.analysis-diet {
-  background: #f0fdf4;
-  padding: 1rem;
-  border-radius: 0.75rem;
-}
-
-.analysis-diet h4 {
-  color: #16a34a;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-}
-
-.diet-info {
-  color: #166534;
-}
-
-.analysis-recommendations {
-  background: #faf5ff;
-  padding: 1rem;
-  border-radius: 0.75rem;
-}
-
-.analysis-recommendations h4 {
-  color: #9333ea;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-}
-
-.recommendations-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.recommendation-item {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: #7c3aed;
-}
-
-.analysis-disclaimer {
-  font-size: 0.75rem;
-  color: #94a3b8;
-  font-style: italic;
-  margin-top: 1rem;
-  border-top: 1px solid #e2e8f0;
-  padding-top: 1rem;
-}
-
-.analysis-fallback {
-  color: #475569;
-  white-space: pre-wrap;
-  background: #f8fafc;
-  padding: 1rem;
-  border-radius: 0.75rem;
-}
-
-/* ============================================
-   ACTION BUTTONS
-   ============================================ */
-.action-buttons {
-  display: flex;
-  gap: 1rem;
-  justify-content: center;
-  flex-wrap: wrap;
-}
-
-.action-button {
-  padding: 1rem 2rem;
-  border-radius: 0.75rem;
-  font-weight: 700;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  border: 2px solid transparent;
-  text-decoration: none;
-  display: inline-block;
-  text-align: center;
-}
-
-.action-button.primary {
-  background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%);
-  color: white;
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
-}
-
-.action-button.primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.4);
-}
-
-.action-button.secondary {
-  background: white;
-  color: #475569;
-  border-color: #cbd5e1;
-}
-
-.action-button.secondary:hover {
-  background: #f8fafc;
-  border-color: #94a3b8;
-}
-
-/* ============================================
-   TIPS SECTION
-   ============================================ */
-.tips-section {
-  position: relative;
-  padding: 6rem 0;
-  background: linear-gradient(to bottom, white 0%, #f8fafc 100%);
-  overflow: hidden;
-}
-
-.tips-bg-decoration {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-}
-
-.dot {
-  position: absolute;
-  width: 6px;
-  height: 6px;
-  background: #cbd5e1;
-  border-radius: 50%;
-  opacity: 0.4;
-}
-
-.dot-1 {
-  top: 10%;
-  left: 5%;
-}
-
-.dot-2 {
-  top: 60%;
-  right: 10%;
-}
-
-.dot-3 {
-  bottom: 20%;
-  left: 15%;
-}
-
-.tips-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1.25rem;
-  align-items: stretch;
-}
-
-.tip-card {
-  background: #ffffff;
-  border-radius: 1rem;
-  padding: 1.25rem;
-  position: relative;
-  overflow: visible;
-  box-shadow: 0 8px 24px rgba(16, 24, 40, 0.06);
-  border: 1px solid rgba(15, 23, 42, 0.03);
-  transition: transform 0.18s ease, box-shadow 0.18s ease;
-  min-height: 190px;
-}
-
-.tip-card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 18px 40px rgba(16, 24, 40, 0.12);
-}
-
-.tip-decoration {
-  position: absolute;
-  top: -14px;
-  right: -14px;
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, rgba(59,130,246,0.15) 0%, rgba(99,102,241,0.12) 100%);
-  filter: blur(6px);
-  pointer-events: none;
-}
-
-.tip-content {
-  display: flex;
-  gap: 1rem;
-  align-items: flex-start;
-}
-
-.tip-content > :not(.tip-icon) {
-  min-width: 0;
-}
-
-.tip-icon {
-  width: 56px;
-  height: 56px;
-  border-radius: 12px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.4rem;
-  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-  box-shadow: 0 8px 20px rgba(59,130,246,0.08);
-  color: #1e293b;
-  flex-shrink: 0;
-}
-
-.tip-title {
-  font-size: 1.05rem;
-  font-weight: 800;
-  color: #0f172a;
-  margin-bottom: 0.25rem;
-}
-
-.tip-description {
-  color: #475569;
-  line-height: 1.65;
-  font-size: 0.95rem;
-  overflow-wrap: anywhere;
-  word-break: break-word;
-  display: -webkit-box;
-  -webkit-line-clamp: 5;
-  line-clamp: 5;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* ============================================
-   CTA SECTION
-   ============================================ */
-.cta-section {
-  position: relative;
-  padding: 6rem 0;
-  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-  overflow: hidden;
-}
-
-.cta-bg-decoration {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-}
-
-.cta-circle {
-  position: absolute;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
-  opacity: 0.1;
-  filter: blur(60px);
-}
-
-.cta-circle-1 {
-  width: 500px;
-  height: 500px;
-  top: -200px;
-  left: -200px;
-}
-
-.cta-circle-2 {
-  width: 600px;
-  height: 600px;
-  bottom: -250px;
-  right: -250px;
-}
-
-.cta-content {
-  text-align: center;
-  position: relative;
-  z-index: 1;
-  max-width: 700px;
-  margin: 0 auto;
-}
-
-.cta-title {
-  font-size: clamp(2rem, 4vw, 3rem);
-  font-weight: 800;
-  color: white;
-  margin-bottom: 1rem;
-}
-
-.cta-description {
-  font-size: 1.25rem;
-  color: #cbd5e1;
-  margin-bottom: 2.5rem;
-  line-height: 1.8;
-}
-
-.cta-buttons {
-  display: flex;
-  gap: 1rem;
-  justify-content: center;
-  flex-wrap: wrap;
-}
-
-.cta-button {
-  padding: 1rem 2rem;
-  border-radius: 0.75rem;
-  font-weight: 700;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  text-decoration: none;
-  display: inline-block;
-}
-
-.cta-button.primary {
-  background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%);
-  color: white;
-  box-shadow: 0 10px 25px rgba(37, 99, 235, 0.4);
-}
-
-.cta-button.primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 15px 35px rgba(37, 99, 235, 0.5);
-}
-
-.cta-button.secondary {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  color: white;
-  border: 2px solid rgba(255, 255, 255, 0.2);
-}
-
-.cta-button.secondary:hover {
-  background: rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.3);
-}
-
-/* ============================================
-   RESPONSIVE DESIGN
-   ============================================ */
-@media (max-width: 1024px) {
-  .tips-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 640px) {
-  .hero-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .hero-section {
-    padding: 3rem 0;
-  }
-
-  .product-image {
-    height: 320px;
-  }
-
-  .scan-card {
-    padding: 1rem;
-  }
-
-  .tips-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .footer-grid {
-    grid-template-columns: 1fr;
-    gap: 2rem;
-  }
-}
-
-/* ============================================
-   FOOTER SECTION
-   ============================================ */
-.footer-section {
-  background: #2563eb;
-  color: white;
-  padding: 3rem 0 1.5rem;
-}
-
-.footer-grid {
-  display: grid;
-  grid-template-columns: 1.5fr 1fr;
-  gap: 4rem;
-  margin-bottom: 2rem;
-  padding-bottom: 2rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.footer-brand {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.footer-logo {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 0.5rem;
-}
-
-.footer-logo-icon {
-  width: 50px;
-  height: 50px;
-  background-color: white;
-  color: #2563eb;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.25rem;
-  font-weight: bold;
-}
-
-.footer-logo-text {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: white;
-}
-
-.footer-description {
-  color: rgba(255, 255, 255, 0.8);
-  line-height: 1.7;
-  max-width: 400px;
-}
-
-.footer-contact {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.footer-title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  margin-bottom: 0.5rem;
-  color: white;
-}
-
-.contact-items {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.contact-item {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  color: rgba(255, 255, 255, 0.9);
-  font-size: 0.95rem;
-}
-
-.contact-icon {
-  font-size: 1.25rem;
-  width: 30px;
-  text-align: center;
-}
-
-.footer-bottom {
-  text-align: center;
-  padding-top: 1.5rem;
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 0.875rem;
+/* Smooth scroll */
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 100px;
 }
 </style>

@@ -6,9 +6,18 @@
       <form @submit.prevent="handleForgotPassword">
         <div class="form-group">
           <label for="email">Email</label>
-          <input type="email" id="email" v-model="email" required>
+          <input
+            type="email"
+            id="email"
+            v-model="email"
+            placeholder="Masukkan email Anda"
+            required
+          />
         </div>
-        <button type="submit" class="submit-button">Kirim Link</button>
+
+        <button type="submit" class="submit-button" :disabled="isLoading">
+          {{ isLoading ? 'Mengirim...' : 'Kirim Link Reset' }}
+        </button>
       </form>
 
       <div class="extra-links">
@@ -21,6 +30,7 @@
 
 <script setup>
 import { ref } from 'vue';
+import Swal from 'sweetalert2';
 import { RouterLink } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 
@@ -29,8 +39,39 @@ import '@/assets/auth.css';
 
 const email = ref('');
 const authStore = useAuthStore();
+const isLoading = ref(false)
 
-const handleForgotPassword = () => {
-  authStore.forgotPassword(email.value);
+const handleForgotPassword = async () => {
+  if (!email.value) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Email Kosong',
+      text: 'Silakan masukkan email anda terlebih dahulu.'
+
+    });
+    return;
+  }
+
+  isLoading.value = true;
+
+  try {
+    await authStore.forgotPassword(email.value);
+    Swal.fire({
+      icon: 'success',
+      title: 'Link Reset Dikirim!',
+      text: 'Periksa email anda untuk melanjutkan proses reset password.'
+
+    });
+    email.value = '';
+  } catch (error) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Gagal Mengirim Link',
+      text: error.message || 'Terjadi kesalahan saat mengirim email reset password.'
+    });
+  } finally {
+    isLoading.value = false;
+  }
+
 };
 </script>

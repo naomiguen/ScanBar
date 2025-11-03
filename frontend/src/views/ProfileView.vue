@@ -1,143 +1,266 @@
 <template>
-  <div class="profile-page">
-    <div v-if="user" class="profile-container">
+  <div class="min-h-screen bg-slate-50 py-10 px-4 pt-32">
+    <!-- Manmpilkan konten hanya jika data userr yersedia -->
+    <div v-if="user" class="max-w-7xl mx-auto">
 
-      <div class="profile-banner-card">
-        <div class="avatar">
-          <span>{{ userInitials }}</span>
+      <!-- Profile Banner Card -->
+      <div class="bg-gradient-to-br from-blue-600 to-blue-500 text-white rounded-3xl p-6 md:p-8 flex flex-col md:flex-row items-center gap-6 md:gap-8 mb-8 shadow-xl shadow-blue-500/30">
+        <!-- Avatar(inisial nama pengguna)-->
+        <div class="w-24 h-24 md:w-28 md:h-28 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-4xl md:text-5xl font-bold uppercase flex-shrink-0">
+          {{ userInitials }}
         </div>
-        <div class="user-info">
-          <h1>{{ user.user_metadata?.name || 'Pengguna' }}</h1>
-          <p>{{ user.email }}</p>
+
+        <!-- User Info -->
+        <div class="flex-grow text-center md:text-left">
+          <h1 class="text-3xl md:text-4xl lg:text-5xl font-extrabold mb-1">
+            {{ user.user_metadata?.name || 'Pengguna' }}
+          </h1>
+          <p class="text-base md:text-lg opacity-90">
+            {{ user.email }}
+          </p>
         </div>
-        <div class="user-stats">
-          <div class="stat-item"><strong>{{ user.user_metadata?.age || 'N/A' }}</strong><span>tahun</span></div>
-          <div class="stat-item"><strong>{{ user.user_metadata?.weight || 'N/A' }}</strong><span>kg</span></div>
-          <div class="stat-item"><strong>{{ user.user_metadata?.height || 'N/A' }}</strong><span>cm</span></div>
-          <div class="stat-item"><strong>{{ bmi.value || 'N/A' }}</strong><span>BMI</span></div>
+
+        <!-- Statistik pengguna(umur, berat, tinggi, BMi) -->
+        <div class="flex gap-4 md:gap-5 bg-black/10 backdrop-blur-sm px-6 py-4 rounded-2xl">
+          <div class="text-center">
+            <div class="text-2xl md:text-3xl font-bold">{{ user.user_metadata?.age || 'N/A' }}</div>
+            <div class="text-xs md:text-sm opacity-80">tahun</div>
+          </div>
+          <div class="text-center">
+            <div class="text-2xl md:text-3xl font-bold">{{ user.user_metadata?.weight || 'N/A' }}</div>
+            <div class="text-xs md:text-sm opacity-80">kg</div>
+          </div>
+          <div class="text-center">
+            <div class="text-2xl md:text-3xl font-bold">{{ user.user_metadata?.height || 'N/A' }}</div>
+            <div class="text-xs md:text-sm opacity-80">cm</div>
+          </div>
+          <div class="text-center">
+            <div class="text-2xl md:text-3xl font-bold">{{ bmi.value || 'N/A' }}</div>
+            <div class="text-xs md:text-sm opacity-80">BMI</div>
+          </div>
         </div>
       </div>
 
-      <div class="profile-grid">
-        <div class="info-card">
-          <div class="card-header">
-            <h3><i class="fa-solid fa-chart-line"></i> Ringkasan Aktivitas</h3>
+      <!-- Profile Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
+
+        <!-- Ringkasan Aktivitas Card -->
+        <div class="bg-white rounded-3xl shadow-xl p-6 md:p-8">
+          <div class="flex items-center gap-3 mb-6 pb-4 border-b-2 border-slate-100">
+            <i class="fa-solid fa-chart-line text-2xl text-blue-600"></i>
+            <h3 class="text-xl md:text-2xl font-bold text-blue-900">Ringkasan Aktivitas</h3>
           </div>
-          <div class="summary-tabs">
+
+          <!-- Period Tabs -->
+          <div class="flex gap-2 mb-6">
             <button
               v-for="period in periods"
               :key="period.value"
               @click="changePeriod(period.value)"
-              :class="['tab-button', { active: selectedPeriod === period.value }]"
               :disabled="loadingSummary"
+              :class="[
+                'flex-1 px-4 py-3 rounded-xl font-semibold transition-all duration-300',
+                selectedPeriod === period.value
+                  ? 'bg-blue-600 text-white shadow-md'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200',
+                loadingSummary ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+              ]"
             >
               {{ period.label }}
             </button>
           </div>
-          <div v-if="loadingSummary" class="loading-summary">
+
+          <!-- Loading State -->
+          <div v-if="loadingSummary" class="text-center py-8 text-slate-500">
+            <div class="text-4xl mb-2">⏳</div>
             <p>Memuat data...</p>
           </div>
-          <div v-else class="summary-content">
-            <div class="summary-item">
-              <span class="summary-label">Total Kalori</span>
-              <strong class="summary-value kalori">{{ summaryData.calories || 0 }} kcal</strong>
+
+          <!-- Summary Content -->
+          <div v-else class="space-y-3">
+            <!-- Kalori -->
+            <div class="flex justify-between items-center bg-slate-50 px-4 py-4 rounded-xl">
+              <span class="text-slate-600 font-medium">Total Kalori</span>
+              <strong class="text-xl md:text-2xl font-bold text-blue-600">{{ summaryData.calories || 0 }} kcal</strong>
             </div>
-            <div class="summary-item">
-              <span class="summary-label">Karbohidrat</span>
-              <strong class="summary-value karbo">{{ summaryData.carbs || 0 }} g</strong>
+
+            <!-- Karbohidrat -->
+            <div class="flex justify-between items-center bg-slate-50 px-4 py-4 rounded-xl">
+              <span class="text-slate-600 font-medium">Karbohidrat</span>
+              <strong class="text-xl md:text-2xl font-bold text-green-600">{{ summaryData.carbs || 0 }} g</strong>
             </div>
-            <div class="summary-item">
-              <span class="summary-label">Protein</span>
-              <strong class="summary-value protein">{{ summaryData.protein || 0 }} g</strong>
+
+            <!-- Protein -->
+            <div class="flex justify-between items-center bg-slate-50 px-4 py-4 rounded-xl">
+              <span class="text-slate-600 font-medium">Protein</span>
+              <strong class="text-xl md:text-2xl font-bold text-orange-600">{{ summaryData.protein || 0 }} g</strong>
             </div>
-            <div class="summary-item">
-              <span class="summary-label">Lemak</span>
-              <strong class="summary-value lemak">{{ summaryData.fat || 0 }} g</strong>
+
+            <!-- Lemak -->
+            <div class="flex justify-between items-center bg-slate-50 px-4 py-4 rounded-xl">
+              <span class="text-slate-600 font-medium">Lemak</span>
+              <strong class="text-xl md:text-2xl font-bold text-amber-600">{{ summaryData.fat || 0 }} g</strong>
             </div>
-            <div class="summary-item">
-              <span class="summary-label">Gula</span>
-              <strong class="summary-value gula">{{ summaryData.sugar || 0 }} g</strong>
+
+            <!-- Gula -->
+            <div class="flex justify-between items-center bg-slate-50 px-4 py-4 rounded-xl">
+              <span class="text-slate-600 font-medium">Gula</span>
+              <strong class="text-xl md:text-2xl font-bold text-purple-600">{{ summaryData.sugar || 0 }} g</strong>
             </div>
-            <div class="summary-item">
-              <span class="summary-label">Garam</span>
-              <strong class="summary-value garam">{{ summaryData.sodium || 0 }} mg</strong>
+
+            <!-- Garam -->
+            <div class="flex justify-between items-center bg-slate-50 px-4 py-4 rounded-xl">
+              <span class="text-slate-600 font-medium">Garam</span>
+              <strong class="text-xl md:text-2xl font-bold text-cyan-600">{{ summaryData.sodium || 0 }} mg</strong>
             </div>
           </div>
         </div>
 
-        <div class="bmi-status-card">
-          <div class="card-header">
-            <h3><i class="fa-solid fa-weight-scale"></i> Status BMI</h3>
+        <!-- BMI Status Card -->
+        <div class="bg-white rounded-3xl shadow-xl p-6 md:p-8">
+          <div class="flex items-center gap-3 mb-6 pb-4 border-b-2 border-slate-100">
+            <i class="fa-solid fa-weight-scale text-2xl text-blue-600"></i>
+            <h3 class="text-xl md:text-2xl font-bold text-blue-900">Status BMI</h3>
           </div>
-          <div class="bmi-gauge">
-            <div class="gauge-circle" :style="bmiStyle">
-              <div class="gauge-inner-circle">
-                <span class="bmi-value">{{ bmi.value }}</span>
-                <span class="bmi-label">BMI</span>
+
+          <!-- BMI Gauge -->
+          <div class="flex justify-center my-6">
+            <div
+              class="w-44 h-44 rounded-full flex items-center justify-center"
+              :style="bmiStyle"
+            >
+              <div class="w-36 h-36 rounded-full bg-white flex flex-col items-center justify-center">
+                <span class="text-5xl font-bold text-slate-800">{{ bmi.value }}</span>
+                <span class="text-base text-slate-600">BMI</span>
               </div>
             </div>
           </div>
-          <p class="bmi-status-text" :style="{ color: bmi.color }">{{ bmi.status }}</p>
-          <div class="bmi-legend">
-            <div class="bmi-legend-item"><span class="legend-dot legend-underweight"></span><span class="legend-label">Underweight</span><span class="legend-range">&lt; 18.5</span></div>
-            <div class="bmi-legend-item"><span class="legend-dot legend-normal"></span><span class="legend-label">Normal</span><span class="legend-range">18.5 - 24.9</span></div>
-            <div class="bmi-legend-item"><span class="legend-dot legend-overweight"></span><span class="legend-label">Overweight</span><span class="legend-range">25 - 29.9</span></div>
-            <div class="bmi-legend-item"><span class="legend-dot legend-obese"></span><span class="legend-label">Obesitas</span><span class="legend-range">&gt;= 30</span></div>
+
+          <!-- BMI Status Text -->
+          <p
+            class="text-center text-2xl md:text-3xl font-bold mb-6"
+            :style="{ color: bmi.color }"
+          >
+            {{ bmi.status }}
+          </p>
+
+          <!-- BMI Legend -->
+          <div class="space-y-2">
+            <div class="flex items-center justify-between gap-3 px-4 py-3 bg-slate-50 rounded-xl">
+              <div class="flex items-center gap-3 flex-1">
+                <span class="w-3 h-3 rounded-full bg-blue-500 flex-shrink-0"></span>
+                <span class="font-semibold text-slate-700">Underweight</span>
+              </div>
+              <span class="text-slate-600 text-sm min-w-[80px] text-right">&lt; 18.5</span>
+            </div>
+
+            <div class="flex items-center justify-between gap-3 px-4 py-3 bg-slate-50 rounded-xl">
+              <div class="flex items-center gap-3 flex-1">
+                <span class="w-3 h-3 rounded-full bg-green-500 flex-shrink-0"></span>
+                <span class="font-semibold text-slate-700">Normal</span>
+              </div>
+              <span class="text-slate-600 text-sm min-w-[80px] text-right">18.5 - 24.9</span>
+            </div>
+
+            <div class="flex items-center justify-between gap-3 px-4 py-3 bg-slate-50 rounded-xl">
+              <div class="flex items-center gap-3 flex-1">
+                <span class="w-3 h-3 rounded-full bg-orange-500 flex-shrink-0"></span>
+                <span class="font-semibold text-slate-700">Overweight</span>
+              </div>
+              <span class="text-slate-600 text-sm min-w-[80px] text-right">25 - 29.9</span>
+            </div>
+
+            <div class="flex items-center justify-between gap-3 px-4 py-3 bg-slate-50 rounded-xl">
+              <div class="flex items-center gap-3 flex-1">
+                <span class="w-3 h-3 rounded-full bg-red-500 flex-shrink-0"></span>
+                <span class="font-semibold text-slate-700">Obesitas</span>
+              </div>
+              <span class="text-slate-600 text-sm min-w-[80px] text-right">&gt;= 30</span>
+            </div>
           </div>
         </div>
 
-        <div class="nutrient-target-card">
-          <div class="card-header">
-            <h3><i class="fa-solid fa-bullseye"></i> Target Nutrisi Harian</h3>
+        <!-- Target Nutrisi Harian Card (Full Width) -->
+        <div class="bg-white rounded-3xl shadow-xl p-6 md:p-8 lg:col-span-2">
+          <div class="flex items-center gap-3 mb-6 pb-4 border-b-2 border-slate-100">
+            <i class="fa-solid fa-bullseye text-2xl text-blue-600"></i>
+            <h3 class="text-xl md:text-2xl font-bold text-blue-900">Target Nutrisi Harian</h3>
           </div>
 
-          <div class="nutrient-grid-colored">
-            <div class="nutrient-box kalori-box">
-              <div class="nutrient-label">
-                <span class="dot dot-kalori"></span> Kalori
+          <!-- Nutrient Grid -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            <!-- Kalori -->
+            <div class="bg-blue-100 rounded-2xl p-5 hover:-translate-y-1 hover:shadow-xl transition-all duration-300">
+              <div class="flex items-center gap-2 mb-3">
+                <span class="w-3 h-3 rounded-full bg-blue-600"></span>
+                <span class="font-semibold text-slate-700">Kalori</span>
               </div>
-              <div class="nutrient-value">{{ user.user_metadata?.dailyCalorieGoal || 0 }} <span class="unit">kcal</span></div>
+              <div class="text-3xl md:text-4xl font-bold text-blue-600">
+                {{ dailyGoals.calories }} <span class="text-base text-slate-600 ml-1">kcal</span>
+              </div>
             </div>
 
-            <div class="nutrient-box karbo-box">
-              <div class="nutrient-label">
-                <span class="dot dot-karbo"></span> Karbohidrat
+            <!-- Karbohidrat -->
+            <div class="bg-green-100 rounded-2xl p-5 hover:-translate-y-1 hover:shadow-xl transition-all duration-300">
+              <div class="flex items-center gap-2 mb-3">
+                <span class="w-3 h-3 rounded-full bg-green-600"></span>
+                <span class="font-semibold text-slate-700">Karbohidrat</span>
               </div>
-              <div class="nutrient-value">{{ user.user_metadata?.dailyCarbsGoal || 0 }} <span class="unit">gram</span></div>
+              <div class="text-3xl md:text-4xl font-bold text-green-600">
+                {{ dailyGoals.carbs }} <span class="text-base text-slate-600 ml-1">gram</span>
+              </div>
             </div>
 
-            <div class="nutrient-box protein-box">
-              <div class="nutrient-label">
-                <span class="dot dot-protein"></span> Protein
+            <!-- Protein -->
+            <div class="bg-orange-100 rounded-2xl p-5 hover:-translate-y-1 hover:shadow-xl transition-all duration-300">
+              <div class="flex items-center gap-2 mb-3">
+                <span class="w-3 h-3 rounded-full bg-orange-600"></span>
+                <span class="font-semibold text-slate-700">Protein</span>
               </div>
-              <div class="nutrient-value">{{ user.user_metadata?.dailyProteinGoal || 0 }} <span class="unit">gram</span></div>
+              <div class="text-3xl md:text-4xl font-bold text-orange-600">
+                {{ dailyGoals.protein }} <span class="text-base text-slate-600 ml-1">gram</span>
+              </div>
             </div>
 
-            <div class="nutrient-box lemak-box">
-              <div class="nutrient-label">
-                <span class="dot dot-lemak"></span> Lemak
+            <!-- Lemak -->
+            <div class="bg-amber-100 rounded-2xl p-5 hover:-translate-y-1 hover:shadow-xl transition-all duration-300">
+              <div class="flex items-center gap-2 mb-3">
+                <span class="w-3 h-3 rounded-full bg-amber-700"></span>
+                <span class="font-semibold text-slate-700">Lemak</span>
               </div>
-              <div class="nutrient-value">{{ user.user_metadata?.dailyFatGoal || 0 }} <span class="unit">gram</span></div>
+              <div class="text-3xl md:text-4xl font-bold text-amber-700">
+                {{ dailyGoals.fat }} <span class="text-base text-slate-600 ml-1">gram</span>
+              </div>
             </div>
 
-            <div class="nutrient-box gula-box">
-              <div class="nutrient-label">
-                <span class="dot dot-gula"></span> Gula
+            <!-- Gula -->
+            <div class="bg-purple-100 rounded-2xl p-5 hover:-translate-y-1 hover:shadow-xl transition-all duration-300">
+              <div class="flex items-center gap-2 mb-3">
+                <span class="w-3 h-3 rounded-full bg-purple-600"></span>
+                <span class="font-semibold text-slate-700">Gula</span>
               </div>
-              <div class="nutrient-value">{{ user.user_metadata?.dailySugarGoal || 0 }} <span class="unit">gram</span></div>
+              <div class="text-3xl md:text-4xl font-bold text-purple-600">
+                {{ dailyGoals.sugar }} <span class="text-base text-slate-600 ml-1">gram</span>
+              </div>
             </div>
 
-            <div class="nutrient-box garam-box">
-              <div class="nutrient-label">
-                <span class="dot dot-garam"></span> Garam
+            <!-- Garam -->
+            <div class="bg-cyan-100 rounded-2xl p-5 hover:-translate-y-1 hover:shadow-xl transition-all duration-300">
+              <div class="flex items-center gap-2 mb-3">
+                <span class="w-3 h-3 rounded-full bg-cyan-600"></span>
+                <span class="font-semibold text-slate-700">Garam</span>
               </div>
-              <div class="nutrient-value">{{ user.user_metadata?.dailySodiumGoal || 0 }} <span class="unit">mg</span></div>
+              <div class="text-3xl md:text-4xl font-bold text-cyan-600">
+                {{ dailyGoals.salt }} <span class="text-base text-slate-600 ml-1">mg</span>
+              </div>
             </div>
           </div>
 
-          <div class="update-prompt-colored">
-            <p>
-              Gunakan halaman <router-link to="/calculator"><strong>Kalkulator</strong></router-link>
+          <!-- Update Prompt -->
+          <div class="mt-6 bg-blue-50 border-l-4 border-blue-600 px-5 py-4 rounded-xl">
+            <p class="text-blue-900">
+              Gunakan halaman
+              <router-link to="/calculator" class="font-bold hover:underline">Kalkulator</router-link>
               untuk menghitung dan memperbarui target nutrisi berdasarkan data tubuh Anda.
             </p>
           </div>
@@ -145,387 +268,136 @@
 
       </div>
     </div>
-    <div v-else class="loading-state">
-      <p>Memuat data profil...</p>
+
+    <!-- Loading State -->
+    <div v-else class="text-center py-16">
+      <div class="text-6xl mb-4">⏳</div>
+      <p class="text-xl text-slate-500">Memuat data profil...</p>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue';
-import { useAuthStore } from '@/stores/auth';
-import { useFoodStore } from '@/stores/food';
+import { ref, onMounted, computed } from 'vue'
+import { useAuthStore } from '@/stores/auth'
+import { useFoodStore } from '@/stores/food'
 
-const authStore = useAuthStore();
-const foodStore = useFoodStore();
-const user = computed(() => authStore.user);
+const authStore = useAuthStore()
+const foodStore = useFoodStore()
+const user = computed(() => authStore.user)
 
-const selectedPeriod = ref('daily');
+const selectedPeriod = ref('daily')
 const summaryData = computed(() => {
-  const s = foodStore.summary || {};
+  const s = foodStore.summary || {}
   return {
     calories: s.calories ?? 0,
     carbs: s.carbs ?? 0,
     protein: s.protein ?? 0,
     fat: s.fat ?? 0,
     sugar: s.sugar ?? 0,
-    sodium: s.sodium ?? 0,
-  };
-});
-const loadingSummary = ref(false);
+    sodium: Math.round((s.salt ?? 0) * 1000),
+  }
+})
+const loadingSummary = ref(false)
 
 const periods = [
   { value: 'daily', label: 'Harian' },
   { value: 'weekly', label: 'Mingguan' },
   { value: 'monthly', label: 'Bulanan' }
-];
+]
+
+// Daily goals dengan fallback
+const dailyGoals = computed(() => {
+  const meta = user.value?.user_metadata || {}
+
+  return {
+    calories: meta.dailyCalorieGoal || meta.dailyCalories || 0,
+    carbs: meta.dailyCarbsGoal || meta.dailyCarbs || 0,
+    protein: meta.dailyProteinGoal || meta.dailyProtein || 0,
+    fat: meta.dailyFatGoal || meta.dailyFat || 0,
+    sugar: meta.dailySugarGoal || meta.dailySugar || 0,
+    salt: (() => {
+      const saltGoal = meta.dailySaltGoal || meta.dailySalt || 0
+      const sodiumGoal = meta.dailySodiumGoal || meta.dailySodium || 0
+
+      if (saltGoal > 0 && saltGoal < 100) {
+        return Math.round(saltGoal * 1000)
+      }
+      return saltGoal || sodiumGoal || 0
+    })()
+  }
+})
 
 onMounted(async () => {
-  loadingSummary.value = true;
+  loadingSummary.value = true
   try {
-    await foodStore.fetchSummaryByPeriod(selectedPeriod.value);
+    await foodStore.fetchSummaryByPeriod(selectedPeriod.value)
   } catch (err) {
-    console.error('Gagal memuat ringkasan saat mount:', err);
+    console.error('Gagal memuat ringkasan saat mount:', err)
   } finally {
-    loadingSummary.value = false;
+    loadingSummary.value = false
   }
-});
+})
 
 async function changePeriod(period) {
-  selectedPeriod.value = period;
-  loadingSummary.value = true;
+  selectedPeriod.value = period
+  loadingSummary.value = true
   try {
-    await foodStore.fetchSummaryByPeriod(period);
+    await foodStore.fetchSummaryByPeriod(period)
   } catch (err) {
-    console.error('Gagal mengganti periode ringkasan:', err);
+    console.error('Gagal mengganti periode ringkasan:', err)
   } finally {
-    loadingSummary.value = false;
+    loadingSummary.value = false
   }
 }
 
 const userInitials = computed(() => {
-  const name = user.value?.user_metadata?.name;
-  if (!name) return user.value?.email?.[0]?.toUpperCase() || '?';
+  const name = user.value?.user_metadata?.name
+  if (!name) return user.value?.email?.[0]?.toUpperCase() || '?'
 
-  const names = name.split(' ');
-  return names.length > 1 ? names[0][0] + names[names.length - 1][0] : names[0].substring(0, 2);
-});
+  const names = name.split(' ')
+  return names.length > 1 ? names[0][0] + names[names.length - 1][0] : names[0].substring(0, 2)
+})
 
 const bmi = computed(() => {
-  const weight = user.value?.user_metadata?.weight;
-  const height = user.value?.user_metadata?.height;
+  const weight = user.value?.user_metadata?.weight
+  const height = user.value?.user_metadata?.height
 
   if (!weight || !height) {
-    return { value: 'N/A', status: 'Data tidak lengkap', color: '#64748b' };
+    return { value: 'N/A', status: 'Data tidak lengkap', color: '#64748b' }
   }
 
-  const heightInMeters = height / 100;
-  const bmiValue = (weight / (heightInMeters * heightInMeters)).toFixed(1);
+  const heightInMeters = height / 100
+  const bmiValue = (weight / (heightInMeters * heightInMeters)).toFixed(1)
 
-  if (bmiValue < 18.5) return { value: bmiValue, status: 'Underweight', color: '#3b82f6' };
-  if (bmiValue <= 24.9) return { value: bmiValue, status: 'Normal', color: '#22c55e' };
-  if (bmiValue <= 29.9) return { value: bmiValue, status: 'Overweight', color: '#f97316' };
-  return { value: bmiValue, status: 'Obesitas', color: '#ef4444' };
-});
+  if (bmiValue < 18.5) return { value: bmiValue, status: 'Underweight', color: '#3b82f6' }
+  if (bmiValue <= 24.9) return { value: bmiValue, status: 'Normal', color: '#22c55e' }
+  if (bmiValue <= 29.9) return { value: bmiValue, status: 'Overweight', color: '#f97316' }
+  return { value: bmiValue, status: 'Obesitas', color: '#ef4444' }
+})
 
 const bmiStyle = computed(() => {
-  const value = parseFloat(bmi.value.value);
-  if(isNaN(value)) return { background: '#e2e8f0' };
-  const percentage = Math.min((value / 40) * 100, 100);
-  return { background: `conic-gradient(${bmi.value.color} ${percentage}%, #e2e8f0 ${percentage}%)` };
-});
+  const value = parseFloat(bmi.value.value)
+  if (isNaN(value)) return { background: '#e2e8f0' }
+  const percentage = Math.min((value / 40) * 100, 100)
+  return { background: `conic-gradient(${bmi.value.color} ${percentage}%, #e2e8f0 ${percentage}%)` }
+})
 </script>
 
 <style scoped>
-.profile-page {
-  background-color: #f8fafc;
-  min-height: 100vh;
-  padding: 40px 20px;
-  padding-top: 120px;
-  font-family: 'Segoe UI', sans-serif;
-}
-.profile-container { max-width: 1200px; margin: auto; }
-.loading-state { text-align: center; padding: 4rem; font-size: 1.2rem; color: #64748b; }
-
-.profile-banner-card {
-  background: linear-gradient(135deg, #2563eb, #3b82f6);
-  color: white;
-  border-radius: 20px;
-  padding: 30px;
-  display: flex;
-  align-items: center;
-  gap: 30px;
-  margin-bottom: 30px;
-  box-shadow: 0 4px 20px rgba(37, 99, 235, 0.3);
-}
-.avatar {
-  width: 100px;
-  height: 100px;
-  border-radius: 50%;
-  background-color: rgba(255, 255, 255, 0.2);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 2.5rem;
-  font-weight: 700;
-  flex-shrink: 0;
-  text-transform: uppercase;
-}
-.user-info { flex-grow: 1; }
-.user-info h1 { margin: 0; font-size: 2.5rem; }
-.user-info p { margin: 0; opacity: 0.8; }
-.user-stats {
-  display: flex;
-  gap: 20px;
-  background: rgba(0,0,0,0.1);
-  padding: 15px 25px;
-  border-radius: 12px;
-}
-.stat-item { text-align: center; }
-.stat-item strong { display: block; font-size: 1.5rem; }
-.stat-item span { font-size: 0.8rem; opacity: 0.8; }
-
-.profile-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 30px;
-}
-.info-card, .bmi-status-card, .nutrient-target-card {
-  background: #fff;
-  border-radius: 20px;
-  padding: 30px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-}
-.card-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 20px;
-  color: #1746a2;
-  border-bottom: 1px solid #e2e8f0;
-  padding-bottom: 15px;
-}
-h3 { margin: 0; font-size: 1.2rem; }
-
-.bmi-gauge { display: flex; justify-content: center; margin: 20px 0; }
-.gauge-circle {
-  width: 180px;
-  height: 180px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.gauge-inner-circle {
-  width: 150px;
-  height: 150px;
-  border-radius: 50%;
-  background: white;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-.bmi-value { font-size: 3rem; font-weight: 700; color: #1e293b; }
-.bmi-label { font-size: 1rem; color: #64748b; }
-.bmi-status-text {
-  text-align: center;
-  font-size: 1.5rem;
-  font-weight: 700;
-  margin-bottom: 20px;
-}
-
-.bmi-legend {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: 10px;
-}
-.bmi-legend-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 8px 12px;
-  border-radius: 8px;
-  background: #f8fafc;
-}
-.bmi-legend-item .legend-label {
-  flex: 1;
-  color: #334155;
-  font-weight: 600;
-}
-.bmi-legend-item .legend-range {
-  color: #64748b;
-  font-size: 0.95rem;
-  min-width: 80px;
-  text-align: right;
-}
-.legend-dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  display: inline-block;
-  margin-right: 10px;
-}
-.legend-underweight { background: #3b82f6; }
-.legend-normal { background: #22c55e; }
-.legend-overweight { background: #f97316; }
-.legend-obese { background: #ef4444; }
-
-.summary-tabs { display: flex; gap: 10px; margin-bottom: 20px; }
-.tab-button {
-  flex: 1;
-  padding: 10px;
-  border: none;
-  background: #f1f5f9;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 600;
-  color: #64748b;
-  transition: all 0.3s;
-}
-.tab-button:hover:not(:disabled) { background: #e2e8f0; }
-.tab-button.active { background: #2563eb; color: white; }
-.tab-button:disabled { cursor: not-allowed; opacity: 0.6; }
-
-.loading-summary { text-align: center; padding: 2rem; color: #64748b; }
-
-.summary-content { display: flex; flex-direction: column; gap: 12px; }
-.summary-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 15px;
-  background: #f8fafc;
-  border-radius: 10px;
-}
-.summary-label { color: #64748b; font-weight: 500; }
-.summary-value { font-size: 1.3rem; font-weight: 700; }
-.summary-value.kalori { color: #2563eb; }
-.summary-value.karbo { color: #16a34a; }
-.summary-value.protein { color: #ea580c; }
-.summary-value.lemak { color: #d97706; }
-.summary-value.gula { color: #9333ea; }
-.summary-value.garam { color: #0ea5e4; }
-
-.nutrient-target-card {
-  grid-column: 1 / -1;
-}
-
-.nutrient-grid-colored {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
-  margin-top: 10px;
-}
-
-.nutrient-box {
-  border-radius: 12px;
-  padding: 20px;
-  background: #f8fafc;
-  transition: 0.3s ease;
-}
-.nutrient-box:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 6px 15px rgba(0,0,0,0.08);
-}
-
-.kalori-box { background-color: #e0ebff; }
-.karbo-box { background-color: #e6ffea; }
-.protein-box { background-color: #fff3e0; }
-.lemak-box { background-color: #fff8dc; }
-.gula-box { background-color: #f3e8ff; }
-.garam-box { background-color: #ecfeff; }
-
-.nutrient-label {
-  font-weight: 600;
-  font-size: 1rem;
-  color: #334155;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  display: inline-block;
-}
-.dot-kalori { background-color: #2563eb; }
-.dot-karbo { background-color: #16a34a; }
-.dot-protein { background-color: #ea580c; }
-.dot-lemak { background-color: #b45309; }
-.dot-gula { background-color: #9333ea; }
-.dot-garam { background-color: #0ea5e4; }
-
-.nutrient-value {
-  font-size: 2rem;
-  font-weight: 700;
-  margin-top: 5px;
-}
-.kalori-box .nutrient-value { color: #2563eb; }
-.karbo-box .nutrient-value { color: #16a34a; }
-.protein-box .nutrient-value { color: #ea580c; }
-.lemak-box .nutrient-value { color: #b45309; }
-.gula-box .nutrient-value { color: #9333ea; }
-.garam-box .nutrient-value { color: #0ea5e4; }
-
-.unit {
-  font-size: 1rem;
-  color: #64748b;
-  margin-left: 3px;
-}
-
-.update-prompt-colored {
-  margin-top: 20px;
-  background: #eef4ff;
-  padding: 15px;
-  border-radius: 12px;
-  border-left: 4px solid #2563eb;
-  color: #1e3a8a;
-  text-align: left;
-}
-.update-prompt-colored a {
-  color: #1e3a8a;
-  text-decoration: none;
-  font-weight: 600;
-}
-.update-prompt-colored a:hover {
-  text-decoration: underline;
-}
-
-@media (max-width: 1024px) {
-  .profile-grid {
-    grid-template-columns: 1fr;
+/* Smooth animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
   }
-
-  .nutrient-grid-colored {
-    grid-template-columns: repeat(2, 1fr);
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
-@media (max-width: 768px) {
-  .profile-page {
-    padding: 20px 15px;
-    padding-top: 100px;
-  }
-
-  .profile-banner-card {
-    flex-direction: column;
-    text-align: center;
-  }
-
-  .user-info h1 {
-    font-size: 1.8rem;
-  }
-
-  .user-stats {
-    flex-wrap: wrap;
-  }
-
-  .nutrient-grid-colored {
-    grid-template-columns: 1fr;
-  }
+.space-y-3 > *, .space-y-2 > * {
+  animation: fadeIn 0.3s ease-out;
 }
 </style>

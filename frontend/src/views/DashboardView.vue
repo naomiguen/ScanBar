@@ -1,83 +1,154 @@
 <template>
-  <div class="dashboard">
-    <div class="header">
-      <h1>Dashboard Nutrisi</h1>
-      <p>Pantau konsumsi harian Anda</p>
+  <div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-10 px-4 pt-32">
+    <!-- Header -->
+    <div class="text-center mb-10">
+      <h1 class="text-4xl md:text-5xl font-extrabold text-blue-900 mb-2">
+        Dashboard Nutrisi
+      </h1>
+      <p class="text-lg text-slate-600">
+        Pantau konsumsi harian Anda
+      </p>
     </div>
 
-    <!-- Ringkasan -->
-    <div class="summary-card">
-      <h2>📈 Ringkasan Harian</h2>
-      <div class="summary-grid">
-        <div class="summary-item" v-for="(goal, key) in summaryData" :key="key">
-          <div class="top">
-            <span class="label">{{ goal.label }}</span>
-            <span class="value">{{ goal.value }} / {{ goal.max }} {{ goal.unit }}</span>
+    <!-- Ringkasan Harian -->
+    <div class="bg-white rounded-3xl shadow-xl p-6 md:p-8 mb-10 max-w-7xl mx-auto">
+      <h2 class="text-2xl md:text-3xl font-bold text-blue-900 mb-6 flex items-center gap-2">
+        <span class="text-3xl">📈</span> Ringkasan Harian
+      </h2>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+        <div
+          v-for="(goal, key) in summaryData"
+          :key="key"
+          class="bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl p-5 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+        >
+          <!-- Top: Label & Value -->
+          <div class="flex justify-between items-center mb-3">
+            <span class="font-bold text-slate-800 text-base">{{ goal.label }}</span>
+            <span class="font-semibold text-slate-700 text-sm">
+              {{ goal.value }} / {{ goal.max }} {{ goal.unit }}
+            </span>
           </div>
-          <div class="bar-container">
-            <div class="bar" :class="goal.class" :style="{ width: `${Math.min((goal.value / goal.max) * 100, 100)}%` }"></div>
+
+          <!-- Progress Bar -->
+          <div class="bg-slate-200 rounded-full h-3 overflow-hidden mb-3">
+            <div
+              :class="getBarColorClass(goal.class)"
+              class="h-3 rounded-full transition-all duration-500 ease-out"
+              :style="{ width: `${Math.min((goal.value / goal.max) * 100, 100)}%` }"
+            ></div>
           </div>
-          <p class="sisa">Sisa: {{ Math.max(0, goal.max - goal.value) }} {{ goal.unit }}</p>
+
+          <!-- Sisa -->
+          <p class="text-sm text-slate-600">
+            Sisa: <span class="font-semibold">{{ Math.max(0, goal.max - goal.value) }} {{ goal.unit }}</span>
+          </p>
         </div>
       </div>
     </div>
 
-    <!-- Jurnal Makanan -->
-    <div class="journal-card">
-      <h2>🍽️ Jurnal Makanan Harian</h2>
+    <!-- Jurnal Makanan Harian -->
+    <div class="bg-white rounded-3xl shadow-xl p-6 md:p-8 max-w-7xl mx-auto">
+      <h2 class="text-2xl md:text-3xl font-bold text-blue-900 mb-6 flex items-center gap-2">
+        <span class="text-3xl">🍽️</span> Jurnal Makanan Harian
+      </h2>
 
-      <div v-if="foodStore.foods.length === 0" class="empty-state">
-        <p>Anda belum mencatat makanan apa pun hari ini.</p>
+      <!-- Empty State -->
+      <div v-if="foodStore.foods.length === 0" class="text-center py-16">
+        <div class="text-6xl mb-4">🍴</div>
+        <p class="text-lg text-slate-500">
+          Anda belum mencatat makanan apa pun hari ini.
+        </p>
       </div>
 
-      <div v-else class="food-list">
+      <!-- Food List -->
+      <div v-else class="space-y-4">
         <div
           v-for="food in foodStore.foods"
           :key="food._id"
-          class="food-item"
+          class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-5 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
         >
-          <!-- Header Nama & Jam -->
-          <div class="food-header">
-            <h3 class="food-name">{{ food.productName }}</h3>
-            <span class="time">
+          <!-- Header: Nama & Waktu -->
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl md:text-2xl font-bold text-blue-900">
+              {{ food.productName }}
+            </h3>
+            <span class="text-sm text-slate-600 font-medium">
               {{ new Date(food.date).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) }}
             </span>
           </div>
 
-          <!-- Nutrisi & Tombol Hapus -->
-          <div class="food-body">
-            <div class="nutrients">
-              <div class="nutrient-box kcal-box">
-                <span class="kcal">{{ Math.round(food.calories) }}</span>
-                <span class="label-small">kcal</span>
+          <!-- Body: Nutrients & Delete Button -->
+          <div class="flex flex-col lg:flex-row gap-4 items-stretch lg:items-center">
+            <!-- Nutrients Grid -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 flex-1">
+              <!-- Kalori -->
+              <div class="bg-blue-100 rounded-xl p-3 text-center">
+                <div class="text-xl md:text-2xl font-bold text-blue-600">
+                  {{ Math.round(food.calories) }}
+                </div>
+                <div class="text-xs font-medium text-blue-700 mt-1">
+                  kcal
+                </div>
               </div>
-              <div class="nutrient-box karbo-box">
-                <span class="karbo">{{ Math.round(food.carbs) }}g</span>
-                <span class="label-small">karbo</span>
+
+              <!-- Karbohidrat -->
+              <div class="bg-green-100 rounded-xl p-3 text-center">
+                <div class="text-xl md:text-2xl font-bold text-green-600">
+                  {{ Math.round(food.carbs) }}g
+                </div>
+                <div class="text-xs font-medium text-green-700 mt-1">
+                  karbo
+                </div>
               </div>
-              <div class="nutrient-box protein-box">
-                <span class="protein">{{ Math.round(food.protein) }}g</span>
-                <span class="label-small">protein</span>
+
+              <!-- Protein -->
+              <div class="bg-orange-100 rounded-xl p-3 text-center">
+                <div class="text-xl md:text-2xl font-bold text-orange-600">
+                  {{ Math.round(food.protein) }}g
+                </div>
+                <div class="text-xs font-medium text-orange-700 mt-1">
+                  protein
+                </div>
               </div>
-              <div class="nutrient-box lemak-box">
-                <span class="lemak">{{ Math.round(food.fat) }}g</span>
-                <span class="label-small">lemak</span>
+
+              <!-- Lemak -->
+              <div class="bg-amber-100 rounded-xl p-3 text-center">
+                <div class="text-xl md:text-2xl font-bold text-amber-600">
+                  {{ Math.round(food.fat) }}g
+                </div>
+                <div class="text-xs font-medium text-amber-700 mt-1">
+                  lemak
+                </div>
               </div>
-              <div class="nutrient-box gula-box">
-                <span class="gula">{{ Math.round(food.sugar || 0) }}g</span>
-                <span class="label-small">gula</span>
+
+              <!-- Gula -->
+              <div class="bg-purple-100 rounded-xl p-3 text-center">
+                <div class="text-xl md:text-2xl font-bold text-purple-600">
+                  {{ Math.round(food.sugar || 0) }}g
+                </div>
+                <div class="text-xs font-medium text-purple-700 mt-1">
+                  gula
+                </div>
               </div>
-              <div class="nutrient-box garam-box">
-                <span class="garam">{{ Math.round(food.sodium || 0) }}mg</span>
-                <span class="label-small">garam</span>
+
+              <!-- Garam -->
+              <div class="bg-slate-100 rounded-xl p-3 text-center">
+                <div class="text-xl md:text-2xl font-bold text-slate-600">
+                  {{ Math.round((food.salt || 0) * 1000) }}mg
+                </div>
+                <div class="text-xs font-medium text-slate-700 mt-1">
+                  garam
+                </div>
               </div>
             </div>
 
+            <!-- Delete Button -->
             <button
               @click="confirmDelete(food._id, food.productName)"
-              class="delete-btn"
+              class="bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl px-6 py-3 md:py-4 transition-all duration-300 hover:scale-105 hover:shadow-lg whitespace-nowrap flex items-center justify-center gap-2 text-base"
             >
-              🗑️ Hapus
+              <span class="text-xl">🗑️</span> Hapus
             </button>
           </div>
         </div>
@@ -137,12 +208,24 @@ const summaryData = computed(() => ({
   },
   garam: {
     label: 'Garam',
-    value: Math.round(foodStore.totals.sodium || 0),
+    value: Math.round((foodStore.totals.salt || 0) * 1000),
     max: authStore.user?.user_metadata?.dailySodiumGoal || 2000,
     unit: 'mg',
     class: 'garam',
   },
 }))
+
+const getBarColorClass = (className) => {
+  const colorMap = {
+    kalori: 'bg-blue-600',
+    karbo: 'bg-green-600',
+    protein: 'bg-orange-600',
+    lemak: 'bg-amber-600',
+    gula: 'bg-purple-600',
+    garam: 'bg-slate-600',
+  }
+  return colorMap[className] || 'bg-blue-600'
+}
 
 const confirmDelete = (foodId, foodName) => {
   Swal.fire({
@@ -150,263 +233,39 @@ const confirmDelete = (foodId, foodName) => {
     text: 'Tindakan ini tidak dapat dibatalkan!',
     icon: 'warning',
     showCancelButton: true,
-    confirmButtonColor: '#d33',
-    cancelButtonColor: '#3085d6',
+    confirmButtonColor: '#ef4444',
+    cancelButtonColor: '#64748b',
     confirmButtonText: 'Ya, hapus!',
     cancelButtonText: 'Batal',
   }).then((result) => {
     if (result.isConfirmed) {
       foodStore.deleteFood(foodId)
-      Swal.fire(
-        'Dihapus!',
-        `${foodName} telah dihapus dari jurnal Anda.`,
-        'success'
-      )
+      Swal.fire({
+        icon: 'success',
+        title: 'Dihapus!',
+        text: `${foodName} telah dihapus dari jurnal Anda.`,
+        timer: 2000,
+        showConfirmButton: false,
+      })
     }
   })
 }
 </script>
 
 <style scoped>
-.dashboard {
-  background-color: #e8f0fe;
-  min-height: 100vh;
-  padding: 40px 20px;
-  padding-top: 120px;
-  font-family: 'Segoe UI', sans-serif;
-}
-
-/* Header */
-.header {
-  text-align: center;
-  margin-bottom: 40px;
-}
-.header h1 {
-  color: #1746a2;
-  font-size: 2.2rem;
-  margin-bottom: 5px;
-}
-.header p {
-  color: #5e6b83;
-}
-
-/* Ringkasan */
-.summary-card {
-  background: #fff;
-  border-radius: 20px;
-  padding: 30px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-  margin-bottom: 40px;
-}
-.summary-card h2 {
-  color: #1746a2;
-  margin-bottom: 20px;
-}
-.summary-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 30px;
-}
-.summary-item .top {
-  display: flex;
-  justify-content: space-between;
-  font-weight: 600;
-  color: #333;
-  margin-bottom: 10px;
-}
-.bar-container {
-  background-color: #dce4f5;
-  border-radius: 20px;
-  height: 12px;
-  margin-top: 10px;
-  overflow: hidden;
-}
-.bar {
-  height: 12px;
-  border-radius: 20px;
-  transition: width 0.3s ease;
-}
-.bar.kalori {
-  background-color: #2563eb;
-}
-.bar.karbo {
-  background-color: #16a34a;
-}
-.bar.protein {
-  background-color: #ea580c;
-}
-.bar.lemak {
-  background-color: #d97706;
-}
-.bar.gula {
-  background-color: #a855f7;
-}
-.bar.garam {
-  background-color: #64748b;
-}
-.sisa {
-  margin-top: 8px;
-  font-size: 0.9rem;
-  color: #6b7280;
-}
-
-/* Jurnal */
-.journal-card {
-  background: #fff;
-  border-radius: 20px;
-  padding: 30px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-}
-.journal-card h2 {
-  color: #1746a2;
-  margin-bottom: 25px;
-}
-.empty-state {
-  text-align: center;
-  padding: 40px 20px;
-  color: #6b7280;
-}
-.food-item {
-  background: #f8fbff;
-  padding: 20px;
-  border-radius: 15px;
-  margin-bottom: 15px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
-  transition: transform 0.2s;
-}
-.food-item:hover {
-  transform: translateY(-2px);
-}
-.food-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-}
-.food-header .food-name {
-  font-size: 1.3rem;
-  font-weight: 700;
-  color: #1e3a8a;
-}
-.food-header .time {
-  font-size: 0.9rem;
-  color: #6b7280;
-}
-.food-body {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-}
-.nutrients {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  flex: 1;
-  gap: 10px;
-}
-.nutrient-box {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 12px 8px;
-  border-radius: 8px;
-  text-align: center;
-  font-weight: 700;
-}
-.label-small {
-  font-size: 0.75rem;
-  font-weight: 500;
-  margin-top: 4px;
-}
-.kcal-box {
-  background-color: #dbeafe;
-}
-.karbo-box {
-  background-color: #dcfce7;
-}
-.protein-box {
-  background-color: #ffedd5;
-}
-.lemak-box {
-  background-color: #fef3c7;
-}
-.gula-box {
-  background-color: #f3e8ff;
-}
-.garam-box {
-  background-color: #f1f5f9;
-}
-.kcal {
-  color: #2563eb;
-  font-size: 1.1rem;
-}
-.karbo {
-  color: #16a34a;
-  font-size: 1.1rem;
-}
-.protein {
-  color: #ea580c;
-  font-size: 1.1rem;
-}
-.lemak {
-  color: #d97706;
-  font-size: 1.1rem;
-}
-.gula {
-  color: #9333ea;
-  font-size: 1.1rem;
-}
-.garam {
-  color: #475569;
-  font-size: 1.1rem;
-}
-
-/* Tombol hapus sejajar */
-.delete-btn {
-  background-color: #ef4444;
-  color: white;
-  font-weight: 600;
-  border: none;
-  border-radius: 10px;
-  padding: 14px 20px;
-  font-size: 1rem;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: all 0.25s ease;
-}
-.delete-btn:hover {
-  background-color: #dc2626;
-  transform: scale(1.05);
-}
-
-@media (max-width: 1200px) {
-  .summary-grid {
-    grid-template-columns: repeat(2, 1fr);
+/* Smooth animations */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
-@media (max-width: 768px) {
-  .dashboard {
-    padding: 20px 15px;
-    padding-top: 100px;
-  }
-
-  .summary-grid {
-    grid-template-columns: 1fr;
-  }
-  .nutrients {
-    grid-template-columns: repeat(3, 1fr);
-  }
-  .food-body {
-    flex-direction: column;
-  }
-  .delete-btn {
-    width: 100%;
-  }
-}
-
-@media (max-width: 480px) {
-  .nutrients {
-    grid-template-columns: repeat(2, 1fr);
-  }
+.space-y-4 > * {
+  animation: slideIn 0.3s ease-out;
 }
 </style>

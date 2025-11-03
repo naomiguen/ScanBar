@@ -5,11 +5,11 @@ import Swal from 'sweetalert2';
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref(null);
-  const profile = ref(null); // ✅ tambahan untuk data profil dari tabel
+  const profile = ref(null);
 
   const isAuthenticated = computed(() => !!user.value);
 
-  // ✅ Cek sesi login saat halaman di-refresh
+  // Cek sesi login saat halaman di-refresh
   async function checkSession() {
     const { data } = await supabase.auth.getSession();
     user.value = data.session?.user || null;
@@ -20,7 +20,7 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  // ✅ Update user state saat login/logout berubah
+  // Update user state saat login/logout berubah
   supabase.auth.onAuthStateChange((_event, session) => {
     user.value = session?.user || null;
     if (session?.user) {
@@ -30,7 +30,7 @@ export const useAuthStore = defineStore('auth', () => {
     }
   });
 
-  // ✅ Login
+  //  Login
   async function login(credentials) {
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -53,7 +53,7 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  // ✅ Register
+  //  Register
   async function register(credentials) {
     try {
       const { error } = await supabase.auth.signUp({
@@ -81,26 +81,19 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  // ✅ Logout
+  //  Logout
   async function logout() {
-    try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-      user.value = null;
-      profile.value = null;
-      return true;
-    } catch (error) {
-      console.error('Logout Error:', error.message);
-      Swal.fire({
-        icon: 'error',
-        title: 'Gagal Keluar',
-        text: error.message,
-      });
-      return false;
+    const { error } = await supabase.auth.signOut()
+    if (error) {
+      Swal.fire({ icon: 'error', title: 'Gagal Keluar', text: error.message })
+      return false
     }
+    user.value = null
+    profile.value = null
+    return true
   }
 
-  // ✅ Update Profil
+  //  Update Profil
   async function updateProfile(dataToUpdate) {
     try {
       const { data, error } = await supabase.auth.updateUser({
@@ -125,7 +118,7 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  // ✅ Fetch profil dari tabel "profiles"
+  // Fetch profil dari tabel "profiles"
   async function fetchUserProfile() {
     if (!user.value) return;
 
@@ -145,28 +138,38 @@ export const useAuthStore = defineStore('auth', () => {
     return data;
   }
 
-  // ✅ Lupa Password
+  // Lupa Password
   async function forgotPassword(email) {
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: 'http://localhost:5173/reset-password',
-    });
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
 
-    if (error) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Gagal',
-        text: error.message,
-      });
-    } else {
-      Swal.fire({
-        icon: 'success',
-        title: 'Email Terkirim',
-        text: 'Silakan cek email Anda untuk reset password.',
-      });
+      if (error) throw error;
+
+      return true;
+    } catch (error) {
+      console.error('Forgot Password Error:', error.message);
+      throw error;
     }
   }
 
-  // ✅ Nama pengguna (fallback ke metadata/email)
+  async function resetPassword(newPassword) {
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+
+      if (error) throw error;
+
+      return true;
+    } catch (error) {
+      console.error('Reset Password Error:', error.message);
+      throw error;
+    }
+  }
+
+  // Nama pengguna (fallback ke metadata/email)
   const userFullName = computed(() => {
     return (
       profile.value?.name ||
@@ -176,7 +179,7 @@ export const useAuthStore = defineStore('auth', () => {
     );
   });
 
-  // ✅ Return semua fungsi
+  //  Return semua fungsi
   return {
     user,
     profile,
@@ -188,6 +191,7 @@ export const useAuthStore = defineStore('auth', () => {
     fetchUserProfile,
     updateProfile,
     forgotPassword,
+    resetPassword,
     userFullName,
   };
 });

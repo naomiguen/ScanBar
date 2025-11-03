@@ -576,4 +576,66 @@ router.get('/ai-diagnostics', async (req, res) => {
 
 
 
+// Image proxy to avoid remote-host 406/deny issues and CORS problems.
+// Usage: GET /api/foods/image-proxy?url=<encoded-image-url>
+router.get('/image-proxy', async (req, res) => {
+  const { url } = req.query;
+  if (!url) return res.status(400).json({ error: 'Missing url query parameter' });
+
+  let parsed;
+  try {
+    parsed = new URL(url);
+  } catch (e) {
+    return res.status(400).json({ error: 'Invalid url' });
+  }
+
+  // Only allow http(s)
+  if (!['http:', 'https:'].includes(parsed.protocol)) {
+    return res.status(400).json({ error: 'Only http/https URLs are allowed' });
+  }
+
+  // Whitelist hostnames to reduce SSRF risk. Add more hosts if needed.
+  const hostWhitelist = [
+    'world.openfoodfacts.org',
+    'images.openfoodfacts.org',
+    'static.openfoodfacts.org',
+    'openfoodfacts.org'
+  ];
+  const hostname = parsed.hostname.toLowerCase();
+  const allowed = hostWhitelist.some(h => hostname === h || hostname.endsWith('.' + h));
+  if (!allowed) {
+    return res.status(403).json({ error: 'Host not allowed' });
+  }
+
+  try {
+    const response = await axios.get(url, {
+      responseType: 'stream',
+      // Set a benign User-Agent to avoid some hosts rejecting generic requests
+      headers: { 'User-Agent': 'ScanBar-Image-Proxy/1.0 (+https://example.com)' },
+      timeout: 10000,
+    });
+
+    // Forward content-type and length if present
+    const contentType = response.headers['content-type'] || 'application/octet-stream';
+    if (response.headers['content-length']) {
+      res.setHeader('Content-Length', response.headers['content-length']);
+    }
+    res.setHeader('Content-Type', contentType);
+    // Cache images for a short period to reduce repeated requests
+    res.setHeader('Cache-Control', 'public, max-age=86400'); // 1 day
+
+    // Pipe the remote stream directly to client
+    response.data.pipe(res);
+    response.data.on('error', (err) => {
+      console.error('[image-proxy] stream error', err && err.message ? err.message : err);
+      try { res.end(); } catch (_) {}
+    });
+  } catch (err) {
+    console.error('[image-proxy] fetch error for', url, err && err.message ? err.message : err);
+    const status = err?.response?.status || 502;
+    const msg = err?.response?.statusText || err?.message || 'Failed to fetch image';
+    return res.status(status).json({ error: msg });
+  }
+});
+
 module.exports = router;
