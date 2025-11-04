@@ -4,13 +4,11 @@ import { defineStore } from 'pinia';
 import apiClient from '@/axios-config.js';
 import Swal from 'sweetalert2';
 
-// Fungsi bantuan untuk memastikan nilai adalah angka
 const parseNumber = (value) => {
   const num = parseFloat(value);
   return isNaN(num) ? 0 : num;
 };
 
-// Try many possible image fields that OpenFoodFacts or local DB might return
 const extractImageUrl = (product) => {
   if (!product || typeof product !== 'object') return null;
 
@@ -30,8 +28,6 @@ const extractImageUrl = (product) => {
     if (product[key]) return product[key];
   }
 
-  // OpenFoodFacts v2/v0 sometimes nests images under selected_images or images
-  // v2: selected_images.front.display.en (preferred)
   if (product.selected_images && product.selected_images.front && product.selected_images.front.display) {
     const disp = product.selected_images.front.display;
     if (disp.en) return disp.en;
@@ -39,7 +35,6 @@ const extractImageUrl = (product) => {
     if (first) return first;
   }
 
-  // older formats: images.front.small or images.front.thumb
   if (product.images && product.images.front) {
     const front = product.images.front;
     if (front.small && front.small.url) return front.small.url;
@@ -47,7 +42,6 @@ const extractImageUrl = (product) => {
     if (front.display && front.display.en) return front.display.en;
   }
 
-  // _images or other nested keys
   if (product._images && product._images.front && product._images.front.small && product._images.front.small.url) {
     return product._images.front.small.url;
   }
@@ -60,13 +54,12 @@ export const useFoodStore = defineStore('food', () => {
   const foods = ref([]);
   const searchedFood = ref(null);
   const summary = ref(null);
-  // active period used for summary refresh (default: daily)
   const summaryPeriod = ref('daily');
 
   const analysisResult = ref(null);
   const analysisLoading = ref(false);
 
-  // GETTERS (Computed)
+  // GETTERS
   const totals = computed(() => {
     return foods.value.reduce(
       (acc, food) => {
@@ -108,13 +101,11 @@ export const useFoodStore = defineStore('food', () => {
         timer: 2000,
         showConfirmButton: false,
       });
-      // Setelah berhasil menambah makanan, refresh ringkasan di store
+
       try {
-        // gunakan period yang diberikan, atau period aktif di store
         const p = period || summaryPeriod.value || 'daily';
         await fetchSummaryByPeriod(p);
       } catch (e) {
-        // Jika refresh ringkasan gagal, jangan ganggu alur utama
         console.error('Gagal memperbarui ringkasan setelah menambah makanan:', e);
       }
     } catch (error) {
@@ -129,17 +120,12 @@ export const useFoodStore = defineStore('food', () => {
 
   async function fetchFoodByBarcode(barcode) {
     try {
-      // Coba ambil dari backend terlebih dahulu
       const response = await apiClient.get(`/api/foods/barcode/${barcode}`);
 
-      // Backend historically returned either { product: {...} } or the product object directly.
-      // Normalize both shapes into the `searchedFood` shape the frontend expects.
       const normalizeProduct = (data) => {
         if (!data) return null;
-        // If backend wrapped as { product }
         const product = data.product ? data.product : data;
 
-        // If this is already a saved Food object (from our DB), prefer its camelCase fields
         const nutriments = product.nutriments || {};
 
         const caloriesVal = product.calories ?? nutriments.energy_kcal_100g ?? nutriments['energy-kcal_100g'] ?? nutriments.energy_100g ?? null;
@@ -157,8 +143,7 @@ export const useFoodStore = defineStore('food', () => {
           fat: parseNumber(fatVal),
           sugar: parseNumber(sugarVal),
           salt: parseNumber(saltVal),
-    imageUrl: extractImageUrl(product) || null,
-          // include raw product in case callers want original shape
+          imageUrl: extractImageUrl(product) || null,
           _raw: product
         };
       };
@@ -171,7 +156,6 @@ export const useFoodStore = defineStore('food', () => {
         showConfirmButton: false,
       });
     } catch (error) {
-      // Jika gagal dari backend, coba dari OpenFoodFacts API
       console.error('Gagal mengambil dari backend untuk barcode:', error);
       try {
         const offResponse = await apiClient.get(`https://world.openfoodfacts.org/api/v2/product/${barcode}`);
@@ -179,7 +163,6 @@ export const useFoodStore = defineStore('food', () => {
         if (offResponse.data && offResponse.data.status === 1) {
           const product = offResponse.data.product;
 
-          // Normalize the OpenFoodFacts product into the same shape
           searchedFood.value = {
             productName: product.product_name || product.productName || 'Nama tidak ditemukan',
             calories: parseNumber(product.nutriments?.energy_kcal_100g || product.nutriments?.['energy-kcal_100g'] || product.nutriments?.energy_100g),
@@ -229,12 +212,9 @@ export const useFoodStore = defineStore('food', () => {
     }
   }
 
-  // Method baru untuk ringkasan berdasarkan periode
   async function fetchSummaryByPeriod(period = 'daily') {
     try {
       const response = await apiClient.get(`/api/foods/summary?period=${period}`);
-      // Simpan juga ke state supaya komponen bisa terikat ke store.summary
-      // Pastikan field baru (sugar, salt) selalu ada dengan default 0 jika backend belum mengembalikannya
       const data = response.data || {};
       summary.value = {
         calories: data.calories ?? 0,
@@ -244,7 +224,6 @@ export const useFoodStore = defineStore('food', () => {
         sugar: data.sugar ?? 0,
         salt: data.salt ?? 0,
       };
-      // simpan period aktif
       summaryPeriod.value = period;
       return response.data;
     } catch (error) {
@@ -254,7 +233,6 @@ export const useFoodStore = defineStore('food', () => {
     }
   }
 
-  // Fungsi menghapus makanan dari jurnal
   async function deleteFood(foodId) {
     try {
       await apiClient.delete(`/api/foods/${foodId}`);
@@ -269,13 +247,12 @@ export const useFoodStore = defineStore('food', () => {
     }
   }
 
-  // Analisis AI: Minta analisis gizi dari backend yang menggunakan Google Generative AI
+  // ✨ ANALISIS AI - ENDPOINT PUBLIK (Tidak perlu token!)
   async function analyzeFood(foodData) {
     analysisResult.value = null;
     analysisLoading.value = true;
 
     try {
-      // Siapkan data untuk dikirim (backend membutuhkan properti: productName, calories, protein, dll)
       const payload = {
         productName: foodData.productName || foodData.product_name || '',
         calories: foodData.calories ?? 0,
@@ -286,18 +263,15 @@ export const useFoodStore = defineStore('food', () => {
         salt: foodData.salt ?? 0,
       };
 
-  // Pilih endpoint: jika ada token gunakan endpoint yang dilindungi (/analyze),
-  // jika tidak ada token gunakan endpoint pengujian yang tidak dilindungi (/analyze-test)
-  const token = localStorage.getItem('token');
-  const endpoint = token ? '/api/foods/analyze' : '/api/foods/analyze-test';
-  const response = await apiClient.post(endpoint, payload);
+      console.log('🤖 Mengirim request analisis AI untuk:', payload.productName);
 
-      // Backend mengembalikan objek terstruktur (jika berhasil di-parse)
-      // atau teks (fallback). Set ke state untuk ditampilkan.
+      // Gunakan endpoint PUBLIK (tidak perlu auth token)
+      const response = await apiClient.post('/api/foods/analyze', payload);
+
       analysisResult.value = response.data.analysis;
 
-      // Tampilkan pesan sukses kecil jika berhasil
       if (response.data.analysis) {
+        console.log('✅ Analisis AI berhasil!');
         Swal.fire({
           icon: 'success',
           title: 'Analisis Selesai',
@@ -308,11 +282,11 @@ export const useFoodStore = defineStore('food', () => {
         });
       }
     } catch (error) {
-      // Tampilkan pesan error yang lebih spesifik ke pengguna
-      console.error('Gagal menganalisis:', error);
+      console.error('❌ Gagal menganalisis:', error);
+      console.error('Error response:', error.response?.data);
+
       analysisResult.value = 'Gagal menganalisis data makanan. Silakan coba lagi nanti.';
 
-      // Jika backend mengirim pesan yang jelas, tampilkan; jika tidak, fallback ke status text
       const serverMsg = error.response?.data?.error || error.response?.data?.message || error.message;
       Swal.fire({
         icon: 'error',

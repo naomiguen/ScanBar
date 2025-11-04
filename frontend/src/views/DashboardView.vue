@@ -166,8 +166,17 @@ import { useFoodStore } from '@/stores/food'
 const authStore = useAuthStore()
 const foodStore = useFoodStore()
 
-onMounted(() => {
-  foodStore.fetchTodaysFoods()
+onMounted(async () => {
+
+  //pastikan session sudah di-check dulu
+  if (!authStore.user) {
+    await authStore.checkSession()
+  }
+
+  //Baru fetch data  makanan
+  if (authStore.isAuthenticated) {
+    await foodStore.fetchFoodsForToday()
+  }
 })
 
 const summaryData = computed(() => ({

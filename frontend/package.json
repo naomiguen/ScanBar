@@ -16,7 +16,8 @@
     "sweetalert2": "^11.26.3",
     "vue": "^3.4.21",
     "vue-qrcode-reader": "^5.7.3",
-    "vue-router": "^4.3.0"
+    "vue-router": "^4.3.0",
+    "vue-sonner": "^2.0.9"
   },
   "devDependencies": {
     "@tailwindcss/line-clamp": "^0.4.4",
