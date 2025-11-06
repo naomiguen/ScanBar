@@ -29,49 +29,40 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import Swal from 'sweetalert2';
-import { RouterLink } from 'vue-router';
-import { useAuthStore } from '@/stores/auth';
+import { ref } from 'vue'
+import { RouterLink } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
+import { toast } from 'vue-sonner'
 
 // Impor file CSS yang sama
-import '@/assets/auth.css';
+import '@/assets/auth.css'
 
-const email = ref('');
-const authStore = useAuthStore();
+const email = ref('')
+const authStore = useAuthStore()
 const isLoading = ref(false)
 
 const handleForgotPassword = async () => {
   if (!email.value) {
-    Swal.fire({
-      icon: 'warning',
-      title: 'Email Kosong',
-      text: 'Silakan masukkan email anda terlebih dahulu.'
-
-    });
-    return;
+    toast.warning('Email Kosong', {
+      description: 'Silakan masukkan email anda terlebih dahulu.'
+    })
+    return
   }
 
-  isLoading.value = true;
+  isLoading.value = true
 
   try {
-    await authStore.forgotPassword(email.value);
-    Swal.fire({
-      icon: 'success',
-      title: 'Link Reset Dikirim!',
-      text: 'Periksa email anda untuk melanjutkan proses reset password.'
-
-    });
-    email.value = '';
+    await authStore.forgotPassword(email.value)
+    toast.success('Link Reset Dikirim!', {
+      description: 'Periksa email anda untuk melanjutkan proses reset password.'
+    })
+    email.value = ''
   } catch (error) {
-    Swal.fire({
-      icon: 'error',
-      title: 'Gagal Mengirim Link',
-      text: error.message || 'Terjadi kesalahan saat mengirim email reset password.'
-    });
+    toast.error('Gagal Mengirim Link', {
+      description: error.message || 'Terjadi kesalahan saat mengirim email reset password.'
+    })
   } finally {
-    isLoading.value = false;
+    isLoading.value = false
   }
-
-};
+}
 </script>

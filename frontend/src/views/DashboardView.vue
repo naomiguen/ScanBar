@@ -1,6 +1,6 @@
 <template>
   <div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-10 px-4 pt-32">
-    <!-- Header -->
+    <!-- Header Utama Dashboard -->
     <div class="text-center mb-10">
       <h1 class="text-4xl md:text-5xl font-extrabold text-blue-900 mb-2">
         Dashboard Nutrisi
@@ -10,19 +10,21 @@
       </p>
     </div>
 
-    <!-- Ringkasan Harian -->
+    <!-- Section Ringkasan Harian: Menampilkan progress bar untuk setiap nutrisi -->
     <div class="bg-white rounded-3xl shadow-xl p-6 md:p-8 mb-10 max-w-7xl mx-auto">
       <h2 class="text-2xl md:text-3xl font-bold text-blue-900 mb-6 flex items-center gap-2">
         <span class="text-3xl">📈</span> Ringkasan Harian
       </h2>
 
+      <!-- Grid untuk menampilkan kartu-kartu nutrisi -->
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+        <!-- Loop untuk setiap nutrisi (kalori, karbo, protein, dll) -->
         <div
           v-for="(goal, key) in summaryData"
           :key="key"
           class="bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl p-5 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
         >
-          <!-- Top: Label & Value -->
+          <!-- Bagian Atas: Label Nutrisi & Nilai Saat Ini / Target -->
           <div class="flex justify-between items-center mb-3">
             <span class="font-bold text-slate-800 text-base">{{ goal.label }}</span>
             <span class="font-semibold text-slate-700 text-sm">
@@ -30,7 +32,7 @@
             </span>
           </div>
 
-          <!-- Progress Bar -->
+          <!-- Progress Bar: Visualisasi pencapaian nutrisi -->
           <div class="bg-slate-200 rounded-full h-3 overflow-hidden mb-3">
             <div
               :class="getBarColorClass(goal.class)"
@@ -39,7 +41,7 @@
             ></div>
           </div>
 
-          <!-- Sisa -->
+          <!-- Sisa Nutrisi yang Masih Bisa Dikonsumsi -->
           <p class="text-sm text-slate-600">
             Sisa: <span class="font-semibold">{{ Math.max(0, goal.max - goal.value) }} {{ goal.unit }}</span>
           </p>
@@ -47,13 +49,13 @@
       </div>
     </div>
 
-    <!-- Jurnal Makanan Harian -->
+    <!-- Section Jurnal Makanan: Daftar semua makanan yang sudah dicatat hari ini -->
     <div class="bg-white rounded-3xl shadow-xl p-6 md:p-8 max-w-7xl mx-auto">
       <h2 class="text-2xl md:text-3xl font-bold text-blue-900 mb-6 flex items-center gap-2">
         <span class="text-3xl">🍽️</span> Jurnal Makanan Harian
       </h2>
 
-      <!-- Empty State -->
+      <!-- Empty State: Ditampilkan jika belum ada makanan yang dicatat -->
       <div v-if="foodStore.foods.length === 0" class="text-center py-16">
         <div class="text-6xl mb-4">🍴</div>
         <p class="text-lg text-slate-500">
@@ -61,14 +63,15 @@
         </p>
       </div>
 
-      <!-- Food List -->
+      <!-- Daftar Makanan: Ditampilkan jika sudah ada makanan yang dicatat -->
       <div v-else class="space-y-4">
+        <!-- Loop untuk setiap makanan yang sudah dicatat -->
         <div
           v-for="food in foodStore.foods"
           :key="food._id"
           class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-5 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
         >
-          <!-- Header: Nama & Waktu -->
+          <!-- Header Kartu Makanan: Nama Produk & Waktu Pencatatan -->
           <div class="flex justify-between items-center mb-4">
             <h3 class="text-xl md:text-2xl font-bold text-blue-900">
               {{ food.productName }}
@@ -78,11 +81,12 @@
             </span>
           </div>
 
-          <!-- Body: Nutrients & Delete Button -->
+          <!-- Body Kartu: Informasi Nutrisi & Tombol Hapus -->
           <div class="flex flex-col lg:flex-row gap-4 items-stretch lg:items-center">
-            <!-- Nutrients Grid -->
+            <!-- Grid untuk menampilkan semua nutrisi makanan -->
             <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 flex-1">
-              <!-- Kalori -->
+
+              <!-- Kartu Kalori -->
               <div class="bg-blue-100 rounded-xl p-3 text-center">
                 <div class="text-xl md:text-2xl font-bold text-blue-600">
                   {{ Math.round(food.calories) }}
@@ -92,7 +96,7 @@
                 </div>
               </div>
 
-              <!-- Karbohidrat -->
+              <!-- Kartu Karbohidrat -->
               <div class="bg-green-100 rounded-xl p-3 text-center">
                 <div class="text-xl md:text-2xl font-bold text-green-600">
                   {{ Math.round(food.carbs) }}g
@@ -102,7 +106,7 @@
                 </div>
               </div>
 
-              <!-- Protein -->
+              <!-- Kartu Protein -->
               <div class="bg-orange-100 rounded-xl p-3 text-center">
                 <div class="text-xl md:text-2xl font-bold text-orange-600">
                   {{ Math.round(food.protein) }}g
@@ -112,7 +116,7 @@
                 </div>
               </div>
 
-              <!-- Lemak -->
+              <!-- Kartu Lemak -->
               <div class="bg-amber-100 rounded-xl p-3 text-center">
                 <div class="text-xl md:text-2xl font-bold text-amber-600">
                   {{ Math.round(food.fat) }}g
@@ -122,7 +126,7 @@
                 </div>
               </div>
 
-              <!-- Gula -->
+              <!-- Kartu Gula -->
               <div class="bg-purple-100 rounded-xl p-3 text-center">
                 <div class="text-xl md:text-2xl font-bold text-purple-600">
                   {{ Math.round(food.sugar || 0) }}g
@@ -132,7 +136,7 @@
                 </div>
               </div>
 
-              <!-- Garam -->
+              <!-- Kartu Garam (ditampilkan dalam mg) -->
               <div class="bg-slate-100 rounded-xl p-3 text-center">
                 <div class="text-xl md:text-2xl font-bold text-slate-600">
                   {{ Math.round((food.salt || 0) * 1000) }}mg
@@ -143,9 +147,9 @@
               </div>
             </div>
 
-            <!-- Delete Button -->
+            <!-- Tombol Hapus: Untuk menghapus makanan dari jurnal -->
             <button
-              @click="confirmDelete(food._id, food.productName)"
+              @click="handleDelete(food._id, food.productName)"
               class="bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl px-6 py-3 md:py-4 transition-all duration-300 hover:scale-105 hover:shadow-lg whitespace-nowrap flex items-center justify-center gap-2 text-base"
             >
               <span class="text-xl">🗑️</span> Hapus
@@ -154,38 +158,105 @@
         </div>
       </div>
     </div>
+
+    <!-- Modal Konfirmasi Hapus: Ditampilkan sebagai overlay saat akan menghapus -->
+    <div
+      v-if="deleteConfirm.show"
+      class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
+      @click.self="cancelDelete"
+    >
+      <div class="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full animate-scale-in">
+        <!-- Icon Warning -->
+        <div class="text-center mb-6">
+          <div class="text-6xl mb-4">⚠️</div>
+          <h3 class="text-2xl font-bold text-slate-900 mb-2">
+            Hapus Makanan?
+          </h3>
+          <p class="text-slate-600">
+            Yakin ingin menghapus <span class="font-bold text-blue-900">{{ deleteConfirm.foodName }}</span> dari jurnal Anda?
+          </p>
+          <p class="text-sm text-red-600 mt-2">
+            Tindakan ini tidak dapat dibatalkan.
+          </p>
+        </div>
+
+        <!-- Tombol Aksi -->
+        <div class="flex gap-3">
+          <!-- Tombol Batal -->
+          <button
+            @click="cancelDelete"
+            class="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-3 px-6 rounded-xl transition-all duration-300 hover:scale-105"
+          >
+            Batal
+          </button>
+
+          <!-- Tombol Hapus -->
+          <button
+            @click="executeDelete"
+            :disabled="deleteConfirm.loading"
+            class="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <span v-if="!deleteConfirm.loading">Ya, Hapus</span>
+            <span v-else>Menghapus...</span>
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { onMounted, computed } from 'vue'
-import Swal from 'sweetalert2'
+import { onMounted, computed, ref } from 'vue'
+import { toast } from 'vue-sonner'
 import { useAuthStore } from '@/stores/auth'
 import { useFoodStore } from '@/stores/food'
 
+// Inisialisasi store untuk autentikasi dan data makanan
 const authStore = useAuthStore()
 const foodStore = useFoodStore()
 
+// State untuk modal konfirmasi delete
+// Menyimpan status tampilan modal, data makanan yang akan dihapus, dan loading state
+const deleteConfirm = ref({
+  show: false,          // Status tampilan modal (true = tampil, false = tersembunyi)
+  foodId: null,         // ID makanan yang akan dihapus
+  foodName: '',         // Nama makanan untuk ditampilkan di modal
+  loading: false        // Status loading saat proses delete sedang berjalan
+})
+
+// Lifecycle hook: Dijalankan saat komponen pertama kali di-mount
 onMounted(async () => {
+  try {
+    // Pastikan session user sudah di-check terlebih dahulu
+    if (!authStore.user) {
+      await authStore.checkSession()
+    }
 
-  //pastikan session sudah di-check dulu
-  if (!authStore.user) {
-    await authStore.checkSession()
-  }
-
-  //Baru fetch data  makanan
-  if (authStore.isAuthenticated) {
-    await foodStore.fetchFoodsForToday()
+    // Setelah session ter-verifikasi, ambil data makanan untuk hari ini
+    if (authStore.isAuthenticated) {
+      // Method yang benar adalah fetchTodaysFoods (bukan fetchFoodsForToday)
+      await foodStore.fetchTodaysFoods()
+    }
+  } catch (error) {
+    console.error('Error saat mount dashboard:', error)
+    toast.error('Gagal memuat data', {
+      description: 'Terjadi kesalahan saat mengambil data makanan'
+    })
   }
 })
 
+/**
+ * Computed Property: summaryData
+ * Menghitung dan menyiapkan data ringkasan untuk setiap nutrisi
+ * Data diambil dari foodStore (nilai saat ini) dan authStore (target harian)
+ */
 const summaryData = computed(() => ({
   kalori: {
     label: 'Kalori',
-    value: Math.round(foodStore.totals.calories),
-    max: authStore.user?.user_metadata?.dailyCalorieGoal || 2000,
+    value: Math.round(foodStore.totals.calories), // Total kalori yang sudah dikonsumsi
+    max: authStore.user?.user_metadata?.dailyCalorieGoal || 2000, // Target kalori harian
     unit: 'kcal',
-    class: 'kalori',
+    class: 'kalori', // Digunakan untuk menentukan warna progress bar
   },
   karbo: {
     label: 'Karbohidrat',
@@ -217,13 +288,19 @@ const summaryData = computed(() => ({
   },
   garam: {
     label: 'Garam',
-    value: Math.round((foodStore.totals.salt || 0) * 1000),
+    value: Math.round((foodStore.totals.salt || 0) * 1000), // Konversi dari gram ke miligram
     max: authStore.user?.user_metadata?.dailySodiumGoal || 2000,
     unit: 'mg',
     class: 'garam',
   },
 }))
 
+/**
+ * Function: getBarColorClass
+ * Menentukan warna progress bar berdasarkan jenis nutrisi
+ * @param {string} className - Nama class nutrisi (kalori, karbo, protein, dll)
+ * @returns {string} - Class Tailwind CSS untuk warna progress bar
+ */
 const getBarColorClass = (className) => {
   const colorMap = {
     kalori: 'bg-blue-600',
@@ -233,36 +310,72 @@ const getBarColorClass = (className) => {
     gula: 'bg-purple-600',
     garam: 'bg-slate-600',
   }
+  // Return warna sesuai nutrisi, default biru jika tidak ditemukan
   return colorMap[className] || 'bg-blue-600'
 }
 
-const confirmDelete = (foodId, foodName) => {
-  Swal.fire({
-    title: `Yakin ingin menghapus ${foodName}?`,
-    text: 'Tindakan ini tidak dapat dibatalkan!',
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonColor: '#ef4444',
-    cancelButtonColor: '#64748b',
-    confirmButtonText: 'Ya, hapus!',
-    cancelButtonText: 'Batal',
-  }).then((result) => {
-    if (result.isConfirmed) {
-      foodStore.deleteFood(foodId)
-      Swal.fire({
-        icon: 'success',
-        title: 'Dihapus!',
-        text: `${foodName} telah dihapus dari jurnal Anda.`,
-        timer: 2000,
-        showConfirmButton: false,
-      })
-    }
-  })
+/**
+ * Function: handleDelete
+ * Menampilkan modal konfirmasi sebelum menghapus makanan
+ * Dipanggil saat tombol hapus diklik
+ * @param {string} foodId - ID makanan yang akan dihapus
+ * @param {string} foodName - Nama makanan (untuk ditampilkan di modal)
+ */
+const handleDelete = (foodId, foodName) => {
+  // Set data ke state deleteConfirm untuk ditampilkan di modal
+  deleteConfirm.value = {
+    show: true,        // Tampilkan modal
+    foodId: foodId,    // Simpan ID makanan
+    foodName: foodName, // Simpan nama makanan
+    loading: false     // Reset loading state
+  }
+}
+
+/**
+ * Function: cancelDelete
+ * Menutup modal konfirmasi dan membatalkan proses delete
+ * Dipanggil saat tombol "Batal" diklik atau klik di luar modal
+ */
+const cancelDelete = () => {
+  // Reset semua state ke nilai default
+  deleteConfirm.value = {
+    show: false,
+    foodId: null,
+    foodName: '',
+    loading: false
+  }
+}
+
+/**
+ * Function: executeDelete
+ * Menjalankan proses penghapusan makanan setelah konfirmasi
+ * Dipanggil saat tombol "Ya, Hapus" diklik
+ */
+const executeDelete = async () => {
+  // Set loading state agar tombol disabled dan tampil loading
+  deleteConfirm.value.loading = true
+
+  try {
+    // Panggil fungsi delete dari foodStore
+    await foodStore.deleteFood(deleteConfirm.value.foodId)
+
+    // Tutup modal setelah berhasil
+    cancelDelete()
+
+    // Tampilkan notifikasi sukses
+    // Toast sudah ditangani di dalam foodStore.deleteFood
+  } catch (error) {
+    // Jika terjadi error, tetap tutup modal
+    cancelDelete()
+
+    // Error toast sudah ditampilkan di foodStore, tapi kita log di sini
+    console.error('Error saat menghapus:', error)
+  }
 }
 </script>
 
 <style scoped>
-/* Smooth animations */
+/* Animasi untuk smooth entrance effect saat kartu makanan ditampilkan */
 @keyframes slideIn {
   from {
     opacity: 0;
@@ -274,7 +387,25 @@ const confirmDelete = (foodId, foodName) => {
   }
 }
 
+/* Terapkan animasi slideIn ke semua kartu makanan */
 .space-y-4 > * {
   animation: slideIn 0.3s ease-out;
+}
+
+/* Animasi scale untuk modal konfirmasi */
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Terapkan animasi scale ke modal */
+.animate-scale-in {
+  animation: scaleIn 0.2s ease-out;
 }
 </style>

@@ -171,11 +171,14 @@
             <!-- Save Button -->
             <button
               v-if="authStore.isAuthenticated"
-              @click="saveGoals"
-              class="w-full bg-gradient-to-r from-green-600 to-emerald-600 text-white font-bold rounded-xl px-6 py-4 text-base md:text-lg hover:-translate-y-0.5 hover:shadow-xl hover:shadow-green-500/40 transition-all duration-300 flex items-center justify-center gap-2 shadow-lg shadow-green-500/30"
+              @click="showSaveConfirmation"
+              :disabled="isSaving"
+              class="w-full bg-gradient-to-r from-green-600 to-emerald-600 text-white font-bold rounded-xl px-6 py-4 text-base md:text-lg hover:-translate-y-0.5 hover:shadow-xl hover:shadow-green-500/40 transition-all duration-300 flex items-center justify-center gap-2 shadow-lg shadow-green-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <i class="fa-solid fa-floppy-disk"></i>
-              Simpan Target & Perbarui Profil
+              <i class="fa-solid fa-floppy-disk" v-if="!isSaving"></i>
+              <i class="fa-solid fa-spinner fa-spin" v-else></i>
+              <span v-if="!isSaving">Simpan Target & Perbarui Profil</span>
+              <span v-else>Menyimpan...</span>
             </button>
 
             <!-- Login Prompt -->
@@ -197,16 +200,93 @@
         </div>
       </div>
     </div>
+
+    <!-- Modal Konfirmasi Simpan -->
+    <div
+      v-if="saveConfirm.show"
+      class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
+      @click.self="cancelSave"
+    >
+      <div class="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full animate-scale-in">
+        <!-- Icon Info -->
+        <div class="text-center mb-6">
+          <div class="text-6xl mb-4">💾</div>
+          <h3 class="text-2xl font-bold text-slate-900 mb-2">
+            Simpan Target Nutrisi?
+          </h3>
+          <p class="text-slate-600 mb-4">
+            Data berikut akan disimpan ke profil Anda:
+          </p>
+
+          <!-- Data Summary -->
+          <div class="bg-slate-50 rounded-xl p-4 text-left space-y-2 mb-4">
+            <div class="flex justify-between text-sm">
+              <span class="text-slate-600">Kalori:</span>
+              <span class="font-bold text-slate-900">{{ results?.tdee }} kcal</span>
+            </div>
+            <div class="flex justify-between text-sm">
+              <span class="text-slate-600">Karbohidrat:</span>
+              <span class="font-bold text-slate-900">{{ results?.carbs }} g</span>
+            </div>
+            <div class="flex justify-between text-sm">
+              <span class="text-slate-600">Protein:</span>
+              <span class="font-bold text-slate-900">{{ results?.protein }} g</span>
+            </div>
+            <div class="flex justify-between text-sm">
+              <span class="text-slate-600">Lemak:</span>
+              <span class="font-bold text-slate-900">{{ results?.fat }} g</span>
+            </div>
+            <div class="flex justify-between text-sm">
+              <span class="text-slate-600">Gula:</span>
+              <span class="font-bold text-slate-900">{{ results?.sugar }} g</span>
+            </div>
+            <div class="flex justify-between text-sm">
+              <span class="text-slate-600">Garam:</span>
+              <span class="font-bold text-slate-900">{{ results?.salt }} g</span>
+            </div>
+          </div>
+
+          <p class="text-sm text-slate-500">
+            Target ini akan digunakan di Dashboard untuk memantau konsumsi harian Anda.
+          </p>
+        </div>
+
+        <!-- Tombol Aksi -->
+        <div class="flex gap-3">
+          <!-- Tombol Batal -->
+          <button
+            @click="cancelSave"
+            :disabled="isSaving"
+            class="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-3 px-6 rounded-xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Batal
+          </button>
+
+          <!-- Tombol Simpan -->
+          <button
+            @click="executeSave"
+            :disabled="isSaving"
+            class="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          >
+            <i class="fa-solid fa-spinner fa-spin" v-if="isSaving"></i>
+            <i class="fa-solid fa-check" v-else></i>
+            <span v-if="!isSaving">Ya, Simpan</span>
+            <span v-else>Menyimpan...</span>
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref } from 'vue'
 import { useAuthStore } from '@/stores/auth'
-import Swal from 'sweetalert2'
+import { toast } from 'vue-sonner'
 
 const authStore = useAuthStore()
 
+// Form data untuk input user
 const form = ref({
   gender: 'male',
   age: null,
@@ -215,71 +295,137 @@ const form = ref({
   activityLevel: 1.2,
 })
 
+// Menyimpan hasil perhitungan kalori dan nutrisi
 const results = ref(null)
 
+// State untuk loading saat menyimpan
+const isSaving = ref(false)
+
+// State untuk modal konfirmasi simpan
+const saveConfirm = ref({
+  show: false,  // Status tampilan modal
+})
+
+/**
+ * Function: calculateTDEE
+ * Menghitung Total Daily Energy Expenditure (TDEE) dan rekomendasi makronutrien
+ * Menggunakan Mifflin-St Jeor Formula untuk menghitung BMR
+ */
 const calculateTDEE = () => {
+  // Validasi: Pastikan semua field sudah diisi
   if (!form.value.age || !form.value.weight || !form.value.height) {
-    Swal.fire({
-      icon: 'error',
-      title: 'Oops...',
-      text: 'Mohon lengkapi semua data dengan benar!',
-      confirmButtonColor: '#2563eb'
+    toast.error('Data Tidak Lengkap', {
+      description: 'Mohon lengkapi semua data dengan benar!'
     })
     return
   }
 
-  // Menghitung BMR berdasarkan Mifflin-St Jeor Formula
+  // Menghitung BMR (Basal Metabolic Rate) berdasarkan jenis kelamin
+  // BMR = kalori yang dibutuhkan tubuh saat istirahat total
   const bmr =
     form.value.gender === 'male'
       ? 10 * form.value.weight + 6.25 * form.value.height - 5 * form.value.age + 5
       : 10 * form.value.weight + 6.25 * form.value.height - 5 * form.value.age - 161
 
+  // TDEE = BMR × Activity Level
+  // TDEE = total kalori yang dibutuhkan per hari dengan aktivitas
   const tdee = Math.round(bmr * form.value.activityLevel)
 
-  //Menyimpan hasil
+  // Hitung rekomendasi makronutrien berdasarkan TDEE
+  // Protein: 30% dari TDEE, 1g protein = 4 kalori
+  // Karbohidrat: 40% dari TDEE, 1g karbo = 4 kalori
+  // Lemak: 30% dari TDEE, 1g lemak = 9 kalori
   results.value = {
     tdee,
     protein: Math.round((tdee * 0.3) / 4),
     carbs: Math.round((tdee * 0.4) / 4),
     fat: Math.round((tdee * 0.3) / 9),
-    sugar: 50, // Rekomendasi WHO < 50g
-    salt: 5, // Recomendasi who < 5g
+    sugar: 50, // Rekomendasi WHO: < 50g per hari
+    salt: 5,   // Rekomendasi WHO: < 5g per hari
   }
 
-  // Notifikasi
-  Swal.fire({
-    icon: 'success',
-    title: 'Perhitungan Berhasil!',
-    text: `Kebutuhan kalori harian Anda adalah ${tdee} kcal`,
-    timer: 2000,
-    showConfirmButton: false
+  // Tampilkan notifikasi sukses
+  toast.success('Perhitungan Berhasil!', {
+    description: `Kebutuhan kalori harian Anda adalah ${tdee} kcal`,
+    duration: 2000
   })
 }
 
-const saveGoals = () => {
+/**
+ * Function: showSaveConfirmation
+ * Menampilkan modal konfirmasi sebelum menyimpan target nutrisi
+ */
+const showSaveConfirmation = () => {
   if (!results.value) return
 
-  const dataToSave = {
-    age: form.value.age,
-    weight: form.value.weight,
-    height: form.value.height,
-    dailyCalorieGoal: results.value.tdee,
-    dailyProteinGoal: results.value.protein,
-    dailyCarbsGoal: results.value.carbs,
-    dailyFatGoal: results.value.fat,
-    dailySugarGoal: results.value.sugar,
-    // Store sodium target in milligrams (convert from grams)
-    dailySodiumGoal: Math.round(results.value.salt * 1000),
-    // Keep legacy dailySaltGoal (grams) for backward compatibility
-    dailySaltGoal: results.value.salt,
-  }
+  // Tampilkan modal konfirmasi
+  saveConfirm.value.show = true
+}
 
-  authStore.updateProfile(dataToSave)
+/**
+ * Function: cancelSave
+ * Menutup modal konfirmasi dan membatalkan penyimpanan
+ */
+const cancelSave = () => {
+  saveConfirm.value.show = false
+}
+
+/**
+ * Function: executeSave
+ * Menjalankan proses penyimpanan target nutrisi ke profil user
+ * Dipanggil setelah user mengkonfirmasi di modal
+ */
+const executeSave = async () => {
+  if (!results.value) return
+
+  // Set loading state
+  isSaving.value = true
+
+  try {
+    // Siapkan data yang akan disimpan ke profil
+    const dataToSave = {
+      age: form.value.age,
+      weight: form.value.weight,
+      height: form.value.height,
+      dailyCalorieGoal: results.value.tdee,
+      dailyProteinGoal: results.value.protein,
+      dailyCarbsGoal: results.value.carbs,
+      dailyFatGoal: results.value.fat,
+      dailySugarGoal: results.value.sugar,
+      // Store sodium target dalam miligram (konversi dari gram)
+      dailySodiumGoal: Math.round(results.value.salt * 1000),
+      // Simpan juga dailySaltGoal (gram) untuk backward compatibility
+      dailySaltGoal: results.value.salt,
+    }
+
+    // Panggil fungsi updateProfile dari authStore
+    await authStore.updateProfile(dataToSave)
+
+    // Tutup modal setelah berhasil
+    cancelSave()
+
+    // Tampilkan notifikasi sukses
+    toast.success('Berhasil Disimpan!', {
+      description: 'Target nutrisi Anda telah diperbarui di profil.',
+      duration: 3000
+    })
+
+  } catch (error) {
+    // Tampilkan notifikasi error jika gagal
+    console.error('Error saat menyimpan target:', error)
+    toast.error('Gagal Menyimpan', {
+      description: error.message || 'Terjadi kesalahan saat menyimpan target nutrisi.',
+      duration: 3000
+    })
+  } finally {
+    // Reset loading state
+    isSaving.value = false
+  }
 }
 </script>
 
 <style scoped>
-/* Custom animations */
+/* Animasi fade in untuk hasil perhitungan */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -295,19 +441,35 @@ const saveGoals = () => {
   animation: fadeIn 0.3s ease-out;
 }
 
-/* Focus ring enhancement */
+/* Animasi scale untuk modal konfirmasi */
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.2s ease-out;
+}
+
+/* Hapus focus ring default */
 input:focus,
 select:focus {
   outline: none;
 }
 
-/* efek hover untuk input */
+/* Efek hover untuk input */
 input:hover,
 select:hover {
   border-color: #94a3b8;
 }
 
-
+/* Hapus spinner pada input number */
 input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button {
   -webkit-appearance: none;

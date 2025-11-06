@@ -120,7 +120,7 @@
 import { ref } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-import Swal from 'sweetalert2'
+import { toast } from 'vue-sonner'
 
 // State Management
 const name = ref('')
@@ -148,12 +148,14 @@ const handleRegister = async () => {
   // Validasi: pastikan semua field terisi
   if (!name.value || !email.value || !password.value) {
     errorMessage.value = 'Semua field harus diisi.'
+    toast.error('Semua field harus diisi')
     return
   }
 
   // Validasi: password minimal 6 karakter
   if (password.value.length < 6) {
     errorMessage.value = 'Password minimal 6 karakter.'
+    toast.error('Password minimal 6 karakter')
     return
   }
 
@@ -161,6 +163,7 @@ const handleRegister = async () => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   if (!emailRegex.test(email.value)) {
     errorMessage.value = 'Format email tidak valid.'
+    toast.error('Format email tidak valid')
     return
   }
 
@@ -177,12 +180,9 @@ const handleRegister = async () => {
 
     if (success) {
       // Registrasi berhasil: tampilkan notifikasi sukses
-      Swal.fire({
-        icon: 'success',
-        title: 'Registrasi Berhasil!',
-        text: 'Akun Anda telah dibuat. Silakan login.',
-        timer: 2000,
-        showConfirmButton: false
+      toast.success('Registrasi Berhasil!', {
+        description: 'Akun Anda telah dibuat. Silakan login.',
+        duration: 2000
       })
 
       // Redirect ke halaman login setelah 2 detik
@@ -192,11 +192,15 @@ const handleRegister = async () => {
     } else {
       // Registrasi gagal: tampilkan pesan error
       errorMessage.value = 'Email sudah terdaftar atau terjadi kesalahan. Silakan coba lagi.'
+      toast.error('Registrasi Gagal', {
+        description: 'Email sudah terdaftar atau terjadi kesalahan'
+      })
     }
   } catch (error) {
     // Handle error yang tidak terduga
     console.error('Register error:', error)
     errorMessage.value = 'Terjadi kesalahan saat registrasi. Silakan coba lagi.'
+    toast.error('Terjadi kesalahan saat registrasi')
   } finally {
     // Reset loading state
     isLoading.value = false

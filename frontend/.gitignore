@@ -28,3 +28,8 @@ coverage
 *.sw?
 
 *.tsbuildinfo
+
+# Supabase client config
+src/supabaseClient.js
+.env
+

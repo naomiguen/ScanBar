@@ -2,7 +2,7 @@
 import { ref, computed } from 'vue';
 import { defineStore } from 'pinia';
 import apiClient from '@/axios-config.js';
-import Swal from 'sweetalert2';
+import { toast } from 'vue-sonner'
 
 const parseNumber = (value) => {
   const num = parseFloat(value);
@@ -82,10 +82,8 @@ export const useFoodStore = defineStore('food', () => {
       foods.value = response.data;
     } catch (error) {
       console.error('Gagal mengambil data makanan:', error);
-      Swal.fire({
-        icon: 'error',
-        title: 'Oops...',
-        text: 'Gagal mengambil jurnal makanan harian Anda.',
+      toast.error('Gagal Memuat Data', {
+        description: 'Gagal mengambil jurnal makanan harian Anda.'
       });
     }
   }
@@ -94,12 +92,9 @@ export const useFoodStore = defineStore('food', () => {
     try {
       const response = await apiClient.post('/api/foods', foodData);
       foods.value.unshift(response.data);
-      Swal.fire({
-        icon: 'success',
-        title: 'Berhasil!',
-        text: `"${foodData.productName}" telah ditambahkan ke jurnal Anda.`,
-        timer: 2000,
-        showConfirmButton: false,
+      toast.success('Berhasil!', {
+        description: `"${foodData.productName}" telah ditambahkan ke jurnal Anda.`,
+        duration: 2000
       });
 
       try {
@@ -110,10 +105,8 @@ export const useFoodStore = defineStore('food', () => {
       }
     } catch (error) {
       console.error('Gagal menambah makanan:', error);
-      Swal.fire({
-        icon: 'error',
-        title: 'Gagal',
-        text: 'Gagal menambahkan makanan ke jurnal.',
+      toast.error('Gagal', {
+        description: 'Gagal menambahkan makanan ke jurnal.'
       });
     }
   }
@@ -149,12 +142,10 @@ export const useFoodStore = defineStore('food', () => {
       };
 
       searchedFood.value = normalizeProduct(response.data);
-      Swal.fire({
-        icon: 'info',
-        title: 'Produk Ditemukan!',
-        timer: 1500,
-        showConfirmButton: false,
+      toast.info('Produk Ditemukan!', {
+        duration: 1500
       });
+
     } catch (error) {
       console.error('Gagal mengambil dari backend untuk barcode:', error);
       try {
@@ -175,12 +166,9 @@ export const useFoodStore = defineStore('food', () => {
             _raw: product
           };
 
-          Swal.fire({
-            icon: 'success',
-            title: 'Produk Ditemukan!',
-            text: 'Data diambil dari OpenFoodFacts',
-            timer: 1500,
-            showConfirmButton: false,
+          toast.success('Produk Ditemukan!', {
+            description: 'Data diambil dari OpenFoodFacts',
+            duration: 1500
           });
         } else {
           throw new Error('Produk tidak ditemukan di OpenFoodFacts');
@@ -188,10 +176,8 @@ export const useFoodStore = defineStore('food', () => {
       } catch (offError) {
         console.error('Gagal mencari barcode:', offError);
         searchedFood.value = null;
-        Swal.fire({
-          icon: 'error',
-          title: 'Tidak Ditemukan',
-          text: 'Produk dengan barcode tersebut tidak ditemukan di database maupun OpenFoodFacts.',
+        toast.error('Tidak Ditemukan', {
+          description: 'Produk dengan barcode tersebut tidak ditemukan di database manapun.'
         });
       }
     }
@@ -237,12 +223,14 @@ export const useFoodStore = defineStore('food', () => {
     try {
       await apiClient.delete(`/api/foods/${foodId}`);
       foods.value = foods.value.filter(food => food._id !== foodId);
+      toast.success('Berhasil Dihapus', {
+        description: 'Item telah dihapus dari jurnal.',
+        duration: 2000
+      });
     } catch (error) {
       console.error('Gagal menghapus makanan:', error);
-      Swal.fire({
-        icon: 'error',
-        title: 'Gagal',
-        text: 'Gagal menghapus item dari jurnal.',
+      toast.error('Gagal', {
+        description: 'Gagal menghapus item dari jurnal.'
       });
     }
   }
@@ -272,13 +260,9 @@ export const useFoodStore = defineStore('food', () => {
 
       if (response.data.analysis) {
         console.log('✅ Analisis AI berhasil!');
-        Swal.fire({
-          icon: 'success',
-          title: 'Analisis Selesai',
-          text: 'Analisis nutrisi berhasil dimuat.',
-          timer: 1500,
-          showConfirmButton: false,
-          position: 'bottom-end'
+        toast.success('Analisis Selesai', {
+          description: 'Analisis nutrisi berhasil dimuat.',
+          duration: 1500
         });
       }
     } catch (error) {
@@ -288,11 +272,9 @@ export const useFoodStore = defineStore('food', () => {
       analysisResult.value = 'Gagal menganalisis data makanan. Silakan coba lagi nanti.';
 
       const serverMsg = error.response?.data?.error || error.response?.data?.message || error.message;
-      Swal.fire({
-        icon: 'error',
-        title: 'Gagal Menganalisis',
-        text: serverMsg || 'Terjadi kesalahan saat menganalisis makanan.',
-        timer: 4000
+      toast.error('Gagal Menganalisis', {
+        description: serverMsg || 'Terjadi kesalahan saat menganalisis makanan.',
+        duration: 4000
       });
     } finally {
       analysisLoading.value = false;

@@ -1,7 +1,8 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { supabase } from '@/supabaseClient';
-import Swal from 'sweetalert2';
+import { toast } from 'vue-sonner'
+import { errorMessages } from 'vue/compiler-sfc';
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref(null);
@@ -44,10 +45,8 @@ export const useAuthStore = defineStore('auth', () => {
       return true;
     } catch (error) {
       console.error('Login Error:', error.message);
-      Swal.fire({
-        icon: 'error',
-        title: 'Gagal Masuk',
-        text: error.message || 'Email atau password salah.',
+      toast.error('Gagal Masuk:', {
+        description: error.message || 'Email atau password salah.',
       });
       return false;
     }
@@ -63,19 +62,16 @@ export const useAuthStore = defineStore('auth', () => {
       });
       if (error) throw error;
 
-      Swal.fire({
-        icon: 'success',
-        title: 'Berhasil Mendaftar!',
-        text: 'Silakan verifikasi email Anda sebelum login.',
+      toast.success('Berhasil Mendaftar!', {
+        description: 'Silakan verifikasi email Anda sebelum login.',
+        duration: 4000
       });
 
       return true;
     } catch (error) {
       console.error('Register Error:', error.message);
-      Swal.fire({
-        icon: 'error',
-        title: 'Pendaftaran Gagal',
-        text: error.message,
+      toast.error('Pendaftaran Gagal:', {
+        description: error.message,
       });
       return false;
     }
@@ -85,12 +81,21 @@ export const useAuthStore = defineStore('auth', () => {
   async function logout() {
     const { error } = await supabase.auth.signOut()
     if (error) {
-      Swal.fire({ icon: 'error', title: 'Gagal Keluar', text: error.message })
-      return false
+      toast.error('Gagal Keluar:', {
+        description: error.message
+      });
+      return false;
     }
-    user.value = null
-    profile.value = null
-    return true
+    user.value = null;
+    profile.value = null;
+
+    toast.success('Berhasil Logout', {
+      description: 'Anda telah keluar dari akun',
+      duration: 2000
+    });
+
+    return true;
+
   }
 
   //  Update Profil
@@ -102,18 +107,15 @@ export const useAuthStore = defineStore('auth', () => {
       if (error) throw error;
 
       user.value = data.user;
-      await fetchUserProfile(); // setelah update, ambil ulang profil
-      Swal.fire({
-        icon: 'success',
-        title: 'Berhasil!',
-        text: 'Profil Anda telah diperbarui.',
+      await fetchUserProfile();
+      toast.success('Berhasil!', {
+        description: 'Profil Anda telah diperbarui.',
+        duration: 2000
       });
     } catch (error) {
       console.error('Update Profile Error:', error.message);
-      Swal.fire({
-        icon: 'error',
-        title: 'Gagal',
-        text: 'Gagal memperbarui profil.',
+      toast.error('Gagal', {
+        description: 'Gagal memperbarui profil.'
       });
     }
   }
@@ -123,7 +125,7 @@ export const useAuthStore = defineStore('auth', () => {
     if (!user.value) return;
 
     const { data, error } = await supabase
-      .from('profiles') // pastikan tabel ini ada di Supabase
+      .from('profiles')
       .select('*')
       .eq('id', user.value.id)
       .single();

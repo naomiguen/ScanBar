@@ -13,7 +13,7 @@
             v-model="password"
             placeholder="Masukkan password baru (min. 6 karakter)"
             required
-            minlength = "6"
+            minlength="6"
           />
         </div>
 
@@ -38,11 +38,10 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useRouter} from 'vue-router'
-import Swal from 'sweetalert2'
+import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { toast } from 'vue-sonner'
 import '@/assets/auth.css'
-
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -59,33 +58,28 @@ onMounted(async () => {
 
   // Jika tidak ada token atau bukan tipe recovery, redirect ke login
   if (!accessToken || type !== 'recovery') {
-    Swal.fire({
-      icon: 'error',
-      title: 'Link Tidak Valid',
-      text: 'Link reset password tidak valid atau sudah kadaluarsa. Silakan minta link baru.',
-      confirmButtonText: 'OK'
-    }).then(() => {
-      router.push('/forgot-password')
+    toast.error('Link Tidak Valid', {
+      description: 'Link reset password tidak valid atau sudah kadaluarsa. Silakan minta link baru.',
+      duration: 3000
     })
+    setTimeout(() => {
+      router.push('/forgot-password')
+    }, 3000)
   }
 })
 
 const handleResetPassword = async () => {
   if (password.value !== confirmPassword.value) {
-    Swal.fire({
-      icon: 'error',
-      title: 'Password Tidak Cocok',
-      text: 'Pastikan password dan konfirmasi password sama.',
+    toast.error('Password Tidak Cocok', {
+      description: 'Pastikan password dan konfirmasi password sama.'
     })
     return
   }
 
   // Validasi panjang password
   if (password.value.length < 6) {
-    Swal.fire({
-      icon: 'error',
-      title: 'Password Terlalu Pendek',
-      text: 'Password minimal harus 6 karakter.',
+    toast.error('Password Terlalu Pendek', {
+      description: 'Password minimal harus 6 karakter.'
     })
     return
   }
@@ -96,16 +90,17 @@ const handleResetPassword = async () => {
     // Supabase otomatis memvalidasi token dari URL
     await authStore.resetPassword(password.value)
 
-    Swal.fire({
-      icon: 'success',
-      title: 'Password Berhasil Diubah!',
-      text: 'Silakan login dengan password baru Anda.',
-    }).then(() => router.push('/login'))
+    toast.success('Password Berhasil Diubah!', {
+      description: 'Silakan login dengan password baru Anda.',
+      duration: 2000
+    })
+
+    setTimeout(() => {
+      router.push('/login')
+    }, 2000)
   } catch (error) {
-    Swal.fire({
-      icon: 'error',
-      title: 'Gagal Reset Password',
-      text: error.message || 'Token mungkin sudah kadaluarsa. Coba kirim ulang link reset.',
+    toast.error('Gagal Reset Password', {
+      description: error.message || 'Token mungkin sudah kadaluarsa. Coba kirim ulang link reset.'
     })
   } finally {
     isLoading.value = false

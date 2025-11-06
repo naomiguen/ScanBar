@@ -1,5 +1,6 @@
 <template>
   <div class="min-h-screen bg-white pt-20">
+    <Toaster position="top-center" richColors :toastOptions="{ duration: 4000, style: { zIndex: 9999 } }" />
 
     <!-- HERO SECTION -->
     <section class="relative bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 overflow-hidden py-24">
@@ -438,7 +439,7 @@
             <!-- AI Analysis Card -->
             <div v-if="foodStore.analysisResult || foodStore.analysisLoading" class="bg-white border border-slate-200 rounded-2xl p-6 md:p-8 mb-8 shadow-lg">
               <h3 class="text-2xl md:text-3xl font-bold text-slate-800 mb-6 flex items-center gap-3 border-b-2 border-slate-100 pb-4">
-                <span class="text-4xl"></span> Analisis AI
+                <span class="text-4xl">🤖</span> Analisis AI
               </h3>
 
               <!-- Loading State -->
@@ -460,7 +461,7 @@
                   <!-- Health Risks -->
                   <div v-if="foodStore.analysisResult.risks" class="bg-red-50 border-l-4 border-red-500 p-5 rounded-xl">
                     <h4 class="text-red-700 font-bold text-lg mb-3 flex items-center gap-2">
-                      <span class="text-xl"></span> Risiko Kesehatan
+                      <span class="text-xl">⚠️</span> Risiko Kesehatan
                     </h4>
                     <ul class="list-disc pl-6 flex flex-col gap-2 text-red-700">
                       <template v-if="Array.isArray(foodStore.analysisResult.risks)">
@@ -487,7 +488,6 @@
                       </template>
                       <template v-else>
                         <div class="text-amber-900 text-base leading-relaxed">
-
                           <span>{{ foodStore.analysisResult.warnings }}</span>
                         </div>
                       </template>
@@ -812,6 +812,7 @@ import { ref, computed, watch } from 'vue'
 import { useFoodStore } from '@/stores/food'
 import { useAuthStore } from '@/stores/auth'
 import { QrcodeStream } from 'vue-qrcode-reader'
+import { toast, Toaster } from 'vue-sonner'
 
 // Stores
 const foodStore = useFoodStore()
@@ -966,27 +967,66 @@ const changeTab = (tabName) => {
 }
 
 const handleSearch = async () => {
-  if (!barcodeInput.value) return
+  if (!barcodeInput.value) {
+    toast.error('Barcode tidak boleh kosong')
+    return
+  }
+
   const normalized = normalizeBarcode(barcodeInput.value)
-  if (!normalized) return
+  if (!normalized) {
+    toast.error('Format barcode tidak valid')
+    return
+  }
+
   barcodeInput.value = normalized
-  await foodStore.fetchFoodByBarcode(normalized)
+
+  try {
+    await foodStore.fetchFoodByBarcode(normalized)
+
+    if (!foodStore.searchedFood) {
+      toast.warning('Produk tidak ditemukan', {
+        description: 'Barcode tidak ada di database'
+      })
+    }
+  } catch (error) {
+    toast.error('Gagal mencari produk', {
+      description: error.message
+    })
+  }
 }
 
 const handleSubmit = async () => {
   if (!foodStore.searchedFood) return
-  const foodData = { ...foodStore.searchedFood }
 
-  for (const key of ['calories', 'protein', 'carbs', 'fat']) {
-    if (typeof foodData[key] === 'string' && foodData[key].trim() !== '') {
-      foodData[key] = parseFloat(foodData[key].replace(',', '.'))
-    } else if (foodData[key] === null || foodData[key] === undefined) {
-      foodData[key] = 0
+  try {
+    const foodData = { ...foodStore.searchedFood }
+
+    for (const key of ['calories', 'protein', 'carbs', 'fat']) {
+      if (typeof foodData[key] === 'string' && foodData[key].trim() !== '') {
+        foodData[key] = parseFloat(foodData[key].replace(',', '.'))
+      } else if (foodData[key] === null || foodData[key] === undefined) {
+        foodData[key] = 0
+      }
     }
-  }
 
-  await foodStore.addFood(foodData, foodStore.summaryPeriod || 'daily')
-  handleCancel()
+    await foodStore.addFood(foodData, foodStore.summaryPeriod || 'daily')
+
+    toast.success('Berhasil Menambahkan Makanan! 🎉', {
+      description: `${foodData.productName} telah ditambahkan ke jurnal Anda`,
+      duration: 4000,
+    })
+
+    // Delay sebelum clear untuk memastikan toast muncul
+    setTimeout(() => {
+      handleCancel()
+    }, 500)
+  } catch (error) {
+    toast.error('Gagal Menambahkan Makanan ❌', {
+      description: error?.message || 'Terjadi kesalahan saat menambahkan makanan ke jurnal Anda.',
+      duration: 4000,
+    })
+    console.error('Error adding food:', error)
+  }
 }
 
 const handleCancel = () => {

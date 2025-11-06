@@ -101,7 +101,7 @@
 import { ref } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-import Swal from 'sweetalert2'
+import { toast } from 'vue-sonner'
 
 // State Management
 const email = ref('')
@@ -122,6 +122,7 @@ const handleLogin = async () => {
   // Validasi: pastikan email dan password tidak kosong
   if (!email.value || !password.value) {
     errorMessage.value = 'Email dan password harus diisi.'
+    toast.error('Email dan password harus diisi')
     return
   }
 
@@ -138,14 +139,9 @@ const handleLogin = async () => {
 
     if (success) {
       // Login berhasil: tampilkan notifikasi toast
-      Swal.fire({
-        icon: 'success',
-        title: 'Login Berhasil!',
-        text: 'Selamat datang kembali!',
-        timer: 1500,
-        showConfirmButton: false,
-        toast: true,
-        position: 'top-end'
+      toast.success('Login Berhasil!', {
+        description: 'Selamat datang kembali!',
+        duration: 1500
       })
 
       // Redirect ke halaman home
@@ -153,11 +149,15 @@ const handleLogin = async () => {
     } else {
       // Login gagal: tampilkan pesan error
       errorMessage.value = 'Email atau password salah. Silakan coba lagi.'
+      toast.error('Login Gagal', {
+        description: 'Email atau password salah'
+      })
     }
   } catch (error) {
     // Handle error yang tidak terduga
     console.error('Login error:', error)
     errorMessage.value = 'Terjadi kesalahan. Silakan coba lagi.'
+    toast.error('Terjadi kesalahan. Silakan coba lagi.')
   } finally {
     // Reset loading state
     isLoading.value = false
