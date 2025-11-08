@@ -671,6 +671,9 @@
       </div>
     </section>
 
+    <!-- ✅ ARTICLE CAROUSEL SECTION - MOVED HERE! -->
+    <ArticleCarousel />
+
     <!-- CTA SECTION -->
     <section v-if="!authStore.isAuthenticated" class="relative py-24 bg-gradient-to-br from-slate-800 to-slate-900 overflow-hidden">
       <!-- Background Decorations -->
@@ -765,6 +768,7 @@ import { ref, computed, watch } from 'vue'
 import { useFoodStore } from '@/stores/food'
 import { useAuthStore } from '@/stores/auth'
 import { QrcodeStream } from 'vue-qrcode-reader'
+import ArticleCarousel from '@/components/ArticleCarousel.vue'
 
 // Stores
 const foodStore = useFoodStore()
@@ -772,7 +776,7 @@ const authStore = useAuthStore()
 
 // Modal State
 const showModal = ref(false)
-const modalType = ref('success') // 'success', 'error', 'warning', 'confirm'
+const modalType = ref('success')
 const modalTitle = ref('')
 const modalMessage = ref('')
 const modalSubMessage = ref('')
@@ -1052,14 +1056,12 @@ const handleSubmit = async () => {
 
     await foodStore.addFood(foodData, foodStore.summaryPeriod || 'daily')
 
-    // Show success notification
     showNotification(
       'success',
       'Berhasil Ditambahkan!',
       `${foodData.productName} dengan ${Math.round(foodData.calories)} kalori telah disimpan ke jurnal harian Anda`
     )
 
-    // Clear the form after successful addition
     setTimeout(() => {
       barcodeInput.value = ''
       foodStore.clearSearchedFood()
@@ -1090,7 +1092,7 @@ const handleAnalyze = async () => {
   await foodStore.analyzeFood(foodStore.searchedFood)
 }
 
-// Watch for product changes to trigger AI analysis
+// Watch for product changes
 watch(() => foodStore.searchedFood, (newVal) => {
   if (newVal) {
     imageLoadFailed.value = false
