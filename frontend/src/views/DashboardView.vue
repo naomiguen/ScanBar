@@ -157,6 +157,7 @@
           </div>
         </div>
       </div>
+
     </div>
 
     <!-- Modal Konfirmasi Hapus: Ditampilkan sebagai overlay saat akan menghapus -->
@@ -202,6 +203,127 @@
         </div>
       </div>
     </div>
+
+  <!-- ✨ SECTION BARU: Analisis AI Harian -->
+    <div class="bg-white rounded-3xl shadow-xl p-6 md:p-10 mb-10 mt-10 max-w-7xl mx-auto">
+      <h2 class="text-2xl md:text-3xl font-bold text-blue-900 mb-6 flex items-center gap-2">
+        <span class="text-3xl">🤖</span> Analisis Jurnal Harian
+      </h2>
+
+      <!-- Loading State -->
+      <div v-if="foodStore.dailyAnalysisLoading" class="text-center py-12">
+        <div class="inline-block animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mb-4"></div>
+        <p class="text-lg text-slate-600">Menganalisis pola makan Anda...</p>
+        <p class="text-sm text-slate-500 mt-2">Proses ini mungkin memakan waktu 5-10 detik</p>
+      </div>
+
+      <!-- Error State -->
+      <div v-else-if="foodStore.dailyAnalysisError" class="text-center py-12">
+        <div class="text-6xl mb-4">⚠️</div>
+        <p class="text-lg text-red-600 font-semibold mb-2">Gagal Memuat Analisis</p>
+        <p class="text-sm text-slate-600 mb-4">{{ foodStore.dailyAnalysisError }}</p>
+        <button
+          @click="foodStore.fetchDailyAnalysis()"
+          class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 hover:scale-105"
+        >
+          Coba Lagi
+        </button>
+      </div>
+
+      <!-- Analysis Content -->
+      <div v-else-if="foodStore.dailyAnalysis" class="space-y-6">
+        <!-- Cache Badge -->
+        <div v-if="foodStore.dailyAnalysisCached" class="inline-flex items-center gap-2 bg-green-100 text-green-800 text-sm font-semibold px-4 py-2 rounded-full">
+          <span>⚡</span>
+          <span>Loaded from cache (instant!)</span>
+        </div>
+
+        <!-- Summary -->
+        <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6">
+          <h3 class="text-xl font-bold text-blue-900 mb-3 flex items-center gap-2">
+            <span>📊</span> Ringkasan
+          </h3>
+          <p class="text-slate-700 leading-relaxed">
+            {{ foodStore.dailyAnalysis.summary || 'Tidak ada ringkasan tersedia' }}
+          </p>
+        </div>
+
+        <!-- Risks -->
+        <div v-if="foodStore.dailyAnalysis.risks && foodStore.dailyAnalysis.risks.length > 0"
+             class="bg-gradient-to-br from-red-50 to-orange-50 rounded-2xl p-6">
+          <h3 class="text-xl font-bold text-red-900 mb-3 flex items-center gap-2">
+            <span>⚠️</span> Risiko Kesehatan
+          </h3>
+          <ul class="space-y-2">
+            <li v-for="(risk, index) in foodStore.dailyAnalysis.risks" :key="index"
+                class="flex items-start gap-2 text-slate-700">
+              <span class="text-red-600 font-bold">•</span>
+              <span>{{ risk }}</span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Warnings -->
+        <div v-if="foodStore.dailyAnalysis.warnings && foodStore.dailyAnalysis.warnings.length > 0"
+             class="bg-gradient-to-br from-yellow-50 to-amber-50 rounded-2xl p-6">
+          <h3 class="text-xl font-bold text-amber-900 mb-3 flex items-center gap-2">
+            <span>🚨</span> Peringatan
+          </h3>
+          <ul class="space-y-2">
+            <li v-for="(warning, index) in foodStore.dailyAnalysis.warnings" :key="index"
+                class="flex items-start gap-2 text-slate-700">
+              <span class="text-amber-600 font-bold">•</span>
+              <span>{{ warning }}</span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Diet Suitability -->
+        <div v-if="foodStore.dailyAnalysis.dietSuitability"
+             class="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-6">
+          <h3 class="text-xl font-bold text-purple-900 mb-3 flex items-center gap-2">
+            <span>🥗</span> Kesesuaian Diet
+          </h3>
+          <p class="text-slate-700 leading-relaxed">
+            {{ foodStore.dailyAnalysis.dietSuitability }}
+          </p>
+        </div>
+
+        <!-- Recommendations -->
+        <div v-if="foodStore.dailyAnalysis.recommendations && foodStore.dailyAnalysis.recommendations.length > 0"
+             class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-6">
+          <h3 class="text-xl font-bold text-green-900 mb-3 flex items-center gap-2">
+            <span>💡</span> Rekomendasi
+          </h3>
+          <ul class="space-y-2">
+            <li v-for="(rec, index) in foodStore.dailyAnalysis.recommendations" :key="index"
+                class="flex items-start gap-2 text-slate-700">
+              <span class="text-green-600 font-bold">✓</span>
+              <span>{{ rec }}</span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Disclaimer -->
+        <div v-if="foodStore.dailyAnalysis.disclaimer"
+             class="bg-slate-100 rounded-2xl p-4 border-l-4 border-slate-400">
+          <p class="text-sm text-slate-600 italic">
+            <span class="font-semibold">Disclaimer:</span> {{ foodStore.dailyAnalysis.disclaimer }}
+          </p>
+        </div>
+      </div>
+
+      <!-- Empty State (belum ada analisis) -->
+      <div v-else class="text-center py-12">
+        <div class="text-6xl mb-4">🍽️</div>
+        <p class="text-lg text-slate-600">
+          Belum ada analisis untuk hari ini
+        </p>
+        <p class="text-sm text-slate-500 mt-2">
+          Tambahkan makanan ke jurnal Anda untuk mendapatkan analisis AI
+        </p>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -216,12 +338,11 @@ const authStore = useAuthStore()
 const foodStore = useFoodStore()
 
 // State untuk modal konfirmasi delete
-// Menyimpan status tampilan modal, data makanan yang akan dihapus, dan loading state
 const deleteConfirm = ref({
-  show: false,          // Status tampilan modal (true = tampil, false = tersembunyi)
-  foodId: null,         // ID makanan yang akan dihapus
-  foodName: '',         // Nama makanan untuk ditampilkan di modal
-  loading: false        // Status loading saat proses delete sedang berjalan
+  show: false,
+  foodId: null,
+  foodName: '',
+  loading: false
 })
 
 // Lifecycle hook: Dijalankan saat komponen pertama kali di-mount
@@ -232,31 +353,28 @@ onMounted(async () => {
       await authStore.checkSession()
     }
 
-    // Setelah session ter-verifikasi, ambil data makanan untuk hari ini
+    // Setelah session ter-verifikasi, ambil data makanan dan analisis
     if (authStore.isAuthenticated) {
-      // Method yang benar adalah fetchTodaysFoods (bukan fetchFoodsForToday)
       await foodStore.fetchTodaysFoods()
+
+      // ✨ PANGGIL FUNGSI BARU: Ambil analisis AI harian
+      await foodStore.fetchDailyAnalysis()
     }
   } catch (error) {
     console.error('Error saat mount dashboard:', error)
     toast.error('Gagal memuat data', {
-      description: 'Terjadi kesalahan saat mengambil data makanan'
+      description: 'Terjadi kesalahan saat mengambil data'
     })
   }
 })
 
-/**
- * Computed Property: summaryData
- * Menghitung dan menyiapkan data ringkasan untuk setiap nutrisi
- * Data diambil dari foodStore (nilai saat ini) dan authStore (target harian)
- */
 const summaryData = computed(() => ({
   kalori: {
     label: 'Kalori',
-    value: Math.round(foodStore.totals.calories), // Total kalori yang sudah dikonsumsi
-    max: authStore.user?.user_metadata?.dailyCalorieGoal || 2000, // Target kalori harian
+    value: Math.round(foodStore.totals.calories),
+    max: authStore.user?.user_metadata?.dailyCalorieGoal || 2000,
     unit: 'kcal',
-    class: 'kalori', // Digunakan untuk menentukan warna progress bar
+    class: 'kalori',
   },
   karbo: {
     label: 'Karbohidrat',
@@ -288,19 +406,13 @@ const summaryData = computed(() => ({
   },
   garam: {
     label: 'Garam',
-    value: Math.round((foodStore.totals.salt || 0) * 1000), // Konversi dari gram ke miligram
+    value: Math.round((foodStore.totals.salt || 0) * 1000),
     max: authStore.user?.user_metadata?.dailySodiumGoal || 2000,
     unit: 'mg',
     class: 'garam',
   },
 }))
 
-/**
- * Function: getBarColorClass
- * Menentukan warna progress bar berdasarkan jenis nutrisi
- * @param {string} className - Nama class nutrisi (kalori, karbo, protein, dll)
- * @returns {string} - Class Tailwind CSS untuk warna progress bar
- */
 const getBarColorClass = (className) => {
   const colorMap = {
     kalori: 'bg-blue-600',
@@ -310,34 +422,19 @@ const getBarColorClass = (className) => {
     gula: 'bg-purple-600',
     garam: 'bg-slate-600',
   }
-  // Return warna sesuai nutrisi, default biru jika tidak ditemukan
   return colorMap[className] || 'bg-blue-600'
 }
 
-/**
- * Function: handleDelete
- * Menampilkan modal konfirmasi sebelum menghapus makanan
- * Dipanggil saat tombol hapus diklik
- * @param {string} foodId - ID makanan yang akan dihapus
- * @param {string} foodName - Nama makanan (untuk ditampilkan di modal)
- */
 const handleDelete = (foodId, foodName) => {
-  // Set data ke state deleteConfirm untuk ditampilkan di modal
   deleteConfirm.value = {
-    show: true,        // Tampilkan modal
-    foodId: foodId,    // Simpan ID makanan
-    foodName: foodName, // Simpan nama makanan
-    loading: false     // Reset loading state
+    show: true,
+    foodId: foodId,
+    foodName: foodName,
+    loading: false
   }
 }
 
-/**
- * Function: cancelDelete
- * Menutup modal konfirmasi dan membatalkan proses delete
- * Dipanggil saat tombol "Batal" diklik atau klik di luar modal
- */
 const cancelDelete = () => {
-  // Reset semua state ke nilai default
   deleteConfirm.value = {
     show: false,
     foodId: null,
@@ -346,36 +443,27 @@ const cancelDelete = () => {
   }
 }
 
-/**
- * Function: executeDelete
- * Menjalankan proses penghapusan makanan setelah konfirmasi
- * Dipanggil saat tombol "Ya, Hapus" diklik
- */
 const executeDelete = async () => {
-  // Set loading state agar tombol disabled dan tampil loading
   deleteConfirm.value.loading = true
 
   try {
-    // Panggil fungsi delete dari foodStore
     await foodStore.deleteFood(deleteConfirm.value.foodId)
-
-    // Tutup modal setelah berhasil
     cancelDelete()
 
-    // Tampilkan notifikasi sukses
-    // Toast sudah ditangani di dalam foodStore.deleteFood
+    // ✨ REFRESH ANALISIS setelah delete (karena cache akan di-invalidate di backend)
+    // Kita tunggu sebentar biar backend sempat delete cache dulu
+    setTimeout(async () => {
+      await foodStore.fetchDailyAnalysis()
+    }, 500)
+
   } catch (error) {
-    // Jika terjadi error, tetap tutup modal
     cancelDelete()
-
-    // Error toast sudah ditampilkan di foodStore, tapi kita log di sini
     console.error('Error saat menghapus:', error)
   }
 }
 </script>
 
 <style scoped>
-/* Animasi untuk smooth entrance effect saat kartu makanan ditampilkan */
 @keyframes slideIn {
   from {
     opacity: 0;
@@ -387,12 +475,10 @@ const executeDelete = async () => {
   }
 }
 
-/* Terapkan animasi slideIn ke semua kartu makanan */
 .space-y-4 > * {
   animation: slideIn 0.3s ease-out;
 }
 
-/* Animasi scale untuk modal konfirmasi */
 @keyframes scaleIn {
   from {
     opacity: 0;
@@ -404,7 +490,6 @@ const executeDelete = async () => {
   }
 }
 
-/* Terapkan animasi scale ke modal */
 .animate-scale-in {
   animation: scaleIn 0.2s ease-out;
 }

@@ -59,6 +59,12 @@ export const useFoodStore = defineStore('food', () => {
   const analysisResult = ref(null);
   const analysisLoading = ref(false);
 
+  // ✨ STATE BARU untuk Daily Analysis
+  const dailyAnalysis = ref(null);
+  const dailyAnalysisLoading = ref(false);
+  const dailyAnalysisError = ref(null);
+  const dailyAnalysisCached = ref(false);
+
   // GETTERS
   const totals = computed(() => {
     return foods.value.reduce(
@@ -253,7 +259,6 @@ export const useFoodStore = defineStore('food', () => {
 
       console.log('🤖 Mengirim request analisis AI untuk:', payload.productName);
 
-      // Gunakan endpoint PUBLIK (tidak perlu auth token)
       const response = await apiClient.post('/api/foods/analyze', payload);
 
       analysisResult.value = response.data.analysis;
@@ -281,21 +286,97 @@ export const useFoodStore = defineStore('food', () => {
     }
   }
 
+  // ========================================
+  // ✨ FUNGSI BARU: DAILY ANALYSIS dengan SMART CACHE
+  // ========================================
+
+  /**
+   * Mengambil analisis AI harian dari backend
+   * Backend akan otomatis menggunakan cache jika tersedia
+   * atau membuat analisis baru jika cache tidak ada
+   */
+  async function fetchDailyAnalysis() {
+    dailyAnalysisLoading.value = true;
+    dailyAnalysisError.value = null;
+    dailyAnalysisCached.value = false;
+
+    try {
+      console.log('🔍 Fetching daily analysis...');
+
+      const response = await apiClient.get('/api/foods/analysis/today');
+
+      // Parse analysis jika berupa string JSON
+      let analysis = response.data.analysis;
+      if (typeof analysis === 'string') {
+        try {
+          analysis = JSON.parse(analysis);
+        } catch (e) {
+          console.warn('Analysis is string but not JSON, keeping as-is');
+        }
+      }
+
+      dailyAnalysis.value = analysis;
+      dailyAnalysisCached.value = response.data.cached || false;
+
+      // Log untuk debugging
+      if (response.data.cached) {
+        console.log('✅ Daily analysis loaded from cache');
+      } else {
+        console.log('✅ Daily analysis generated fresh');
+      }
+
+    } catch (error) {
+      console.error('❌ Failed to fetch daily analysis:', error);
+      dailyAnalysisError.value = error.response?.data?.message || 'Gagal mengambil analisis harian';
+
+      toast.error('Gagal Memuat Analisis', {
+        description: dailyAnalysisError.value,
+        duration: 3000
+      });
+    } finally {
+      dailyAnalysisLoading.value = false;
+    }
+  }
+
+  /**
+   * Reset state analisis harian
+   * Berguna saat user logout atau perlu refresh data
+   */
+  function clearDailyAnalysis() {
+    dailyAnalysis.value = null;
+    dailyAnalysisLoading.value = false;
+    dailyAnalysisError.value = null;
+    dailyAnalysisCached.value = false;
+  }
+
   return {
+    // Existing state
     foods,
     totals,
     searchedFood,
     summary,
     analysisResult,
     analysisLoading,
+    summaryPeriod,
+
+    // ✨ New state untuk Daily Analysis
+    dailyAnalysis,
+    dailyAnalysisLoading,
+    dailyAnalysisError,
+    dailyAnalysisCached,
+
+    // Existing actions
     fetchTodaysFoods,
     addFood,
     fetchFoodByBarcode,
     clearSearchedFood,
     fetchSummary,
     fetchSummaryByPeriod,
-    summaryPeriod,
     deleteFood,
-    analyzeFood
+    analyzeFood,
+
+    // ✨ New actions untuk Daily Analysis
+    fetchDailyAnalysis,
+    clearDailyAnalysis
   };
 });

@@ -1,6 +1,60 @@
 <template>
   <div class="min-h-screen bg-white pt-20">
-    <Toaster position="top-center" richColors :toastOptions="{ duration: 4000, style: { zIndex: 9999 } }" />
+    <!-- Custom Modal Notification -->
+    <Transition name="modal">
+      <div v-if="showModal" class="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" @click.self="closeModal">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full mx-4 transform transition-all" @click.stop>
+          <!-- Icon -->
+          <div class="pt-8 pb-4 flex justify-center">
+            <div :class="[
+              'w-20 h-20 rounded-full flex items-center justify-center',
+              modalType === 'success' ? 'bg-green-100' : modalType === 'error' ? 'bg-red-100' : 'bg-amber-100'
+            ]">
+              <span class="text-5xl">
+                {{ modalType === 'success' ? '✅' : modalType === 'error' ? '❌' : '⚠️' }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Title -->
+          <h3 class="text-2xl font-bold text-slate-800 text-center px-6 mb-3">
+            {{ modalTitle }}
+          </h3>
+
+          <!-- Message -->
+          <p class="text-base text-slate-600 text-center px-8 pb-6 leading-relaxed">
+            {{ modalMessage }}
+          </p>
+
+          <!-- Sub Message (if error) -->
+          <p v-if="modalSubMessage" class="text-sm text-red-600 text-center px-8 pb-4">
+            {{ modalSubMessage }}
+          </p>
+
+          <!-- Actions -->
+          <div class="px-6 pb-6 flex gap-3">
+            <button
+              v-if="modalType === 'confirm'"
+              @click="handleModalCancel"
+              class="flex-1 px-6 py-3.5 bg-slate-100 text-slate-700 rounded-xl font-bold text-base hover:bg-slate-200 transition-all duration-300"
+            >
+              Batal
+            </button>
+            <button
+              @click="handleModalConfirm"
+              :class="[
+                'flex-1 px-6 py-3.5 rounded-xl font-bold text-base transition-all duration-300',
+                modalType === 'success' ? 'bg-green-500 hover:bg-green-600 text-white' :
+                modalType === 'error' ? 'bg-red-500 hover:bg-red-600 text-white' :
+                'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg'
+              ]"
+            >
+              {{ modalType === 'confirm' ? 'Ya, Hapus' : 'OK' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </Transition>
 
     <!-- HERO SECTION -->
     <section class="relative bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 overflow-hidden py-24">
@@ -436,107 +490,6 @@
               </div>
             </div>
 
-            <!-- AI Analysis Card -->
-            <div v-if="foodStore.analysisResult || foodStore.analysisLoading" class="bg-white border border-slate-200 rounded-2xl p-6 md:p-8 mb-8 shadow-lg">
-              <h3 class="text-2xl md:text-3xl font-bold text-slate-800 mb-6 flex items-center gap-3 border-b-2 border-slate-100 pb-4">
-                <span class="text-4xl">🤖</span> Analisis AI
-              </h3>
-
-              <!-- Loading State -->
-              <div v-if="foodStore.analysisLoading" class="flex flex-col items-center justify-center py-12 text-slate-600">
-                <div class="text-5xl mb-4 animate-spin">⏳</div>
-                <div class="text-base font-medium">Menganalisis nutrisi makanan...</div>
-              </div>
-
-              <!-- Analysis Result -->
-              <template v-else>
-                <div v-if="typeof foodStore.analysisResult === 'object'" class="flex flex-col gap-6">
-                  <!-- Summary -->
-                  <div v-if="foodStore.analysisResult.summary" class="bg-blue-50 border-l-4 border-blue-500 p-5 rounded-xl">
-                    <p class="text-slate-800 leading-relaxed text-base">
-                      {{ foodStore.analysisResult.summary }}
-                    </p>
-                  </div>
-
-                  <!-- Health Risks -->
-                  <div v-if="foodStore.analysisResult.risks" class="bg-red-50 border-l-4 border-red-500 p-5 rounded-xl">
-                    <h4 class="text-red-700 font-bold text-lg mb-3 flex items-center gap-2">
-                      <span class="text-xl">⚠️</span> Risiko Kesehatan
-                    </h4>
-                    <ul class="list-disc pl-6 flex flex-col gap-2 text-red-700">
-                      <template v-if="Array.isArray(foodStore.analysisResult.risks)">
-                        <li v-for="(risk, index) in foodStore.analysisResult.risks" :key="index" class="text-base leading-relaxed">
-                          {{ risk }}
-                        </li>
-                      </template>
-                      <template v-else>
-                        <li class="text-base leading-relaxed">{{ foodStore.analysisResult.risks }}</li>
-                      </template>
-                    </ul>
-                  </div>
-
-                  <!-- Warnings -->
-                  <div v-if="foodStore.analysisResult.warnings" class="bg-amber-50 border-l-4 border-amber-500 p-5 rounded-xl">
-                    <h4 class="text-amber-800 font-bold text-lg mb-4 flex items-center gap-2">
-                      <span class="text-xl">⚠️</span> Peringatan
-                    </h4>
-                    <div class="flex flex-col gap-3">
-                      <template v-if="Array.isArray(foodStore.analysisResult.warnings)">
-                        <div v-for="(warning, index) in foodStore.analysisResult.warnings" :key="index" class="bg-amber-100 border border-amber-300 text-amber-900 px-4 py-3 rounded-lg flex items-start gap-3 text-base leading-relaxed">
-                          <span>{{ warning }}</span>
-                        </div>
-                      </template>
-                      <template v-else>
-                        <div class="text-amber-900 text-base leading-relaxed">
-                          <span>{{ foodStore.analysisResult.warnings }}</span>
-                        </div>
-                      </template>
-                    </div>
-                  </div>
-
-                  <!-- Diet Suitability -->
-                  <div v-if="foodStore.analysisResult.dietSuitability" class="bg-green-50 border-l-4 border-green-500 p-5 rounded-xl">
-                    <h4 class="text-green-700 font-bold text-lg mb-3 flex items-center gap-2">
-                      <span class="text-xl">✅</span> Kesesuaian Diet
-                    </h4>
-                    <p class="text-green-800 text-base leading-relaxed">
-                      {{ foodStore.analysisResult.dietSuitability }}
-                    </p>
-                  </div>
-
-                  <!-- Recommendations -->
-                  <div v-if="foodStore.analysisResult.recommendations" class="bg-purple-50 border-l-4 border-purple-500 p-5 rounded-xl">
-                    <h4 class="text-purple-700 font-bold text-lg mb-4 flex items-center gap-2">
-                      <span class="text-xl">💡</span> Rekomendasi Alternatif
-                    </h4>
-                    <ul class="flex flex-col gap-3">
-                      <template v-if="Array.isArray(foodStore.analysisResult.recommendations)">
-                        <li v-for="(rec, index) in foodStore.analysisResult.recommendations" :key="index" class="flex items-start gap-3 text-purple-800 text-base leading-relaxed">
-                          <span class="text-lg flex-shrink-0">🔄</span>
-                          <span>{{ rec }}</span>
-                        </li>
-                      </template>
-                      <template v-else>
-                        <li class="flex items-start gap-3 text-purple-800 text-base leading-relaxed">
-                          <span class="text-lg flex-shrink-0">🔄</span>
-                          <span>{{ foodStore.analysisResult.recommendations }}</span>
-                        </li>
-                      </template>
-                    </ul>
-                  </div>
-
-                  <!-- Disclaimer -->
-                  <div v-if="foodStore.analysisResult.disclaimer" class="text-sm text-slate-600 italic mt-2 pt-4 border-t border-slate-200 leading-relaxed">
-                    <span class="font-semibold">Catatan:</span> {{ foodStore.analysisResult.disclaimer }}
-                  </div>
-                </div>
-
-                <!-- Fallback for non-structured response -->
-                <div v-else class="text-slate-800 text-base whitespace-pre-wrap bg-slate-50 p-5 rounded-xl leading-relaxed">
-                  {{ foodStore.analysisResult }}
-                </div>
-              </template>
-            </div>
 
             <!-- Action Buttons -->
             <div class="flex gap-4 justify-center flex-wrap">
@@ -812,11 +765,43 @@ import { ref, computed, watch } from 'vue'
 import { useFoodStore } from '@/stores/food'
 import { useAuthStore } from '@/stores/auth'
 import { QrcodeStream } from 'vue-qrcode-reader'
-import { toast, Toaster } from 'vue-sonner'
 
 // Stores
 const foodStore = useFoodStore()
 const authStore = useAuthStore()
+
+// Modal State
+const showModal = ref(false)
+const modalType = ref('success') // 'success', 'error', 'warning', 'confirm'
+const modalTitle = ref('')
+const modalMessage = ref('')
+const modalSubMessage = ref('')
+const modalCallback = ref(null)
+
+// Modal Functions
+const showNotification = (type, title, message, subMessage = '') => {
+  modalType.value = type
+  modalTitle.value = title
+  modalMessage.value = message
+  modalSubMessage.value = subMessage
+  showModal.value = true
+}
+
+const closeModal = () => {
+  showModal.value = false
+  modalCallback.value = null
+}
+
+const handleModalConfirm = () => {
+  if (modalCallback.value) {
+    modalCallback.value()
+  }
+  closeModal()
+}
+
+const handleModalCancel = () => {
+  closeModal()
+}
 
 // State
 const activeTab = ref('manual')
@@ -909,7 +894,30 @@ const onDecode = (decodedString) => {
   if (decodedString) {
     const normalized = normalizeBarcode(decodedString)
     barcodeInput.value = normalized
-    foodStore.fetchFoodByBarcode(normalized)
+
+    foodStore.fetchFoodByBarcode(normalized).then(() => {
+      if (foodStore.searchedFood) {
+        showNotification(
+          'success',
+          'Produk Ditemukan!',
+          `${foodStore.searchedFood.productName} berhasil dimuat dari scan kamera`
+        )
+      } else {
+        showNotification(
+          'warning',
+          'Produk Tidak Ditemukan',
+          'Barcode tidak tersedia. Silakan coba scan produk lain.'
+        )
+      }
+    }).catch((error) => {
+      showNotification(
+        'error',
+        'Gagal Memproses Barcode',
+        'Terjadi kesalahan saat memproses barcode.',
+        error.message || 'Silakan coba lagi'
+      )
+    })
+
     stopCamera()
     activeTab.value = 'manual'
   }
@@ -937,12 +945,34 @@ const onFileChange = (event) => {
   reader.onload = (e) => {
     uploadedImage.value = e.target.result
 
-    uploadError.value = "Memproses gambar..."
     setTimeout(() => {
       const fakeBarcode = "8992761134017"
       const normalized = normalizeBarcode(fakeBarcode)
       barcodeInput.value = normalized
-      foodStore.fetchFoodByBarcode(normalized)
+
+      foodStore.fetchFoodByBarcode(normalized).then(() => {
+        if (foodStore.searchedFood) {
+          showNotification(
+            'success',
+            'Produk Ditemukan!',
+            `${foodStore.searchedFood.productName} berhasil dimuat dari gambar yang diupload`
+          )
+        } else {
+          showNotification(
+            'warning',
+            'Produk Tidak Ditemukan',
+            'Barcode tidak tersedia. Silakan coba upload gambar lain.'
+          )
+        }
+      }).catch((error) => {
+        showNotification(
+          'error',
+          'Gagal Memproses Gambar',
+          'Terjadi kesalahan saat memproses gambar.',
+          error.message || 'Silakan coba lagi'
+        )
+      })
+
       uploadError.value = ''
     }, 1500)
   }
@@ -968,13 +998,13 @@ const changeTab = (tabName) => {
 
 const handleSearch = async () => {
   if (!barcodeInput.value) {
-    toast.error('Barcode tidak boleh kosong')
+    showNotification('warning', 'Barcode Kosong', 'Silakan masukkan kode barcode terlebih dahulu')
     return
   }
 
   const normalized = normalizeBarcode(barcodeInput.value)
   if (!normalized) {
-    toast.error('Format barcode tidak valid')
+    showNotification('error', 'Format Tidak Valid', 'Format barcode yang Anda masukkan tidak valid')
     return
   }
 
@@ -983,15 +1013,26 @@ const handleSearch = async () => {
   try {
     await foodStore.fetchFoodByBarcode(normalized)
 
-    if (!foodStore.searchedFood) {
-      toast.warning('Produk tidak ditemukan', {
-        description: 'Barcode tidak ada di database'
-      })
+    if (foodStore.searchedFood) {
+      showNotification(
+        'success',
+        'Produk Ditemukan!',
+        `${foodStore.searchedFood.productName} berhasil ditemukan`
+      )
+    } else {
+      showNotification(
+        'warning',
+        'Produk Tidak Ditemukan',
+        'Barcode tidak tersedia. Silakan coba barcode lain atau periksa kembali kode yang dimasukkan.'
+      )
     }
   } catch (error) {
-    toast.error('Gagal mencari produk', {
-      description: error.message
-    })
+    showNotification(
+      'error',
+      'Gagal Mencari Produk',
+      'Terjadi kesalahan saat mencari produk.',
+      error.message || 'Silakan coba lagi'
+    )
   }
 }
 
@@ -1011,20 +1052,28 @@ const handleSubmit = async () => {
 
     await foodStore.addFood(foodData, foodStore.summaryPeriod || 'daily')
 
-    toast.success('Berhasil Menambahkan Makanan! 🎉', {
-      description: `${foodData.productName} telah ditambahkan ke jurnal Anda`,
-      duration: 4000,
-    })
+    // Show success notification
+    showNotification(
+      'success',
+      'Berhasil Ditambahkan!',
+      `${foodData.productName} dengan ${Math.round(foodData.calories)} kalori telah disimpan ke jurnal harian Anda`
+    )
 
-    // Delay sebelum clear untuk memastikan toast muncul
+    // Clear the form after successful addition
     setTimeout(() => {
-      handleCancel()
+      barcodeInput.value = ''
+      foodStore.clearSearchedFood()
+      uploadedImage.value = null
+      imageLoadFailed.value = false
     }, 500)
+
   } catch (error) {
-    toast.error('Gagal Menambahkan Makanan ❌', {
-      description: error?.message || 'Terjadi kesalahan saat menambahkan makanan ke jurnal Anda.',
-      duration: 4000,
-    })
+    showNotification(
+      'error',
+      'Gagal Menambahkan',
+      'Terjadi kesalahan saat menambahkan makanan ke jurnal.',
+      error?.message || 'Silakan coba lagi'
+    )
     console.error('Error adding food:', error)
   }
 }
@@ -1051,6 +1100,28 @@ watch(() => foodStore.searchedFood, (newVal) => {
 </script>
 
 <style scoped>
+/* Modal Transition */
+.modal-enter-active,
+.modal-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.modal-enter-from,
+.modal-leave-to {
+  opacity: 0;
+}
+
+.modal-enter-active .bg-white,
+.modal-leave-active .bg-white {
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.modal-enter-from .bg-white,
+.modal-leave-to .bg-white {
+  transform: scale(0.9);
+  opacity: 0;
+}
+
 /* Fade in animation */
 @keyframes fadeIn {
   from {

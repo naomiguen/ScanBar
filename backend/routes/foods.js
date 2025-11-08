@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
 const Food = require('../models/Food');
+const DailyAnalysis = require('../models/DailyAnalysis'); // ← IMPORT MODEL BARU
 const axios = require('axios');
 const mongoose = require('mongoose');
 const util = require('util');
@@ -24,6 +25,10 @@ try {
     model = null;
   }
 }
+
+// ============================================
+// HELPER FUNCTIONS
+// ============================================
 
 // Helper: clean possible code-fence wrappers and try to parse JSON from model output
 function cleanAndParseAnalysisText(analysisText) {
@@ -50,6 +55,263 @@ function cleanAndParseAnalysisText(analysisText) {
   }
 }
 
+// Helper: Mendapatkan start of day (00:00:00) untuk timezone lokal
+function getStartOfDay(date = new Date()) {
+  const d = new Date(date);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+// Helper: Mendapatkan end of day (23:59:59) untuk timezone lokal
+function getEndOfDay(date = new Date()) {
+  const d = new Date(date);
+  d.setHours(23, 59, 59, 999);
+  return d;
+}
+
+// Helper: Invalidasi cache analisis harian
+async function invalidateDailyCache(userId) {
+  try {
+    const today = getStartOfDay();
+    const result = await DailyAnalysis.findOneAndDelete({
+      user: userId,
+      date: today
+    });
+    if (result) {
+      console.info(`[cache] invalidated daily analysis cache for user ${userId}`);
+    }
+  } catch (err) {
+    console.error('[cache] failed to invalidate cache:', err.message);
+    // Non-blocking error - jangan throw
+  }
+}
+
+// ============================================
+// ENDPOINT BARU: DAILY ANALYSIS dengan SMART CACHE
+// ============================================
+
+// @route   GET /api/foods/analysis/today
+// @desc    Mendapatkan analisis AI harian dengan smart caching
+// @access  Private
+router.get('/analysis/today', auth, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const today = getStartOfDay();
+    
+    console.info(`[analysis] request from user ${userId} for date ${today.toISOString()}`);
+
+    // 1. CEK CACHE: Apakah sudah ada analisis hari ini?
+    const cachedAnalysis = await DailyAnalysis.findOne({
+      user: userId,
+      date: today
+    });
+
+    if (cachedAnalysis) {
+      console.info(`[analysis] CACHE HIT for user ${userId}`);
+      return res.json({
+        analysis: cachedAnalysis.analysisText,
+        cached: true,
+        generatedAt: cachedAnalysis.createdAt
+      });
+    }
+
+    console.info(`[analysis] CACHE MISS for user ${userId} - generating new analysis`);
+
+    // 2. CACHE MISS: Ambil data makanan hari ini
+    const todayStart = getStartOfDay();
+    const todayEnd = getEndOfDay();
+
+    const foods = await Food.find({
+      user: userId,
+      date: { $gte: todayStart, $lte: todayEnd }
+    }).sort({ date: -1 });
+
+    // 3. Jika tidak ada makanan hari ini
+    if (foods.length === 0) {
+      const emptyMessage = {
+        summary: "Belum ada data makanan untuk hari ini.",
+        risks: [],
+        warnings: ["Mulai catat makanan Anda untuk mendapatkan analisis nutrisi"],
+        dietSuitability: "Data tidak cukup untuk analisis",
+        recommendations: [
+          "Tambahkan makanan pertama Anda hari ini",
+          "Scan barcode produk atau input manual"
+        ],
+        disclaimer: "Ini bukan pengganti nasihat medis profesional."
+      };
+
+      // Simpan ke cache juga
+      const newAnalysis = new DailyAnalysis({
+        user: userId,
+        date: today,
+        analysisText: JSON.stringify(emptyMessage)
+      });
+      await newAnalysis.save();
+
+      return res.json({
+        analysis: emptyMessage,
+        cached: false,
+        generatedAt: new Date()
+      });
+    }
+
+    // 4. Hitung total nutrisi
+    const totals = foods.reduce((acc, food) => ({
+      calories: acc.calories + (food.calories || 0),
+      protein: acc.protein + (food.protein || 0),
+      carbs: acc.carbs + (food.carbs || 0),
+      fat: acc.fat + (food.fat || 0),
+      sugar: acc.sugar + (food.sugar || 0),
+      salt: acc.salt + (food.salt || 0)
+    }), { calories: 0, protein: 0, carbs: 0, fat: 0, sugar: 0, salt: 0 });
+
+    // 5. Susun daftar makanan untuk prompt
+    const foodList = foods.map((f, idx) => 
+      `${idx + 1}. ${f.productName} (${f.calories} kcal, P:${f.protein}g, C:${f.carbs}g, F:${f.fat}g, Gula:${f.sugar}g, Garam:${f.salt}g)`
+    ).join('\n');
+
+    // 6. PANGGIL GEMINI AI
+    if (!model) {
+      console.warn('[analysis] AI model not initialized, using heuristic fallback');
+      const heuristic = generateHeuristicAnalysis(
+        'Ringkasan Harian',
+        totals.calories,
+        totals.protein,
+        totals.carbs,
+        totals.fat,
+        totals.sugar,
+        totals.salt
+      );
+
+      // Simpan heuristic ke cache
+      const newAnalysis = new DailyAnalysis({
+        user: userId,
+        date: today,
+        analysisText: JSON.stringify(heuristic)
+      });
+      await newAnalysis.save();
+
+      return res.json({
+        analysis: heuristic,
+        cached: false,
+        generatedAt: new Date()
+      });
+    }
+
+    const prompt = `
+      Anda adalah ahli gizi profesional di Indonesia. Analisis konsumsi produk makanan/minuman KEMASAN yang telah di-scan pengguna hari ini.
+      
+      PENTING: Ini adalah produk KEMASAN yang di-scan barcode-nya, bukan makanan yang dimasak sendiri.
+      
+      PRODUK KEMASAN YANG DIKONSUMSI HARI INI:
+      ${foodList}
+      
+      TOTAL NUTRISI DARI SEMUA PRODUK KEMASAN:
+      - Kalori: ${totals.calories} kcal
+      - Protein: ${totals.protein} g
+      - Karbohidrat: ${totals.carbs} g
+      - Lemak: ${totals.fat} g
+      - Gula: ${totals.sugar} g
+      - Garam: ${totals.salt} g
+      
+      Berikan analisis dalam format JSON dengan struktur berikut:
+      {
+        "summary": "Ringkasan pola konsumsi produk kemasan hari ini (2-3 kalimat). Sebutkan apakah terlalu banyak makanan ultra-processed, tinggi gula/garam, atau sudah cukup seimbang.",
+        "risks": ["Risiko dari konsumsi produk kemasan berlebih", "Risiko spesifik dari kandungan tinggi (gula/garam/lemak)", "Risiko kesehatan jangka panjang"],
+        "warnings": ["Peringatan tentang konsumsi produk kemasan", "Peringatan khusus jika ada nutrisi berlebih"],
+        "dietSuitability": "Evaluasi: apakah produk-produk ini cocok untuk diet sehat? Apakah terlalu banyak processed food? (1-2 kalimat)",
+        "recommendations": ["Saran produk kemasan yang LEBIH SEHAT (misal: air mineral, yogurt plain, kacang tanpa garam)", "Saran untuk menyeimbangkan dengan makanan segar/whole foods"],
+        "disclaimer": "Analisis ini berdasarkan produk kemasan yang di-scan dan bukan pengganti nasihat medis profesional."
+      }
+      
+      PETUNJUK KHUSUS UNTUK PRODUK KEMASAN:
+      - Fokus pada fakta bahwa ini adalah produk ultra-processed/kemasan
+      - Bandingkan dengan pedoman: maks 2000 kcal, gula <50g, garam <2000mg per hari
+      - Jika banyak produk tinggi gula/garam (snack, minuman manis, mie instan), beri peringatan tegas
+      - Rekomendasikan alternatif kemasan yang LEBIH SEHAT atau saran untuk menambah makanan segar
+      - Ingatkan dampak jangka panjang konsumsi processed food berlebihan (obesitas, diabetes, hipertensi)
+      - Gunakan bahasa yang ramah tapi jujur tentang kualitas produk kemasan
+      - Jika ada produk yang relatif sehat (misal: susu, yogurt, kacang), apresiasi itu
+      
+      Kembalikan HANYA objek JSON, tanpa teks tambahan.
+    `;
+
+    console.info(`[analysis] invoking Gemini AI for user ${userId}`);
+    
+    let result;
+    try {
+      result = await model.generateContent(prompt);
+    } catch (genErr) {
+      console.error('[analysis] Gemini API error:', genErr.message);
+      // Fallback ke heuristic jika Gemini gagal
+      const heuristic = generateHeuristicAnalysis(
+        'Ringkasan Harian',
+        totals.calories,
+        totals.protein,
+        totals.carbs,
+        totals.fat,
+        totals.sugar,
+        totals.salt
+      );
+
+      const newAnalysis = new DailyAnalysis({
+        user: userId,
+        date: today,
+        analysisText: JSON.stringify(heuristic)
+      });
+      await newAnalysis.save();
+
+      return res.json({
+        analysis: heuristic,
+        cached: false,
+        generatedAt: new Date(),
+        fallback: true
+      });
+    }
+
+    // 7. Parse response dari Gemini
+    let analysisText = '';
+    if (result?.response?.text) {
+      analysisText = result.response.text();
+    } else if (typeof result === 'string') {
+      analysisText = result;
+    } else if (result?.output) {
+      analysisText = Array.isArray(result.output) ? result.output.join('\n') : String(result.output);
+    } else {
+      analysisText = JSON.stringify(result);
+    }
+
+    const cleaned = cleanAndParseAnalysisText(analysisText);
+    
+    // 8. SIMPAN KE CACHE
+    const newAnalysis = new DailyAnalysis({
+      user: userId,
+      date: today,
+      analysisText: typeof cleaned === 'object' ? JSON.stringify(cleaned) : cleaned
+    });
+    await newAnalysis.save();
+
+    console.info(`[analysis] successfully generated and cached analysis for user ${userId}`);
+
+    return res.json({
+      analysis: cleaned,
+      cached: false,
+      generatedAt: newAnalysis.createdAt
+    });
+
+  } catch (err) {
+    console.error('[analysis] error:', err.message);
+    res.status(500).json({ 
+      error: 'Gagal mengambil analisis harian',
+      message: err.message 
+    });
+  }
+});
+
+// ============================================
+// MODIFIED ENDPOINTS: CACHE INVALIDATION
+// ============================================
+
 // @route   POST /api/foods
 // @desc    Menambah catatan makanan baru ke jurnal pribadi
 // @access  Private (Dijaga oleh satpam 'auth')
@@ -71,12 +333,46 @@ router.post('/', auth, async (req, res) => {
     });
 
     const food = await newFood.save();
+    
+    // ← INVALIDASI CACHE setelah menambah makanan
+    await invalidateDailyCache(req.user.id);
+    
     res.json(food);
   } catch (err) {
     console.error('Add Food Error:', err.message);
     res.status(500).send('Server Error');
   }
 });
+
+// @route   DELETE /api/foods/:id
+// @desc    Menghapus entri makanan dari jurnal pribadi
+// @access  Private
+router.delete('/:id', auth, async (req, res) => {
+  try {
+    const food = await Food.findById(req.params.id);
+    if (!food) {
+      return res.status(404).json({ msg: 'Makanan tidak ditemukan' });
+    }
+    
+    if (food.user.toString() !== req.user.id) {
+      return res.status(401).json({ msg: 'User tidak diotorisasi' });
+    }
+    
+    await food.deleteOne();
+    
+    // ← INVALIDASI CACHE setelah menghapus makanan
+    await invalidateDailyCache(req.user.id);
+    
+    res.json({ msg: 'Makanan dihapus' });
+  } catch (err) {
+    console.error('Delete Error:', err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+// ============================================
+// EXISTING ENDPOINTS (tidak diubah)
+// ============================================
 
 // @route   GET /api/foods
 // @desc    Mendapatkan semua catatan makanan hari ini (jurnal pribadi)
@@ -101,35 +397,11 @@ router.get('/', auth, async (req, res) => {
     }
 });
 
-// @route   DELETE /api/foods/:id
-// @desc    Menghapus entri makanan dari jurnal pribadi
-// @access  Private
-router.delete('/:id', auth, async (req, res) => {
-  try {
-    const food = await Food.findById(req.params.id);
-    if (!food) {
-      return res.status(404).json({ msg: 'Makanan tidak ditemukan' });
-    }
-    
-    if (food.user.toString() !== req.user.id) {
-      return res.status(401).json({ msg: 'User tidak diotorisasi' });
-    }
-    
-    await food.deleteOne();
-    res.json({ msg: 'Makanan dihapus' });
-  } catch (err) {
-    console.error('Delete Error:', err.message);
-    res.status(500).send('Server Error');
-  }
-});
-
 // @route   GET /api/foods/summary
 // @desc    Menghitung ringkasan nutrisi (harian, mingguan, bulanan) - jurnal pribadi
 // @access  Private
 router.get('/summary', auth, async (req, res) => {
   try {
-    // Gunakan user.id langsung (string UUID dari Supabase)
-    // Tidak perlu convert ke ObjectId lagi
     const userId = req.user.id;
     const now = new Date();
 
@@ -222,7 +494,6 @@ router.get('/summary', auth, async (req, res) => {
     res.status(500).send('Server Error');
   }
 });
-
 
 // @route   GET /api/foods/barcode/:barcode
 // @desc    Mencari produk berdasarkan barcode menggunakan Open Food Facts API
@@ -437,7 +708,6 @@ router.get('/image-proxy', async (req, res) => {
     return res.status(status).json({ error: msg });
   }
 });
-
 
 // @route   GET /api/foods/ai-status
 // @desc    Cek status AI model
