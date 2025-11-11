@@ -3,6 +3,7 @@ const dotenv = require('dotenv');
 const cors = require('cors');
 const connectDB = require('./config/db');
 const articleRoutes = require('./routes/articles');
+const favoritesRouter = require('./routes/favorites');
 
 dotenv.config();
 connectDB();
@@ -16,6 +17,7 @@ app.use(cors());
 
 app.use('/api/foods', require('./routes/foods')); 
 app.use('/api/articles', articleRoutes);
+app.use('/api/favorites', favoritesRouter);
 
 app.get('/', (req, res) => {
     res.send('API is running...');

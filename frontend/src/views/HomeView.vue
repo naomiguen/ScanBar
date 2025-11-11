@@ -437,13 +437,39 @@
               </div>
             </div>
 
-            <h2 class="text-3xl font-extrabold text-slate-800 text-center mb-2">
-              {{ foodStore.searchedFood.productName }}
-            </h2>
+            <!-- Header dengan Tombol Bintang -->
+            <div class="mb-6">
+              <div class="flex items-start justify-between gap-4">
+                <div class="flex-1">
+                  <h2 class="text-3xl font-extrabold text-slate-800 mb-2">
+                    {{ foodStore.searchedFood.productName }}
+                  </h2>
+                  <p class="text-base text-slate-600">
+                    Informasi Nilai Gizi per Sajian
+                  </p>
+                </div>
 
-            <p class="text-base text-slate-600 text-center mb-8">
-              Informasi Nilai Gizi per Sajian
-            </p>
+                <!-- ✨ TOMBOL BINTANG TAILWIND -->
+                <button
+                  @click="toggleFavorite"
+                  :disabled="isTogglingFavorite"
+                  :class="[
+                    'flex items-center justify-center w-12 h-12 rounded-lg border-2 transition-all duration-300',
+                    isFavorited
+                      ? 'bg-yellow-400 border-yellow-400 hover:bg-yellow-500'
+                      : 'bg-white border-gray-300 hover:border-yellow-400 hover:bg-yellow-50',
+                    isTogglingFavorite ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:scale-110'
+                  ]"
+                >
+                  <span :class="[
+                    'text-2xl transition-all',
+                    isFavorited ? 'text-white' : 'text-yellow-400'
+                  ]">
+                    {{ isFavorited ? '★' : '☆' }}
+                  </span>
+                </button>
+              </div>
+            </div>
 
             <!-- Nutrients Grid -->
             <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
@@ -709,56 +735,9 @@
       </div>
     </section>
 
-    <!-- FOOTER SECTION -->
-    <footer class="bg-blue-600 text-white py-12">
-      <div class="max-w-7xl mx-auto px-4">
-        <div class="grid grid-cols-1 md:grid-cols-[1.5fr_1fr] gap-16 mb-8 pb-8 border-b border-white/10">
-          <!-- Brand -->
-          <div class="flex flex-col gap-4">
-            <div class="flex items-center gap-3 mb-2">
-              <div class="w-[50px] h-[50px] bg-white text-blue-600 rounded-xl flex items-center justify-center text-xl font-bold">
-                SB
-              </div>
-              <span class="text-[1.75rem] font-bold text-white">
-                ScanBar
-              </span>
-            </div>
-
-            <p class="text-white/80 leading-relaxed max-w-md">
-              Pilih metode scan favorit Anda untuk mendapatkan informasi nutrisi dari kemasan makanan & minuman lengkap
-            </p>
-          </div>
-
-          <!-- Contact -->
-          <div class="flex flex-col gap-4">
-            <h3 class="text-2xl font-bold mb-2 text-white">
-              Kontak
-            </h3>
-
-            <div class="flex flex-col gap-4">
-              <div class="flex items-center gap-3 text-white/90 text-[0.95rem]">
-                <span class="text-xl w-[30px] text-center">📧</span>
-                <span>Email: info@scanbar.com</span>
-              </div>
-
-              <div class="flex items-center gap-3 text-white/90 text-[0.95rem]">
-                <span class="text-xl w-[30px] text-center">📞</span>
-                <span>Telepon: (021) 1234 5678</span>
-              </div>
-
-              <div class="flex items-center gap-3 text-white/90 text-[0.95rem]">
-                <span class="text-xl w-[30px] text-center">📍</span>
-                <span>Alamat: Balikpapan, Indonesia</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="text-center pt-6 text-white/70 text-sm">
-          © 2025 ScanBar. All rights reserved.
-        </div>
-      </div>
-    </footer>
+    <div>
+      <Footer />
+    </div>
 
   </div>
 </template>
@@ -769,6 +748,8 @@ import { useFoodStore } from '@/stores/food'
 import { useAuthStore } from '@/stores/auth'
 import { QrcodeStream } from 'vue-qrcode-reader'
 import ArticleCarousel from '@/components/ArticleCarousel.vue'
+import Footer from '@/components/Footer.vue'
+import axios from 'axios'
 
 // Stores
 const foodStore = useFoodStore()
@@ -819,6 +800,10 @@ const scannerSection = ref(null)
 
 // Image handling
 const imageLoadFailed = ref(false)
+
+// ✨ STATE FAVORIT
+const isFavorited = ref(false)
+const isTogglingFavorite = ref(false)
 
 // Scroll to scanner
 const scrollToScanner = () => {
@@ -878,6 +863,101 @@ const onImageError = (event) => {
   imageLoadFailed.value = true
 }
 
+// ✨ FUNGSI CEK STATUS FAVORIT
+const checkFavoriteStatus = async (productCode) => {
+  if (!authStore.isAuthenticated) {
+    isFavorited.value = false
+    return
+  }
+
+  try {
+    const token = localStorage.getItem('token')
+    const response = await axios.get(
+      `http://localhost:3000/api/favorites/check/${productCode}`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    )
+    isFavorited.value = response.data.isFavorited
+  } catch (error) {
+    console.error('Error checking favorite:', error)
+    isFavorited.value = false
+  }
+}
+
+// ✨ FUNGSI TOGGLE FAVORIT
+const toggleFavorite = async () => {
+  if (!authStore.isAuthenticated) {
+    showNotification(
+      'warning',
+      'Login Diperlukan',
+      'Silakan login terlebih dahulu untuk menyimpan produk favorit'
+    )
+    return
+  }
+
+  if (!foodStore.searchedFood || isTogglingFavorite.value) return
+
+  const productCode = barcodeInput.value || foodStore.searchedFood.barcode
+
+  if (!productCode) {
+    showNotification('error', 'Gagal', 'Kode produk tidak ditemukan')
+    return
+  }
+
+  console.log('🌟 Toggling favorite for:', productCode)
+  console.log('📦 Product data:', foodStore.searchedFood)
+
+  isTogglingFavorite.value = true
+
+  try {
+    const token = localStorage.getItem('token')
+
+    // Siapkan data produk untuk dikirim
+    const productData = foodStore.searchedFood._raw || foodStore.searchedFood
+
+    console.log('📤 Sending to backend:', { productCode, productData })
+
+    const response = await axios.post(
+      'http://localhost:3000/api/favorites',
+      {
+        productCode: productCode,
+        productData: {
+          product_name: product.product_name,
+          brands: product.brands,
+          image_url: product.image_url,
+          nutriments: product.nutriments
+        }
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    )
+
+    console.log('✅ Response:', response.data)
+
+    isFavorited.value = response.data.isFavorited
+
+    showNotification(
+      'success',
+      response.data.isFavorited ? '⭐ Ditambahkan ke Favorit!' : '☆ Dihapus dari Favorit',
+      response.data.message
+    )
+  } catch (error) {
+    console.error('❌ Error toggling favorite:', error)
+    console.error('Error response:', error.response?.data)
+
+    showNotification(
+      'error',
+      'Gagal Memproses Favorit',
+      error.response?.data?.error || error.response?.data?.details || 'Terjadi kesalahan saat memproses favorit'
+    )
+  } finally {
+    isTogglingFavorite.value = false
+  }
+}
+
 // Camera functions
 const onInit = async (promise) => {
   try {
@@ -894,33 +974,40 @@ const onInit = async (promise) => {
   }
 }
 
-const onDecode = (decodedString) => {
+const onDecode = async (decodedString) => {
   if (decodedString) {
     const normalized = normalizeBarcode(decodedString)
     barcodeInput.value = normalized
 
-    foodStore.fetchFoodByBarcode(normalized).then(() => {
+    try {
+      await foodStore.fetchFoodByBarcode(normalized)
+
       if (foodStore.searchedFood) {
+        // ✨ CEK STATUS FAVORIT SETELAH PRODUK DITEMUKAN
+        await checkFavoriteStatus(normalized)
+
         showNotification(
           'success',
           'Produk Ditemukan!',
           `${foodStore.searchedFood.productName} berhasil dimuat dari scan kamera`
         )
       } else {
+        isFavorited.value = false
         showNotification(
           'warning',
           'Produk Tidak Ditemukan',
           'Barcode tidak tersedia. Silakan coba scan produk lain.'
         )
       }
-    }).catch((error) => {
+    } catch (error) {
+      isFavorited.value = false
       showNotification(
         'error',
         'Gagal Memproses Barcode',
         'Terjadi kesalahan saat memproses barcode.',
         error.message || 'Silakan coba lagi'
       )
-    })
+    }
 
     stopCamera()
     activeTab.value = 'manual'
@@ -946,36 +1033,43 @@ const onFileChange = (event) => {
   if (!file) return
 
   const reader = new FileReader()
-  reader.onload = (e) => {
+  reader.onload = async (e) => {
     uploadedImage.value = e.target.result
 
-    setTimeout(() => {
+    setTimeout(async () => {
       const fakeBarcode = "8992761134017"
       const normalized = normalizeBarcode(fakeBarcode)
       barcodeInput.value = normalized
 
-      foodStore.fetchFoodByBarcode(normalized).then(() => {
+      try {
+        await foodStore.fetchFoodByBarcode(normalized)
+
         if (foodStore.searchedFood) {
+          // ✨ CEK STATUS FAVORIT
+          await checkFavoriteStatus(normalized)
+
           showNotification(
             'success',
             'Produk Ditemukan!',
             `${foodStore.searchedFood.productName} berhasil dimuat dari gambar yang diupload`
           )
         } else {
+          isFavorited.value = false
           showNotification(
             'warning',
             'Produk Tidak Ditemukan',
             'Barcode tidak tersedia. Silakan coba upload gambar lain.'
           )
         }
-      }).catch((error) => {
+      } catch (error) {
+        isFavorited.value = false
         showNotification(
           'error',
           'Gagal Memproses Gambar',
           'Terjadi kesalahan saat memproses gambar.',
           error.message || 'Silakan coba lagi'
         )
-      })
+      }
 
       uploadError.value = ''
     }, 1500)
@@ -989,6 +1083,7 @@ const clearUpload = () => {
   uploadedImage.value = null
   barcodeInput.value = ''
   foodStore.clearSearchedFood()
+  isFavorited.value = false
 }
 
 // Main functions
@@ -997,6 +1092,7 @@ const changeTab = (tabName) => {
   foodStore.clearSearchedFood()
   barcodeInput.value = ''
   uploadedImage.value = null
+  isFavorited.value = false
   stopCamera()
 }
 
@@ -1018,12 +1114,16 @@ const handleSearch = async () => {
     await foodStore.fetchFoodByBarcode(normalized)
 
     if (foodStore.searchedFood) {
+      // ✨ CEK STATUS FAVORIT SETELAH PRODUK DITEMUKAN
+      await checkFavoriteStatus(normalized)
+
       showNotification(
         'success',
         'Produk Ditemukan!',
         `${foodStore.searchedFood.productName} berhasil ditemukan`
       )
     } else {
+      isFavorited.value = false
       showNotification(
         'warning',
         'Produk Tidak Ditemukan',
@@ -1031,6 +1131,7 @@ const handleSearch = async () => {
       )
     }
   } catch (error) {
+    isFavorited.value = false
     showNotification(
       'error',
       'Gagal Mencari Produk',
@@ -1067,6 +1168,7 @@ const handleSubmit = async () => {
       foodStore.clearSearchedFood()
       uploadedImage.value = null
       imageLoadFailed.value = false
+      isFavorited.value = false
     }, 500)
 
   } catch (error) {
@@ -1084,6 +1186,7 @@ const handleCancel = () => {
   barcodeInput.value = ''
   foodStore.clearSearchedFood()
   uploadedImage.value = null
+  isFavorited.value = false
   stopCamera()
 }
 

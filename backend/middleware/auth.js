@@ -42,6 +42,7 @@ module.exports = function (req, res, next) {
 
       // Simpan data user ke request
       req.user = {
+        _id: decoded.sub,
         id: decoded.sub, // ID user dari Supabase (field 'sub')
         email: decoded.email,
         role: decoded.role,
@@ -56,6 +57,9 @@ module.exports = function (req, res, next) {
 
       // Simpan user dari token ke req.user
       req.user = decoded.user || decoded;
+      if (!req.user._id && req.user.id) {
+        req.user._id = req.user.id;
+      }
 
       console.log('Legacy JWT token verified');
     }

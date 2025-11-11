@@ -204,7 +204,10 @@
       </div>
     </div>
 
-  <!-- ✨ SECTION BARU: Analisis AI Harian -->
+     <!-- Favorites -->
+      <FavoritesList class="mt-10"/>
+
+  <!--  SECTION BARU: Analisis AI Harian -->
     <div class="bg-white rounded-3xl shadow-xl p-6 md:p-10 mb-10 mt-10 max-w-7xl mx-auto">
       <h2 class="text-2xl md:text-3xl font-bold text-blue-900 mb-6 flex items-center gap-2">
         <span class="text-3xl">🤖</span> Analisis Jurnal Harian
@@ -332,6 +335,7 @@ import { onMounted, computed, ref } from 'vue'
 import { toast } from 'vue-sonner'
 import { useAuthStore } from '@/stores/auth'
 import { useFoodStore } from '@/stores/food'
+import FavoritesList from '@/components/FavoritesList.vue'
 
 // Inisialisasi store untuk autentikasi dan data makanan
 const authStore = useAuthStore()
