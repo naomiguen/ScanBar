@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-slate-50 py-10 px-4 pt-32">
+  <div class="min-h-screen bg-slate-50 py-10 px-4">
     <!-- Manmpilkan konten hanya jika data userr yersedia -->
     <div v-if="user" class="max-w-7xl mx-auto">
 

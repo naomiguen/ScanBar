@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-white pt-20">
+  <div class="min-h-screen bg-white ">
     <!-- Custom Modal Notification -->
     <Transition name="modal">
       <div v-if="showModal" class="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" @click.self="closeModal">
@@ -59,7 +59,7 @@
     <!-- HERO SECTION -->
     <section class="relative bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 overflow-hidden py-24">
       <!-- Background Decorations -->
-      <div class="absolute inset-0 overflow-hidden">
+      <div class="absolute inset-0 overflow-hidden z-0">
         <div class="absolute w-[500px] h-[500px] bg-blue-500 rounded-full opacity-20 blur-[60px] -top-[200px] -right-[200px]"></div>
         <div class="absolute w-[600px] h-[600px] bg-purple-500 rounded-full opacity-20 blur-[60px] top-[40%] -left-[250px]"></div>
         <div class="absolute w-[400px] h-[400px] bg-indigo-500 rounded-full opacity-20 blur-[60px] bottom-[10%] right-[10%]"></div>
@@ -547,157 +547,10 @@
       </div>
     </section>
 
-    <!-- TIPS SECTION -->
-    <section class="relative py-24 bg-gradient-to-b from-white to-slate-50 overflow-hidden">
-      <!-- Dot decorations -->
-      <div class="absolute inset-0 z-0">
-        <div class="absolute w-1.5 h-1.5 bg-slate-300 rounded-full opacity-40 top-[10%] left-[5%]"></div>
-        <div class="absolute w-1.5 h-1.5 bg-slate-300 rounded-full opacity-40 top-[60%] right-[10%]"></div>
-        <div class="absolute w-1.5 h-1.5 bg-slate-300 rounded-full opacity-40 bottom-[20%] left-[15%]"></div>
-      </div>
+    <!-- Tips & Facts Section -->
+    <TipsCard />
 
-      <div class="max-w-7xl mx-auto px-4 relative z-10">
-        <!-- Section Header -->
-        <div class="text-center mb-16">
-          <span class="inline-block bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-full font-semibold text-sm shadow-lg shadow-blue-500/30 mb-4">
-            💡 Edukasi Gizi
-          </span>
-
-          <h2 class="text-4xl md:text-5xl font-extrabold text-slate-800 mb-4">
-            Tips & Fakta Gizi
-          </h2>
-
-          <p class="text-lg text-slate-600 max-w-2xl mx-auto">
-            Pelajari cara membaca label nutrisi dengan benar untuk pilihan makanan yang lebih sehat
-          </p>
-        </div>
-
-        <!-- Tips Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 items-stretch">
-          <!-- Tip 1 -->
-          <div class="bg-white rounded-2xl p-5 relative shadow-lg border border-slate-50 hover:-translate-y-1.5 hover:shadow-2xl transition-all duration-200 min-h-[190px]">
-            <div class="absolute -top-3.5 -right-3.5 w-16 h-16 rounded-full bg-gradient-to-br from-blue-500/15 to-indigo-500/10 blur-sm pointer-events-none"></div>
-
-            <div class="flex gap-4 items-start">
-              <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-white to-slate-50 shadow-lg shadow-blue-500/10 flex items-center justify-center text-slate-800 text-[1.4rem] flex-shrink-0">
-                🍎
-              </div>
-
-              <div class="min-w-0">
-                <h3 class="text-[1.05rem] font-extrabold text-slate-900 mb-1">
-                  Protein: Fondasi Kesehatan
-                </h3>
-                <p class="text-slate-700 leading-[1.65] text-[0.95rem]">
-                  Perhatikan kandungan protein dalam label makanan kemasan. Pilih produk dengan protein minimal 5g per 100g untuk nutrisi optimal
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <!-- Tip 2 -->
-          <div class="bg-white rounded-2xl p-5 relative shadow-lg border border-slate-50 hover:-translate-y-1.5 hover:shadow-2xl transition-all duration-200 min-h-[190px]">
-            <div class="absolute -top-3.5 -right-3.5 w-16 h-16 rounded-full bg-gradient-to-br from-blue-500/15 to-indigo-500/10 blur-sm pointer-events-none"></div>
-
-            <div class="flex gap-4 items-start">
-              <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-white to-slate-50 shadow-lg shadow-blue-500/10 flex items-center justify-center text-slate-800 text-[1.4rem] flex-shrink-0">
-                💖
-              </div>
-
-              <div class="min-w-0">
-                <h3 class="text-[1.05rem] font-extrabold text-slate-900 mb-1">
-                  Lemak yang Sehat
-                </h3>
-                <p class="text-slate-700 leading-[1.65] text-[0.95rem]">
-                  Periksa jenis lemak pada kemasan: total lemak, lemak jenuh, dan lemak trans. Pilih produk dengan lemak jenuh kurang dari 10% per sajian
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <!-- Tip 3 -->
-          <div class="bg-white rounded-2xl p-5 relative shadow-lg border border-slate-50 hover:-translate-y-1.5 hover:shadow-2xl transition-all duration-200 min-h-[190px]">
-            <div class="absolute -top-3.5 -right-3.5 w-16 h-16 rounded-full bg-gradient-to-br from-blue-500/15 to-indigo-500/10 blur-sm pointer-events-none"></div>
-
-            <div class="flex gap-4 items-start">
-              <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-white to-slate-50 shadow-lg shadow-blue-500/10 flex items-center justify-center text-slate-800 text-[1.4rem] flex-shrink-0">
-                🌿
-              </div>
-
-              <div class="min-w-0">
-                <h3 class="text-[1.05rem] font-extrabold text-slate-900 mb-1">
-                  Karbohidrat Cerdas
-                </h3>
-                <p class="text-slate-700 leading-[1.65] text-[0.95rem]">
-                  Cek total karbohidrat dan serat pada label informasi nilai gizi. Pilih produk dengan "whole grain" sebagai bahan utama
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <!-- Tip 4 -->
-          <div class="bg-white rounded-2xl p-5 relative shadow-lg border border-slate-50 hover:-translate-y-1.5 hover:shadow-2xl transition-all duration-200 min-h-[190px]">
-            <div class="absolute -top-3.5 -right-3.5 w-16 h-16 rounded-full bg-gradient-to-br from-blue-500/15 to-indigo-500/10 blur-sm pointer-events-none"></div>
-
-            <div class="flex gap-4 items-start">
-              <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-white to-slate-50 shadow-lg shadow-blue-500/10 flex items-center justify-center text-slate-800 text-[1.4rem] flex-shrink-0">
-                🎯
-              </div>
-
-              <div class="min-w-0">
-                <h3 class="text-[1.05rem] font-extrabold text-slate-900 mb-1">
-                  Pentingnya Serat
-                </h3>
-                <p class="text-slate-700 leading-[1.65] text-[0.95rem]">
-                  Perhatikan kandungan "Dietary Fiber" pada label. Pilih produk minimal 3g serat per sajian untuk camilan sehat
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <!-- Tip 5 -->
-          <div class="bg-white rounded-2xl p-5 relative shadow-lg border border-slate-50 hover:-translate-y-1.5 hover:shadow-2xl transition-all duration-200 min-h-[190px]">
-            <div class="absolute -top-3.5 -right-3.5 w-16 h-16 rounded-full bg-gradient-to-br from-blue-500/15 to-indigo-500/10 blur-sm pointer-events-none"></div>
-
-            <div class="flex gap-4 items-start">
-              <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-white to-slate-50 shadow-lg shadow-blue-500/10 flex items-center justify-center text-slate-800 text-[1.4rem] flex-shrink-0">
-                ⚡
-              </div>
-
-              <div class="min-w-0">
-                <h3 class="text-[1.05rem] font-extrabold text-slate-900 mb-1">
-                  Bijak dengan Gula
-                </h3>
-                <p class="text-slate-700 leading-[1.65] text-[0.95rem]">
-                  Cek daftar gula pada ingredient list. Waspadai nama lain gula: syrup, dextrose, sucrose. Batasan: maksimal 25g per hari
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <!-- Tip 6 -->
-          <div class="bg-white rounded-2xl p-5 relative shadow-lg border border-slate-50 hover:-translate-y-1.5 hover:shadow-2xl transition-all duration-200 min-h-[190px]">
-            <div class="absolute -top-3.5 -right-3.5 w-16 h-16 rounded-full bg-gradient-to-br from-blue-500/15 to-indigo-500/10 blur-sm pointer-events-none"></div>
-
-            <div class="flex gap-4 items-start">
-              <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-white to-slate-50 shadow-lg shadow-blue-500/10 flex items-center justify-center text-slate-800 text-[1.4rem] flex-shrink-0">
-                🛡️
-              </div>
-
-              <div class="min-w-0">
-                <h3 class="text-[1.05rem] font-extrabold text-slate-900 mb-1">
-                  Kendali Asupan Garam
-                </h3>
-                <p class="text-slate-700 leading-[1.65] text-[0.95rem]">
-                  Perhatikan kandungan "Sodium" atau "Garam" pada label. Pilih produk dengan sodium kurang dari 20% Daily Value per sajian
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ✅ ARTICLE CAROUSEL SECTION - MOVED HERE! -->
+    <!-- ARTICLE CAROUSEL SECTION -->
     <ArticleCarousel />
 
     <!-- CTA SECTION -->
@@ -748,6 +601,7 @@ import { useFoodStore } from '@/stores/food'
 import { useAuthStore } from '@/stores/auth'
 import { QrcodeStream } from 'vue-qrcode-reader'
 import ArticleCarousel from '@/components/ArticleCarousel.vue'
+import TipsCard from '@/components/TipsCard.vue'
 import Footer from '@/components/Footer.vue'
 import axios from 'axios'
 

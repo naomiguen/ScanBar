@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-10 px-4 pt-32">
+  <div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-10 px-4">
     <!-- Header Utama Dashboard -->
     <div class="text-center mb-10">
       <h1 class="text-4xl md:text-5xl font-extrabold text-blue-900 mb-2">

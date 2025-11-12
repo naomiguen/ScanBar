@@ -8,7 +8,7 @@ const getBaseUrl = () => {
     return 'http://10.0.2.2:3000';
   } else {
     // Jika berjalan di browser web biasa
-    return 'http://localhost:3000';
+    return 'http://192.168.1.27:3000';
   }
 };
 

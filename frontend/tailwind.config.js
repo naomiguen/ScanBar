@@ -66,7 +66,7 @@ export default {
   },
   plugins: [
     // Plugin untuk line-clamp (text truncation)
-    require('@tailwindcss/line-clamp'),
+    // require('@tailwindcss/line-clamp'),
     // Plugin untuk forms (optional, untuk styling form lebih baik)
     // require('@tailwindcss/forms'),
   ],
