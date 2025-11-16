@@ -57,63 +57,12 @@
     </Transition>
 
     <!-- HERO SECTION -->
-    <section class="relative bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 overflow-hidden py-24">
-      <!-- Background Decorations -->
-      <div class="absolute inset-0 overflow-hidden z-0">
-        <div class="absolute w-[500px] h-[500px] bg-blue-500 rounded-full opacity-20 blur-[60px] -top-[200px] -right-[200px]"></div>
-        <div class="absolute w-[600px] h-[600px] bg-purple-500 rounded-full opacity-20 blur-[60px] top-[40%] -left-[250px]"></div>
-        <div class="absolute w-[400px] h-[400px] bg-indigo-500 rounded-full opacity-20 blur-[60px] bottom-[10%] right-[10%]"></div>
-      </div>
+    <HeroSection
+      :is-authenticated="authStore.isAuthenticated"
+      @scroll-to-scanner="scrollToScanner"
+    />
 
-      <div class="max-w-7xl mx-auto px-4">
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center relative z-10">
-          <!-- Hero Content -->
-          <div class="flex flex-col gap-6">
-            <h1 class="text-4xl md:text-5xl lg:text-6xl font-extrabold text-slate-800 leading-tight">
-              Selamat datang di
-              <span class="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                ScanBar
-              </span>
-            </h1>
-
-            <p class="text-lg text-slate-600 leading-relaxed">
-              Scan barcode pada kemasan makanan & minuman untuk mendapatkan informasi nutrisi lengkap. Pantau asupan harian dengan mudah dan capai target kesehatan Anda.
-            </p>
-
-            <div class="flex gap-4 flex-wrap">
-              <button
-                @click="scrollToScanner"
-                class="px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-bold text-base shadow-lg shadow-blue-500/30 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-blue-500/40 transition-all duration-300 inline-flex items-center gap-2"
-              >
-                <span>📷</span> Mulai Pindai Sekarang
-              </button>
-
-              <router-link
-                v-if="!authStore.isAuthenticated"
-                to="/register"
-                class="px-8 py-4 bg-white/50 backdrop-blur-md text-slate-700 rounded-xl font-bold text-base border-2 border-slate-300 hover:bg-white hover:border-blue-600 transition-all duration-300 inline-flex items-center gap-2"
-              >
-                Daftar Gratis
-              </router-link>
-            </div>
-          </div>
-
-          <!-- Hero Image -->
-          <div class="hidden lg:block relative">
-            <div class="relative z-10">
-              <img
-                src="https://flexypack.com/wp-content/uploads/2021/11/Contoh-Kemasan-Standing-Pouch-Snack-Makanan-Ringan-1024x627.jpg"
-                alt="Barcode scanning"
-                class="w-full h-[500px] object-cover rounded-3xl shadow-2xl"
-              />
-              <div class="absolute top-8 -left-8 w-32 h-32 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-3xl opacity-20 blur-[40px]"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- HOW IT WORKS SECTION -->
+     <!-- Actions -->
     <section id="how-it-works" class="relative py-20 bg-white">
       <div class="absolute inset-0 bg-gradient-to-b from-blue-50 via-white to-white opacity-50"></div>
 
@@ -603,6 +552,7 @@ import { QrcodeStream } from 'vue-qrcode-reader'
 import ArticleCarousel from '@/components/ArticleCarousel.vue'
 import TipsCard from '@/components/TipsCard.vue'
 import Footer from '@/components/Footer.vue'
+import HeroSection from '@/components/HeroSection.vue'
 import axios from 'axios'
 
 // Stores
