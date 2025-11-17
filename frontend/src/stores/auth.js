@@ -1,8 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { supabase } from '@/supabaseClient';
-import { toast } from 'vue-sonner'
-import { errorMessages } from 'vue/compiler-sfc';
+import { toast } from 'vue-sonner';
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref(null);
@@ -55,17 +54,47 @@ export const useAuthStore = defineStore('auth', () => {
   //  Register
   async function register(credentials) {
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email: credentials.email,
         password: credentials.password,
-        options: { data: { name: credentials.name } },
+        options: {
+          data: { name: credentials.name },
+          emailRedirectTo: `${window.location.origin}/`
+        },
       });
       if (error) throw error;
 
-      toast.success('Berhasil Mendaftar!', {
-        description: 'Silakan verifikasi email Anda sebelum login.',
-        duration: 4000
-      });
+      // Cek apakah user perlu verifikasi email
+      const needsEmailVerification = data.user && !data.user.confirmed_at;
+
+      if (needsEmailVerification) {
+        toast.success('Berhasil Mendaftar!', {
+          description: 'Silakan cek email Anda untuk verifikasi. Periksa folder Spam/Junk jika tidak menemukan email.',
+          duration: 5000
+        });
+      } else {
+        // Jika email confirmation dimatikan, buat profile langsung
+        if (data.user) {
+          const { error: profileError } = await supabase
+            .from('profiles')
+            .insert({
+              id: data.user.id,
+              email: credentials.email,
+              name: credentials.name,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            });
+
+          if (profileError && profileError.code !== '23505') { // Ignore duplicate key error
+            console.warn('Failed to create profile:', profileError.message);
+          }
+        }
+
+        toast.success('Berhasil Mendaftar!', {
+          description: 'Anda sudah bisa login sekarang.',
+          duration: 4000
+        });
+      }
 
       return true;
     } catch (error) {
@@ -79,7 +108,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   //  Logout
   async function logout() {
-    const { error } = await supabase.auth.signOut()
+    const { error } = await supabase.auth.signOut();
     if (error) {
       toast.error('Gagal Keluar:', {
         description: error.message
@@ -95,7 +124,6 @@ export const useAuthStore = defineStore('auth', () => {
     });
 
     return true;
-
   }
 
   //  Update Profil
@@ -124,20 +152,35 @@ export const useAuthStore = defineStore('auth', () => {
   async function fetchUserProfile() {
     if (!user.value) return;
 
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', user.value.id)
-      .single();
+    try {
 
-    if (error) {
-      console.warn('Gagal mengambil profil:', error.message);
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.value.id)
+        .maybeSingle(); // Gunakan maybeSingle() bukan single()
+
+      //  Ignore error PGRST116 (data tidak ditemukan)
+      if (error && error.code !== 'PGRST116') {
+        console.warn('Gagal mengambil profil:', error.message);
+        profile.value = null;
+        return null;
+      }
+
+      //  Jika data tidak ada, set profile null tapi jangan throw error
+      if (!data) {
+        console.warn('Profile belum dibuat untuk user:', user.value.id);
+        profile.value = null;
+        return null;
+      }
+
+      profile.value = data;
+      return data;
+    } catch (error) {
+      console.error('Error fetching profile:', error);
       profile.value = null;
       return null;
     }
-
-    profile.value = data;
-    return data;
   }
 
   // Lupa Password

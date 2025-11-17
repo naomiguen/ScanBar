@@ -1,5 +1,4 @@
 <template>
-
   <div class="bg-white rounded-3xl shadow-xl p-6 md:p-8 mb-10 max-w-7xl mx-auto">
     <!-- Header -->
     <h2 class="text-2xl md:text-3xl font-bold text-blue-900 mb-6 flex items-center gap-2">
@@ -90,7 +89,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import axios from 'axios';
+import apiClient from '@/axios-config'; //  Gunakan apiClient
 import { useFoodStore } from '@/stores/food';
 import { toast } from 'vue-sonner';
 
@@ -104,17 +103,22 @@ const addingId = ref(null);
 const fetchFavorites = async () => {
   isLoading.value = true;
   try {
-    const token = localStorage.getItem('token');
-    const response = await axios.get(
-      'http://localhost:5000/api/favorites',
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
+    //  Gunakan apiClient yang sudah include token otomatis
+    const response = await apiClient.get('/api/favorites');
     favorites.value = response.data.favorites;
   } catch (error) {
     console.error('Error fetching favorites:', error);
-    toast.error('Gagal memuat favorit', {
-      description: 'Terjadi kesalahan saat mengambil data favorit'
-    });
+
+    // Handle error yang lebih spesifik
+    if (error.response?.status === 401) {
+      toast.error('Sesi berakhir', {
+        description: 'Silakan login kembali'
+      });
+    } else {
+      toast.error('Gagal memuat favorit', {
+        description: error.message || 'Terjadi kesalahan saat mengambil data favorit'
+      });
+    }
   } finally {
     isLoading.value = false;
   }
