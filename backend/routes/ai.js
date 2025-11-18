@@ -27,15 +27,29 @@ router.post('/analyze-image', auth, async (req, res) => {
     const imageBuffer = Buffer.from(imageData, "base64");
     const imageParts = [bufferToGenerativePart(imageBuffer, mimeType)];
 
+    // GUNAKAN environment variable dari .env
+    const modelName = process.env.GENERATIVE_MODEL || "gemini-1.5-flash-latest";
+
     // Tanya Gemini VISION untuk "melihat" dan "mendeskripsikan" gambar
-    const visionModel = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-    const visionPrompt = "Tolong deskripsikan makanan di dalam foto ini secara detail, fokus pada item dan estimasi porsinya. Contoh: 'Satu piring berisi nasi putih (1 mangkuk), 1 potong rendang daging sapi, dan sayur daun singkong (2 sendok makan)'.";
+    const visionModel = genAI.getGenerativeModel({ model: modelName });
+    const visionPrompt = `Analisis foto makanan ini dengan HATI-HATI dan KONSERVATIF. 
+    
+Deskripsikan:
+1. Jenis makanan yang terlihat
+2. Estimasi porsi REALISTIS (jangan over-estimate)
+3. Gunakan ukuran standar Indonesia: 1 centong nasi (~100g), 1 potong sedang lauk (~50-80g), 1 sendok makan sayur (~30g)
+
+Contoh output yang baik:
+"Nasi putih 1 centong (100g), ayam goreng 1 potong kecil (60g), tumis kangkung 2 sendok makan (50g), tempe goreng 2 potong kecil (40g)"
+
+PENTING: Jika tidak yakin dengan porsi, pilih estimasi yang LEBIH KECIL.`;
     
     const visionResult = await visionModel.generateContent([visionPrompt, ...imageParts]);
     const foodDescription = visionResult.response.text();
 
     // Ambil deskripsi teks itu, dan tanya Gemini TEXT untuk "menganalisis nutrisi"
-    const textModel = genAI.getGenerativeModel({ model: "gemini-pro" });
+    
+    const textModel = genAI.getGenerativeModel({ model: modelName });
     const nutritionPrompt = `
       Anda adalah ahli gizi. Berdasarkan deskripsi makanan berikut, berikan estimasi nutrisi (kalori, protein, karbohidrat, lemak).
       Deskripsi: "${foodDescription}"
@@ -55,13 +69,14 @@ router.post('/analyze-image', auth, async (req, res) => {
     const nutritionResult = await textModel.generateContent(nutritionPrompt);
     const nutritionText = nutritionResult.response.text();
 
-    const jsonResponse = JSON.parse(nutritionText.replace(/```json/g, "").replace(/```/g, ""));
+    // Bersihkan response dari markdown code blocks
+    const jsonResponse = JSON.parse(nutritionText.replace(/```json/g, "").replace(/```/g, "").trim());
     
     res.json(jsonResponse);
 
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
+    console.error("Error detail:", err.message);
+    res.status(500).json({ error: 'Server Error', details: err.message });
   }
 });
 

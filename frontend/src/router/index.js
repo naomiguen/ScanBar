@@ -8,6 +8,8 @@ import LoginView from '../views/LoginView.vue'
 import RegisterView from '../views/RegisterView.vue'
 import ForgotPasswordView from '../views/ForgotPasswordView.vue'
 import ResetPasswordView from '../views/ResetPasswordView.vue'
+import PhotoScanView from '../views/PhotoScan.vue'
+import AdminDashboardView from '../views/AdminDashboard.vue'
 
 const routes = [
   {
@@ -51,11 +53,24 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/photo-scan',
+    name: 'PhotoScan',
+    component: PhotoScanView,
+    meta: { requiresAuth: true } // Butuh login untuk simpan ke jurnal
+  },
+  {
     path: '/profile',
     name: 'Profile',
     component: ProfileView,
     meta: { requiresAuth: true }
   },
+  {
+    path: '/admin',
+    name: 'AdminDashboard',
+    component: AdminDashboardView,
+    meta: { requiresAuth: true, requiresAdmin: true }
+  },
+
 ]
 
 const router = createRouter({
@@ -63,37 +78,90 @@ const router = createRouter({
   routes
 })
 
-// --- NAVIGATION GUARD (IMPROVED) ---
+
 router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore()
 
-  // Cek session hanya sekali saat pertama kali load
-  if (authStore.user === null) {
+  // Selalu cek session jika user ada DAN profile belum di-load
+  if (authStore.user && !authStore.isProfileLoaded) {
+    console.log('⏳ Menunggu profile di-load...')
     await authStore.checkSession()
   }
 
   const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
+  const requiresAdmin = to.matched.some(record => record.meta.requiresAdmin)
   const isGuestRoute = to.matched.some(record => record.meta.guest)
   const isAuthenticated = authStore.isAuthenticated
 
-  // 1. Jika route butuh auth tapi user belum login → redirect ke login
+  console.log('🔍 Router Guard:', {
+    to: to.name,
+    from: from.name,
+    isAuthenticated,
+    isAdmin: authStore.isAdmin,
+    role: authStore.role,
+    requiresAdmin,
+    isProfileLoaded: authStore.isProfileLoaded
+  })
+
+  // Cek Rute Khusus Admin
+  if (requiresAdmin) {
+    console.log('🔐 Checking admin access...')
+
+    // Kalau belum login, suruh login dulu
+    if (!isAuthenticated) {
+      console.log('❌ Admin route: User belum login')
+      next({ name: 'Login', query: { redirect: to.fullPath } })
+      return
+    }
+
+    // Tunggu profile loaded dulu sebelum cek isAdmin
+    if (!authStore.isProfileLoaded) {
+      console.log('⏳ Admin route: Menunggu profile loaded...')
+      await authStore.fetchUserProfile()
+    }
+
+    console.log('👤 Final check - isAdmin:', authStore.isAdmin, 'role:', authStore.role)
+
+    // Kalau sudah login TAPI BUKAN ADMIN → Tendang ke Dashboard biasa
+    if (!authStore.isAdmin) {
+      console.warn('⛔ Akses Ditolak: User biasa mencoba masuk Admin Panel')
+      next({ name: 'Dashboard' })
+      return
+    }
+
+    console.log('✅ Admin akses diberikan - allowing navigation')
+    next()
+    return
+  }
+
+  // Jika route butuh auth tapi user belum login → redirect ke login
   if (requiresAuth && !isAuthenticated) {
     console.log('❌ Butuh auth, redirect ke login')
     next({
       name: 'Login',
-      query: { redirect: to.fullPath } // Save intended destination
+      query: { redirect: to.fullPath }
     })
+    return
   }
-  // 2. Jika route untuk guest (login/register) tapi user sudah login → redirect ke dashboard
-  else if (isGuestRoute && isAuthenticated) {
-    console.log('✅ Sudah login, redirect ke dashboard')
-    next({ name: 'Dashboard' })
+
+  // Jika route untuk guest (login/register) tapi user sudah login → redirect ke dashboard
+  if (isGuestRoute && isAuthenticated) {
+    console.log('✅ Sudah login, redirect ke dashboard yang sesuai')
+
+    // Tunggu profile loaded dulu
+    if (!authStore.isProfileLoaded) {
+      await authStore.fetchUserProfile()
+    }
+
+    if (authStore.isAdmin) {
+      next({ name: 'AdminDashboard' })
+    } else {
+      next({ name: 'Dashboard' })
+    }
+    return
   }
-  // 3. Selainnya, biarkan lewat
-  else {
-    console.log('✅ Route diizinkan:', to.name)
-    next()
-  }
+
+  next()
 })
 
 export default router

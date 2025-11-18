@@ -2,12 +2,20 @@ import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { supabase } from '@/supabaseClient';
 import { toast } from 'vue-sonner';
+import router from '@/router';
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref(null);
   const profile = ref(null);
+  const role = ref('user');
+  const isProfileLoaded = ref(false);
 
   const isAuthenticated = computed(() => !!user.value);
+  const isAdmin = computed(() => {
+    const currentRole = String(role.value || '').trim().toLowerCase();
+    console.log('🔍 isAdmin computed:', { role: role.value, trimmed: currentRole, result: currentRole === 'admin' });
+    return currentRole === 'admin';
+  });
 
   // Cek sesi login saat halaman di-refresh
   async function checkSession() {
@@ -17,6 +25,9 @@ export const useAuthStore = defineStore('auth', () => {
     // Kalau user login, otomatis ambil profilnya
     if (user.value) {
       await fetchUserProfile();
+    } else {
+      role.value = 'user';
+      isProfileLoaded.value = true;
     }
   }
 
@@ -27,6 +38,8 @@ export const useAuthStore = defineStore('auth', () => {
       fetchUserProfile();
     } else {
       profile.value = null;
+      role.value = 'user';
+      isProfileLoaded.value = false;
     }
   });
 
@@ -41,6 +54,24 @@ export const useAuthStore = defineStore('auth', () => {
 
       user.value = data.user;
       await fetchUserProfile();
+
+      // TAMBAHAN DEBUG
+      console.log('=== AFTER LOGIN DEBUG ===');
+      console.log('🔐 Login berhasil');
+      console.log('role.value:', role.value);
+      console.log('isAdmin.value:', isAdmin.value);
+      console.log('typeof role.value:', typeof role.value);
+      console.log('role === "admin":', role.value === 'admin');
+      console.log('=========================');
+
+      // Redirect ke route yang sesuai, router guard akan validasi
+      const targetRoute = isAdmin.value ? '/admin' : '/dashboard';
+      console.log('➡️ Attempting redirect to:', targetRoute);
+
+      // Gunakan nextTick untuk pastikan state sudah ter-update sepenuhnya
+      await new Promise(resolve => setTimeout(resolve, 100));
+      router.push(targetRoute);
+
       return true;
     } catch (error) {
       console.error('Login Error:', error.message);
@@ -81,6 +112,7 @@ export const useAuthStore = defineStore('auth', () => {
               id: data.user.id,
               email: credentials.email,
               name: credentials.name,
+              role: 'user',
               created_at: new Date().toISOString(),
               updated_at: new Date().toISOString()
             });
@@ -117,11 +149,15 @@ export const useAuthStore = defineStore('auth', () => {
     }
     user.value = null;
     profile.value = null;
+    role.value = 'user';
+    isProfileLoaded.value = false;
 
     toast.success('Berhasil Logout', {
       description: 'Anda telah keluar dari akun',
       duration: 2000
     });
+
+    router.push('/login');
 
     return true;
   }
@@ -150,20 +186,24 @@ export const useAuthStore = defineStore('auth', () => {
 
   // Fetch profil dari tabel "profiles"
   async function fetchUserProfile() {
-    if (!user.value) return;
+    if (!user.value) {
+      isProfileLoaded.value = true;
+      return;
+    }
 
     try {
-
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', user.value.id)
-        .maybeSingle(); // Gunakan maybeSingle() bukan single()
+        .maybeSingle();
 
       //  Ignore error PGRST116 (data tidak ditemukan)
       if (error && error.code !== 'PGRST116') {
         console.warn('Gagal mengambil profil:', error.message);
         profile.value = null;
+        role.value = 'user';
+        isProfileLoaded.value = true;
         return null;
       }
 
@@ -171,14 +211,33 @@ export const useAuthStore = defineStore('auth', () => {
       if (!data) {
         console.warn('Profile belum dibuat untuk user:', user.value.id);
         profile.value = null;
+        role.value = 'user';
+        isProfileLoaded.value = true;
         return null;
       }
 
       profile.value = data;
+      const rawRole = data.role || 'user';
+      role.value = String(rawRole)
+        .trim()
+        .replace(/^['"]|['"]$/g, '') // Hapus tanda petik di awal/akhir
+        .toLowerCase();
+      isProfileLoaded.value = true;
+
+      // DEBUG LOG - Lihat raw data
+      console.log("=== FETCH PROFILE DEBUG ===");
+      console.log("Raw role dari DB:", rawRole);
+      console.log("Role setelah clean:", role.value);
+      console.log("Role length:", role.value.length);
+      console.log("isAdmin computed:", isAdmin.value);
+      console.log("==========================");
+
       return data;
     } catch (error) {
       console.error('Error fetching profile:', error);
       profile.value = null;
+      role.value = 'user';
+      isProfileLoaded.value = true;
       return null;
     }
   }
@@ -228,7 +287,10 @@ export const useAuthStore = defineStore('auth', () => {
   return {
     user,
     profile,
+    role,
     isAuthenticated,
+    isAdmin,
+    isProfileLoaded,
     checkSession,
     register,
     login,

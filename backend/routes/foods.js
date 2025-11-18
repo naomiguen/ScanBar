@@ -26,9 +26,6 @@ try {
   }
 }
 
-// ============================================
-// HELPER FUNCTIONS
-// ============================================
 
 // Helper: clean possible code-fence wrappers and try to parse JSON from model output
 function cleanAndParseAnalysisText(analysisText) {
@@ -86,9 +83,6 @@ async function invalidateDailyCache(userId) {
   }
 }
 
-// ============================================
-// ENDPOINT BARU: DAILY ANALYSIS dengan SMART CACHE
-// ============================================
 
 // @route   GET /api/foods/analysis/today
 // @desc    Mendapatkan analisis AI harian dengan smart caching
@@ -308,9 +302,6 @@ router.get('/analysis/today', auth, async (req, res) => {
   }
 });
 
-// ============================================
-// MODIFIED ENDPOINTS: CACHE INVALIDATION
-// ============================================
 
 // @route   POST /api/foods
 // @desc    Menambah catatan makanan baru ke jurnal pribadi
@@ -370,9 +361,7 @@ router.delete('/:id', auth, async (req, res) => {
   }
 });
 
-// ============================================
-// EXISTING ENDPOINTS (tidak diubah)
-// ============================================
+
 
 // @route   GET /api/foods
 // @desc    Mendapatkan semua catatan makanan hari ini (jurnal pribadi)

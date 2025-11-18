@@ -1,4 +1,7 @@
 <template>
+  <!-- ✅ TAMBAHKAN TOASTER DI SINI -->
+  <Toaster position="top-center" richColors expand :duration="3000" />
+
   <header class="fixed top-0 left-0 right-0 bg-blue-600 text-white shadow-md z-50">
     <div class="flex items-center justify-between px-6 py-7">
       <!-- Logo -->
@@ -189,6 +192,7 @@
 import { ref } from 'vue'
 import { RouterLink, RouterView, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { Toaster } from 'vue-sonner' // ✅ Import Toaster
 
 const authStore = useAuthStore()
 const router = useRouter()

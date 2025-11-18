@@ -89,7 +89,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import apiClient from '@/axios-config'; //  Gunakan apiClient
+import apiClient from '@/axios-config';
 import { useFoodStore } from '@/stores/food';
 import { toast } from 'vue-sonner';
 
@@ -103,7 +103,7 @@ const addingId = ref(null);
 const fetchFavorites = async () => {
   isLoading.value = true;
   try {
-    //  Gunakan apiClient yang sudah include token otomatis
+    // Gunakan apiClient yang sudah include token otomatis
     const response = await apiClient.get('/api/favorites');
     favorites.value = response.data.favorites;
   } catch (error) {
@@ -135,8 +135,7 @@ const quickAdd = async (fav) => {
 
   try {
     const foodData = {
-      name: fav.product.product_name || 'Tanpa Nama',
-      brand: fav.product.brands || '',
+      productName: fav.product.product_name || 'Tanpa Nama',
       barcode: fav.productCode,
       calories: fav.product.nutriments?.['energy-kcal_100g'] || 0,
       protein: fav.product.nutriments?.proteins_100g || 0,
@@ -144,21 +143,26 @@ const quickAdd = async (fav) => {
       fat: fav.product.nutriments?.fat_100g || 0,
       sugar: fav.product.nutriments?.sugars_100g || 0,
       salt: fav.product.nutriments?.salt_100g || 0,
-      servingSize: fav.product.serving_size || '100g',
-      imageUrl: fav.product.image_small_url || fav.product.image_url,
-      date: new Date().toISOString().split('T')[0] // Hari ini
+      imageUrl: fav.product.image_small_url || fav.product.image_url
     };
 
+    console.log('📦 Calling foodStore.addFood with:', foodData);
+
+    // Call addFood - ini function tidak throw error, jadi kita langsung panggil toast
     await foodStore.addFood(foodData);
 
-    toast.success('Berhasil!', {
-      description: `${foodData.name} ditambahkan ke jurnal harian`
+    // PINDAHKAN TOAST KE SINI - akan selalu dipanggil setelah addFood selesai
+    console.log('✅ addFood completed, showing toast');
+
+    toast.success('Berhasil Ditambahkan!', {
+      description: `${foodData.productName} dengan ${Math.round(foodData.calories)} kalori telah disimpan ke jurnal harian Anda`,
+      duration: 4000
     });
 
   } catch (error) {
-    console.error('Error adding food:', error);
+    console.error('❌ Error in quickAdd:', error);
     toast.error('Gagal menambahkan ke jurnal', {
-      description: error.response?.data?.message || 'Terjadi kesalahan'
+      description: error.response?.data?.message || error.message || 'Terjadi kesalahan'
     });
   } finally {
     addingId.value = null;
