@@ -1,6 +1,6 @@
 <template>
   <!-- Container Utama - Full height dengan padding untuk navbar -->
-  <div class="flex flex-col items-center justify-center min-h-screen bg-slate-50 px-4 pt-24 pb-8">
+  <div class="flex flex-col items-center justify-center min-h-screen bg-slate-50 px-4 pt-18 pb-8">
 
     <!-- Card Login -->
     <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl border border-slate-200 p-8 md:p-10 text-center animate-fade-in">
@@ -144,8 +144,7 @@ const handleLogin = async () => {
         duration: 1500
       })
 
-      // Redirect ke halaman home
-      router.push('/')
+
     } else {
       // Login gagal: tampilkan pesan error
       errorMessage.value = 'Email atau password salah. Silakan coba lagi.'
@@ -201,7 +200,7 @@ input:focus {
   outline: none;
 }
 
-/* Hover effect untuk links */
+/* Hover effect untuk links  */
 a {
   transition: all 0.3s ease;
 }

@@ -1,6 +1,6 @@
 <template>
   <!-- Container Utama - Full height dengan padding untuk navbar -->
-  <div class="flex flex-col items-center justify-center min-h-screen bg-slate-50 px-4 pt-24 pb-8">
+  <div class="flex flex-col items-center justify-center min-h-screen bg-slate-50 px-4 pt-18 pb-8">
 
     <!-- Card Register -->
     <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl border border-slate-200 p-8 md:p-10 text-center animate-fade-in">

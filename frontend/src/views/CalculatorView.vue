@@ -332,18 +332,17 @@ const calculateTDEE = () => {
   const tdee = Math.round(bmr * form.value.activityLevel)
 
   // Hitung rekomendasi makronutrien berdasarkan TDEE
-  // Protein: 30% dari TDEE, 1g protein = 4 kalori
-  // Karbohidrat: 40% dari TDEE, 1g karbo = 4 kalori
+  // Karbohidrat: 50% dari TDEE, 1g karbo = 4 kalori
+  // Protein: 20% dari TDEE, 1g protein = 4 kalori
   // Lemak: 30% dari TDEE, 1g lemak = 9 kalori
   results.value = {
     tdee,
-    protein: Math.round((tdee * 0.3) / 4),
-    carbs: Math.round((tdee * 0.4) / 4),
+    carbs: Math.round((tdee * 0.5) / 4),
+    protein: Math.round((tdee * 0.2) / 4),
     fat: Math.round((tdee * 0.3) / 9),
-    sugar: 50, // Rekomendasi WHO: < 50g per hari
-    salt: 5,   // Rekomendasi WHO: < 5g per hari
+    sugar: Math.round((tdee * 0.05) / 4),
+    salt: 5,   // Batas maksimal WHO: < 5g per hari
   }
-
   // Tampilkan notifikasi sukses
   toast.success('Perhitungan Berhasil!', {
     description: `Kebutuhan kalori harian Anda adalah ${tdee} kcal`,

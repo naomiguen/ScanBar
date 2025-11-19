@@ -54,7 +54,7 @@
     <section class="relative py-20 bg-white">
       <div class="absolute inset-0 bg-gradient-to-b from-slate-50 via-white to-white opacity-50"></div>
 
-      <div class="max-w-7xl mx-auto px-4 relative z-10">
+      <div class="max-w-7xl mx-auto px-5 relative z-10">
         <!-- Section Header -->
         <div class="text-center mb-16">
           <span class="inline-block bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-full font-semibold text-sm shadow-lg shadow-blue-500/30 mb-4">

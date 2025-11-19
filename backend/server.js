@@ -23,6 +23,7 @@ app.use('/api/foods', require('./routes/foods'));
 app.use('/api/articles', articleRoutes);
 app.use('/api/favorites', favoritesRouter);
 app.use('/api/ai', require('./routes/ai'));
+app.use('/api/admin', require('./routes/admin'));
 
 app.get('/', (req, res) => {
     res.send('API is running...');
