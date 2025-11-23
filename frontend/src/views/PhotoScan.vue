@@ -188,9 +188,9 @@
             </div>
 
             <div class="bg-gradient-to-br from-green-50 to-green-100 border-2 border-green-400 p-4 md:p-6 rounded-xl md:rounded-2xl text-center hover:-translate-y-1 hover:shadow-xl transition-all duration-300">
-              <p class="text-xs md:text-sm font-semibold text-slate-600 uppercase tracking-wide mb-1 md:mb-2">Serat</p>
-              <p class="text-3xl md:text-4xl font-extrabold text-slate-800 mb-0.5 md:mb-1">{{ Math.round(analysisResult.fiber) }}</p>
-              <p class="text-xs md:text-sm text-slate-500">gram</p>
+              <p class="text-xs md:text-sm font-semibold text-slate-600 uppercase tracking-wide mb-1 md:mb-2">Garam</p>
+              <p class="text-3xl md:text-4xl font-extrabold text-slate-800 mb-0.5 md:mb-1">{{ Math.round(analysisResult.salt) }}</p>
+              <p class="text-xs md:text-sm text-slate-500">mg</p>
             </div>
 
             <div class="bg-gradient-to-br from-orange-50 to-orange-100 border-2 border-orange-400 p-4 md:p-6 rounded-xl md:rounded-2xl text-center hover:-translate-y-1 hover:shadow-xl transition-all duration-300">
@@ -395,7 +395,7 @@ const saveToJournal = async () => {
       carbs: analysisResult.value.carbs || 0,
       fat: analysisResult.value.fat || 0,
       sugar: analysisResult.value.sugar || 0,
-      fiber: analysisResult.value.fiber || 0,
+      salt: analysisResult.value.salt || 0,
       imageUrl: capturedImage.value,
       source: 'ai_vision'
     }

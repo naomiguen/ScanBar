@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Base URL untuk backend
 const getBaseUrl = () => {
-  return 'https://192.168.1.15:3000';
+  return 'https://10.160.86.16:3000';
 };
 
 const apiClient = axios.create({

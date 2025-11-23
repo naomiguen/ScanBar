@@ -35,14 +35,17 @@ router.get('/users', auth, admin, async (req, res) => {
     // Ambil data user: nama, email (kalau ada di profile), role
     const { data, error } = await supabase
       .from('profiles')
-      .select('id, first_name, last_name, role, dailyCalorieGoal')
-      .order('first_name', { ascending: true });
+      .select('*')
+      .order('created_at', { ascending: false });
 
-    if (error) throw error;
+    if (error) {
+      console.error("Supabase Error:", error.message); 
+      throw error;
+    }
 
     res.json(data);
   } catch (err) {
-    console.error(err.message);
+    console.error("Route Error:", err.message);
     res.status(500).send('Server Error');
   }
 });

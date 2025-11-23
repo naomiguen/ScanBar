@@ -1,6 +1,6 @@
 <template>
   <div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 toast-center">
-    <header class="bg-gradient-to-r from-slate-800 to-slate-900 text-white shadow-xl">
+    <header class="bg-gradient-to-r from-slate-800 to-slate-900 text-white shadow-xl sticky top-0 z-50">
       <div class="w-full px-6 sm:px-8 lg:px-12 py-4">
         <div class="flex justify-between items-center">
           <div class="flex items-center gap-3">
@@ -140,36 +140,86 @@
 
           <div v-else class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
-              <thead>
-                <tr class="bg-gray-50 text-gray-600 text-sm uppercase tracking-wider border-b border-gray-200">
-                  <th class="p-4 pl-6 font-semibold">Nama Pengguna</th>
-                  <th class="p-4 font-semibold">Role</th>
-                  <th class="p-4 font-semibold">Target Nutrisi</th>
-                  <th class="p-4 pr-6 font-semibold text-right">Aksi</th>
+              <thead class="sticky top-0 z-10">
+                <tr class="bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 text-sm uppercase tracking-wider border-b-2 border-gray-300 shadow-sm">
+                  <th class="p-5 pl-6 font-bold text-left" style="min-width: 250px;">
+                    <div class="flex items-center gap-2">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                      Nama Pengguna
+                    </div>
+                  </th>
+                  <th class="p-5 font-bold text-left" style="min-width: 120px;">
+                    <div class="flex items-center gap-2">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                      </svg>
+                      Role
+                    </div>
+                  </th>
+                  <th class="p-5 font-bold text-left" style="min-width: 160px;">
+                    <div class="flex items-center gap-2">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                      </svg>
+                      Target Nutrisi
+                    </div>
+                  </th>
+                  <th class="p-5 pr-6 font-bold text-center" style="min-width: 120px;">
+                    <div class="flex items-center justify-center gap-2">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                      </svg>
+                      Aksi
+                    </div>
+                  </th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-gray-100">
-                <tr v-for="user in users" :key="user.id" class="hover:bg-gray-50 transition duration-150">
-                  <td class="p-4 pl-6 font-medium text-gray-800">
+
+              <tbody class="divide-y divide-gray-200 bg-white">
+                <tr v-for="user in users" :key="user.id" class="hover:bg-blue-50 transition-colors duration-200 border-b border-gray-100">
+                  <td class="p-5 pl-6 font-medium text-gray-800 align-middle">
                     <div class="flex items-center gap-3">
-                      <div class="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xs">
-                        {{ user.first_name ? user.first_name[0] : 'U' }}
+                      <div class="h-12 w-12 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0 shadow-md">
+                        {{ (user.name || user.first_name || user.email || 'U').charAt(0).toUpperCase() }}
                       </div>
-                      {{ user.first_name }} {{ user.last_name }}
+                      <div class="flex flex-col min-w-0">
+                        <span class="font-bold text-gray-900 text-base truncate">
+                          {{ user.name || user.first_name || 'Tanpa Nama' }} {{ user.last_name || '' }}
+                        </span>
+                        <span class="text-sm text-gray-500 truncate flex items-center gap-1">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                          </svg>
+                          {{ user.email || 'Email tidak tersedia' }}
+                        </span>
+                      </div>
                     </div>
                   </td>
-                  <td class="p-4">
-                    <span :class="`px-3 py-1 rounded-full text-xs font-bold ${user.role === 'admin' ? 'bg-purple-100 text-purple-700 border border-purple-200' : 'bg-blue-100 text-blue-700 border border-blue-200'}`">
+
+                  <td class="p-5 align-middle">
+                    <span :class="`px-4 py-2 rounded-lg text-xs font-extrabold inline-flex items-center gap-2 ${user.role === 'admin' ? 'bg-gradient-to-r from-purple-100 to-purple-200 text-purple-800 border-2 border-purple-300' : 'bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 border-2 border-blue-300'}`">
+                      <span class="h-2 w-2 rounded-full" :class="user.role === 'admin' ? 'bg-purple-600' : 'bg-blue-600'"></span>
                       {{ user.role ? user.role.toUpperCase() : 'USER' }}
                     </span>
                   </td>
-                  <td class="p-4 text-gray-600 text-sm">
-                    <div class="flex items-center gap-1">
-                      <span>🔥</span> {{ user.dailyCalorieGoal || 2000 }} kcal
+
+                  <td class="p-5 align-middle">
+                    <div class="flex items-center gap-2 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg px-4 py-2 w-fit">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                      </svg>
+                      <span class="font-bold text-green-700 text-sm">{{ user.dailyCalorieGoal || 2000 }}</span>
+                      <span class="text-green-600 text-xs font-semibold">kcal</span>
                     </div>
                   </td>
-                  <td class="p-4 pr-6 text-right">
-                    <button class="text-red-500 hover:text-red-700 text-sm font-semibold hover:bg-red-50 px-3 py-1 rounded transition">
+
+                  <td class="p-5 pr-6 text-center align-middle">
+                    <button class="text-red-600 hover:text-white hover:bg-red-600 border-2 border-red-300 hover:border-red-600 text-xs font-bold px-5 py-2.5 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md active:scale-95 inline-flex items-center gap-2">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
                       Hapus
                     </button>
                   </td>
