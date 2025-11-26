@@ -8,6 +8,10 @@ const crypto = require('crypto');
 const User = require('../models/User');
 const sendEmail = require('../utils/sendEmail');
 const auth = require('../middleware/auth');
+const { createClient } = require('@supabase/supabase-js');
+
+// Supabase client to keep `profiles` in sync (profiles table used by admin routes)
+const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
 
 // @route   POST /api/users/register
 // @desc    Mendaftarkan pengguna baru & mengirim email verifikasi
@@ -156,6 +160,24 @@ router.put('/goals', auth, async (req, res) => {
     if (typeof dailySaltGoal !== 'undefined') user.dailySaltGoal = dailySaltGoal;
 
     await user.save();
+
+    // --- Sync to Supabase profiles so admin dashboard can read targets ---
+    try {
+      const payload = {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        daily_calorie_goal: typeof user.dailyCalorieGoal !== 'undefined' ? user.dailyCalorieGoal : null,
+        daily_protein_goal: typeof user.dailyProteinGoal !== 'undefined' ? user.dailyProteinGoal : null,
+        daily_carbs_goal: typeof user.dailyCarbsGoal !== 'undefined' ? user.dailyCarbsGoal : null,
+        daily_fat_goal: typeof user.dailyFatGoal !== 'undefined' ? user.dailyFatGoal : null,
+        updated_at: new Date().toISOString()
+      };
+
+      await supabase.from('profiles').upsert(payload, { onConflict: 'id' });
+    } catch (syncErr) {
+      console.warn('Warning: failed to sync user goals to Supabase profiles:', syncErr.message || syncErr);
+    }
 
     // Kirim kembali data user yang sudah di-update (tanpa password)
     const userResponse = {
@@ -323,6 +345,25 @@ router.put('/profile', auth, async (req, res) => {
       { $set: fieldsToUpdate },
       { new: true }
     ).select('-password');
+
+    // --- Sync updated profile & goals to Supabase profiles table ---
+    try {
+      const payload = {
+        id: updatedUser.id,
+        email: updatedUser.email,
+        name: updatedUser.name,
+        // keep naming in snake_case for consistency with profiles table
+        daily_calorie_goal: typeof updatedUser.dailyCalorieGoal !== 'undefined' ? updatedUser.dailyCalorieGoal : null,
+        daily_protein_goal: typeof updatedUser.dailyProteinGoal !== 'undefined' ? updatedUser.dailyProteinGoal : null,
+        daily_carbs_goal: typeof updatedUser.dailyCarbsGoal !== 'undefined' ? updatedUser.dailyCarbsGoal : null,
+        daily_fat_goal: typeof updatedUser.dailyFatGoal !== 'undefined' ? updatedUser.dailyFatGoal : null,
+        updated_at: new Date().toISOString()
+      };
+
+      await supabase.from('profiles').upsert(payload, { onConflict: 'id' });
+    } catch (syncErr) {
+      console.warn('Warning: failed to sync updated profile to Supabase profiles:', syncErr.message || syncErr);
+    }
 
     res.json(updatedUser);
   } catch (err) {

@@ -195,16 +195,19 @@
 
     <!-- BARCODE SCANNER SECTION COMPONENT -->
     <BarcodeScannerSection
-      ref="barcodeScannerSectionRef"
-      :searched-food="foodStore.searchedFood"
-      :is-authenticated="authStore.isAuthenticated"
-      :is-favorited="isFavorited"
-      :is-toggling-favorite="isTogglingFavorite"
+      :searchedFood="foodStore.searchedFood"
+      :isAuthenticated="authStore.isAuthenticated"
+      :isFavorited="isFavorited"
+      :isTogglingFavorite="isTogglingFavorite"
+      :searchLoading="foodStore.searchLoading"
+      :searchError="foodStore.searchError"
       @search="handleSearch"
-      @camera-decode="handleCameraDecode"
-      @add-to-journal="handleSubmit"
+      @camera-decode="handleSearch"
+      @add-to-journal="handleAddToJournal"
       @cancel="handleCancel"
-      @toggle-favorite="toggleFavorite"
+      @toggle-favorite="handleToggleFavorite"
+      @show-manual-input="showManualInputModal"
+      ref="scannerRef"
     />
 
     <!-- Tips & Facts Section -->
@@ -330,7 +333,7 @@ const checkFavoriteStatus = async (productCode) => {
 }
 
 // Toggle favorit
-const toggleFavorite = async () => {
+const handleToggleFavorite = async () => {
   if (!authStore.isAuthenticated) {
     showNotification(
       'warning',
@@ -483,8 +486,8 @@ const handleCameraDecode = async (barcode) => {
   }
 }
 
-// Handle submit to journal
-const handleSubmit = async () => {
+// Handle add to journal
+const handleAddToJournal = async () => {
   if (!foodStore.searchedFood) return
 
   try {
@@ -526,6 +529,15 @@ const handleSubmit = async () => {
 const handleCancel = () => {
   foodStore.clearSearchedFood()
   isFavorited.value = false
+}
+
+// Handle show manual input modal
+const showManualInputModal = () => {
+  showNotification(
+    'warning',
+    'Input Manual',
+    'Fitur input manual sedang dalam pengembangan'
+  )
 }
 
 // Handle analyze

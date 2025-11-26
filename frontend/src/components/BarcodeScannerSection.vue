@@ -79,7 +79,8 @@
                     v-model="barcodeInput"
                     type="text"
                     placeholder="Contoh: 8992761111113"
-                    class="w-full px-5 py-4 border-2 border-slate-200 rounded-xl text-base focus:outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-600/10 transition-all duration-300"
+                    :disabled="searchLoading"
+                    class="w-full px-5 py-4 border-2 border-slate-200 rounded-xl text-base focus:outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-600/10 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                     @keyup.enter="handleSearch"
                   />
 
@@ -90,9 +91,12 @@
 
                 <button
                   @click="handleSearch"
-                  class="w-full px-6 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-bold text-base hover:-translate-y-0.5 hover:shadow-xl hover:shadow-blue-500/40 transition-all duration-300 flex items-center justify-center gap-2 shadow-md shadow-blue-500/30"
+                  :disabled="searchLoading || !barcodeInput"
+                  class="w-full px-6 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-bold text-base hover:-translate-y-0.5 hover:shadow-xl hover:shadow-blue-500/40 transition-all duration-300 flex items-center justify-center gap-2 shadow-md shadow-blue-500/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                 >
-                  <span>🔍</span> Cari Produk
+                  <span v-if="!searchLoading">🔍</span>
+                  <div v-else class="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <span>{{ searchLoading ? 'Mencari...' : 'Cari Produk' }}</span>
                 </button>
               </div>
             </div>
@@ -174,12 +178,18 @@
               ref="fileInput"
               accept="image/*"
               class="hidden"
+              :disabled="searchLoading"
             />
 
             <div v-if="!uploadedImage">
               <div
                 @click="triggerFileInput"
-                class="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-dashed border-blue-300 rounded-3xl py-16 px-8 text-center cursor-pointer hover:border-blue-600 hover:bg-gradient-to-br hover:from-blue-100 hover:to-purple-100 hover:shadow-lg hover:shadow-blue-500/15 transition-all duration-300"
+                :class="[
+                  'bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-dashed border-blue-300 rounded-3xl py-16 px-8 text-center transition-all duration-300',
+                  searchLoading
+                    ? 'cursor-not-allowed opacity-50'
+                    : 'cursor-pointer hover:border-blue-600 hover:bg-gradient-to-br hover:from-blue-100 hover:to-purple-100 hover:shadow-lg hover:shadow-blue-500/15'
+                ]"
               >
                 <div class="w-20 h-20 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-blue-500/30">
                   <span class="text-white text-4xl">⬆️</span>
@@ -204,7 +214,8 @@
 
               <button
                 @click="clearUpload"
-                class="w-full px-4 py-3 bg-white text-slate-700 border-2 border-slate-300 rounded-xl font-bold hover:bg-slate-50 hover:border-blue-600 hover:text-blue-600 transition-all duration-300 flex items-center justify-center gap-2"
+                :disabled="searchLoading"
+                class="w-full px-4 py-3 bg-white text-slate-700 border-2 border-slate-300 rounded-xl font-bold hover:bg-slate-50 hover:border-blue-600 hover:text-blue-600 transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <span>⬆️</span> Upload Foto Lain
               </button>
@@ -216,8 +227,48 @@
           </div>
         </div>
 
+        <!-- Loading State -->
+        <div v-if="searchLoading && !searchedFood" class="mt-8 pt-8 border-t-2 border-slate-100">
+          <div class="flex flex-col items-center justify-center py-12 gap-4">
+            <div class="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+            <p class="text-lg font-semibold text-slate-700">Mencari produk...</p>
+            <p class="text-sm text-slate-500">Mohon tunggu sebentar</p>
+          </div>
+        </div>
+
+        <!-- Error State -->
+        <div v-if="searchError && !searchLoading && !searchedFood" class="mt-8 pt-8 border-t-2 border-slate-100">
+          <div class="bg-red-50 border-2 border-red-200 rounded-2xl p-8 text-center">
+            <div class="text-5xl mb-4">❌</div>
+            <h3 class="text-xl font-bold text-red-700 mb-2">Produk Tidak Ditemukan</h3>
+            <p class="text-red-600 mb-6">{{ searchError }}</p>
+            <div class="flex gap-3 justify-center flex-wrap">
+              <button
+                @click="handleCancel"
+                class="px-6 py-3 bg-white text-slate-700 border-2 border-slate-300 rounded-xl font-bold hover:bg-slate-50 hover:border-slate-400 transition-all duration-300"
+              >
+                Coba Lagi
+              </button>
+              <button
+                v-if="isAuthenticated"
+                @click="$emit('show-manual-input')"
+                class="px-6 py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-all duration-300 shadow-lg shadow-blue-500/30"
+              >
+                Input Manual
+              </button>
+              <router-link
+                v-else
+                to="/login"
+                class="px-6 py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-all duration-300 shadow-lg shadow-blue-500/30"
+              >
+                Login untuk Input Manual
+              </router-link>
+            </div>
+          </div>
+        </div>
+
         <!-- Results Section -->
-        <div v-if="searchedFood" class="mt-8 pt-8 border-t-2 border-slate-100">
+        <div v-if="searchedFood && !searchLoading" class="mt-8 pt-8 border-t-2 border-slate-100">
           <!-- Product Image -->
           <div class="w-full max-w-md mx-auto mb-6">
             <img
@@ -227,7 +278,7 @@
               @error="onImageError"
               class="w-full h-[300px] object-contain rounded-xl shadow-lg bg-white"
             />
-            <!-- Kalau gambar gagal load atau tidak ada, langsung tampilkan nama produk -->
+            <!-- Kalau gambar gagal load atau tidak ada -->
             <div v-else class="w-full h-auto bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl p-8 text-center border-2 border-slate-200">
               <div class="text-6xl mb-4">📦</div>
               <h3 class="text-2xl font-bold text-slate-800">
@@ -275,46 +326,58 @@
           <!-- Nutrients Grid -->
           <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
             <!-- Calories -->
-            <div class="bg-gradient-to-br from-amber-50 to-amber-100 border-2 border-amber-400 p-6 rounded-2xl text-center hover:-translate-y-1 hover:shadow-xl transition-all duration-300">
-              <p class="text-sm font-semibold text-slate-600 uppercase tracking-wide mb-2">Kalori</p>
-              <p class="text-4xl font-extrabold text-slate-800 mb-1">{{ Math.round(searchedFood.calories) }}</p>
-              <p class="text-sm text-slate-500">kcal</p>
-            </div>
+              <div class="bg-gradient-to-br from-amber-50 to-amber-100 border-2 border-amber-400 p-6 rounded-2xl text-center hover:-translate-y-1 hover:shadow-xl transition-all duration-300">
+                <p class="text-sm font-semibold text-slate-600 uppercase tracking-wide mb-2">Kalori</p>
+                <p class="text-4xl font-extrabold text-slate-800 mb-1">
+                  {{ Math.round(searchedFood?.calories || 0) }}
+                </p>
+                <p class="text-sm text-slate-500">kcal</p>
+              </div>
 
-            <!-- Carbs -->
-            <div class="bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-blue-400 p-6 rounded-2xl text-center hover:-translate-y-1 hover:shadow-xl transition-all duration-300">
-              <p class="text-sm font-semibold text-slate-600 uppercase tracking-wide mb-2">Karbohidrat</p>
-              <p class="text-4xl font-extrabold text-slate-800 mb-1">{{ Math.round(searchedFood.carbs) }}</p>
-              <p class="text-sm text-slate-500">gram</p>
-            </div>
+              <!-- Carbs -->
+              <div class="bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-blue-400 p-6 rounded-2xl text-center hover:-translate-y-1 hover:shadow-xl transition-all duration-300">
+                <p class="text-sm font-semibold text-slate-600 uppercase tracking-wide mb-2">Karbohidrat</p>
+                <p class="text-4xl font-extrabold text-slate-800 mb-1">
+                  {{ Math.round(searchedFood?.carbs || 0) }}
+                </p>
+                <p class="text-sm text-slate-500">gram</p>
+              </div>
 
-            <!-- Protein -->
-            <div class="bg-gradient-to-br from-pink-50 to-pink-100 border-2 border-pink-400 p-6 rounded-2xl text-center hover:-translate-y-1 hover:shadow-xl transition-all duration-300">
-              <p class="text-sm font-semibold text-slate-600 uppercase tracking-wide mb-2">Protein</p>
-              <p class="text-4xl font-extrabold text-slate-800 mb-1">{{ Math.round(searchedFood.protein) }}</p>
-              <p class="text-sm text-slate-500">gram</p>
-            </div>
+              <!-- Protein -->
+              <div class="bg-gradient-to-br from-pink-50 to-pink-100 border-2 border-pink-400 p-6 rounded-2xl text-center hover:-translate-y-1 hover:shadow-xl transition-all duration-300">
+                <p class="text-sm font-semibold text-slate-600 uppercase tracking-wide mb-2">Protein</p>
+                <p class="text-4xl font-extrabold text-slate-800 mb-1">
+                  {{ Math.round(searchedFood?.protein || 0) }}
+                </p>
+                <p class="text-sm text-slate-500">gram</p>
+              </div>
 
-            <!-- Fat -->
-            <div class="bg-gradient-to-br from-purple-50 to-purple-100 border-2 border-purple-400 p-6 rounded-2xl text-center hover:-translate-y-1 hover:shadow-xl transition-all duration-300">
-              <p class="text-sm font-semibold text-slate-600 uppercase tracking-wide mb-2">Lemak</p>
-              <p class="text-4xl font-extrabold text-slate-800 mb-1">{{ Math.round(searchedFood.fat) }}</p>
-              <p class="text-sm text-slate-500">gram</p>
-            </div>
+              <!-- Fat -->
+              <div class="bg-gradient-to-br from-purple-50 to-purple-100 border-2 border-purple-400 p-6 rounded-2xl text-center hover:-translate-y-1 hover:shadow-xl transition-all duration-300">
+                <p class="text-sm font-semibold text-slate-600 uppercase tracking-wide mb-2">Lemak</p>
+                <p class="text-4xl font-extrabold text-slate-800 mb-1">
+                  {{ Math.round(searchedFood?.fat || 0) }}
+                </p>
+                <p class="text-sm text-slate-500">gram</p>
+              </div>
 
-            <!-- Sodium -->
-            <div class="bg-gradient-to-br from-orange-50 to-orange-100 border-2 border-orange-400 p-6 rounded-2xl text-center hover:-translate-y-1 hover:shadow-xl transition-all duration-300">
-              <p class="text-sm font-semibold text-slate-600 uppercase tracking-wide mb-2">Garam</p>
-              <p class="text-4xl font-extrabold text-slate-800 mb-1">{{ Math.round((searchedFood?.salt || 0) * 1000) }}</p>
-              <p class="text-sm text-slate-500">mg</p>
-            </div>
+              <!-- Sodium/Salt -->
+              <div class="bg-gradient-to-br from-orange-50 to-orange-100 border-2 border-orange-400 p-6 rounded-2xl text-center hover:-translate-y-1 hover:shadow-xl transition-all duration-300">
+                <p class="text-sm font-semibold text-slate-600 uppercase tracking-wide mb-2">Garam</p>
+                <p class="text-4xl font-extrabold text-slate-800 mb-1">
+                  {{ Math.round((searchedFood?.salt || 0) * 1000) }}
+                </p>
+                <p class="text-sm text-slate-500">mg</p>
+              </div>
 
-            <!-- Sugar -->
-            <div class="bg-gradient-to-br from-pink-50 to-pink-100 border-2 border-pink-400 p-6 rounded-2xl text-center hover:-translate-y-1 hover:shadow-xl transition-all duration-300">
-              <p class="text-sm font-semibold text-slate-600 uppercase tracking-wide mb-2">Gula</p>
-              <p class="text-4xl font-extrabold text-slate-800 mb-1">{{ Math.round(searchedFood.sugar || 0) }}</p>
-              <p class="text-sm text-slate-500">gram</p>
-            </div>
+              <!-- Sugar -->
+              <div class="bg-gradient-to-br from-pink-50 to-pink-100 border-2 border-pink-400 p-6 rounded-2xl text-center hover:-translate-y-1 hover:shadow-xl transition-all duration-300">
+                <p class="text-sm font-semibold text-slate-600 uppercase tracking-wide mb-2">Gula</p>
+                <p class="text-4xl font-extrabold text-slate-800 mb-1">
+                  {{ Math.round(searchedFood?.sugar || 0) }}
+                </p>
+                <p class="text-sm text-slate-500">gram</p>
+              </div>
           </div>
 
           <!-- Action Buttons -->
@@ -369,11 +432,26 @@ const props = defineProps({
   isTogglingFavorite: {
     type: Boolean,
     default: false
+  },
+  searchLoading: {
+    type: Boolean,
+    default: false
+  },
+  searchError: {
+    type: String,
+    default: null
   }
 })
 
 // Emits
-const emit = defineEmits(['search', 'add-to-journal', 'cancel', 'toggle-favorite', 'camera-decode'])
+const emit = defineEmits([
+  'search',
+  'add-to-journal',
+  'cancel',
+  'toggle-favorite',
+  'camera-decode',
+  'show-manual-input'
+])
 
 // State
 const activeTab = ref('manual')
@@ -453,6 +531,7 @@ const stopCamera = () => {
 }
 
 const triggerFileInput = () => {
+  if (props.searchLoading) return
   uploadError.value = ''
   fileInput.value.click()
 }
@@ -492,7 +571,7 @@ const changeTab = (tabName) => {
 }
 
 const handleSearch = () => {
-  if (!barcodeInput.value) return
+  if (!barcodeInput.value || props.searchLoading) return
 
   const normalized = normalizeBarcode(barcodeInput.value)
   if (!normalized) return

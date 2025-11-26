@@ -6,6 +6,8 @@ const articleRoutes = require('./routes/articles');
 const favoritesRouter = require('./routes/favorites');
 const https = require('https');
 const fs = require('fs');
+const { MongoClient } = require('mongodb');
+const productRoutes = require('./routes/products');
 
 dotenv.config();
 connectDB();
@@ -44,3 +46,17 @@ https.createServer(httpsOptions, app).listen(PORT, '0.0.0.0', () => {
   console.log(`Server HTTPS berjalan di port ${PORT}`);
   console.log(`MongoDB Connected...`); 
 });
+
+MongoClient.connect(process.env.MONGODB_URI)
+  .then(client => {
+    console.log("✅ MongoDB Lokal Terhubung...");
+
+    const db = client.db('scanbar'); 
+    
+    app.locals.db = db; 
+  
+    app.use('/api/products', productRoutes);
+
+    app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+  })
+  .catch(err => console.error(err));

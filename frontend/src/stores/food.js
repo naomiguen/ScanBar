@@ -1,4 +1,3 @@
-// frontend/src/stores/food.js
 import { ref, computed } from 'vue';
 import { defineStore } from 'pinia';
 import apiClient from '@/axios-config.js';
@@ -59,11 +58,15 @@ export const useFoodStore = defineStore('food', () => {
   const analysisResult = ref(null);
   const analysisLoading = ref(false);
 
-  // ✨ STATE BARU untuk Daily Analysis
+  //  STATE BARU untuk Daily Analysis
   const dailyAnalysis = ref(null);
   const dailyAnalysisLoading = ref(false);
   const dailyAnalysisError = ref(null);
   const dailyAnalysisCached = ref(false);
+
+  // State untuk Barcode Search
+  const searchLoading = ref(false);
+  const searchError = ref(null);
 
   // GETTERS
   const totals = computed(() => {
@@ -117,80 +120,124 @@ export const useFoodStore = defineStore('food', () => {
     }
   }
 
+  async function deleteFood(foodId) {
+    try {
+      await apiClient.delete(`/api/foods/${foodId}`);
+      foods.value = foods.value.filter(food => food._id !== foodId);
+
+      toast.success('Berhasil Dihapus', {
+        description: 'Item telah dihapus dari jurnal.',
+        duration: 2000
+      });
+    } catch (error) {
+      console.error('Gagal menghapus makanan:', error);
+      toast.error('Gagal', {
+        description: 'Gagal menghapus item dari jurnal.'
+      });
+    }
+  }
+
   async function fetchFoodByBarcode(barcode) {
+    // Reset state
+    searchedFood.value = null;
+    searchError.value = null;
+    searchLoading.value = true;
+
     try {
       const response = await apiClient.get(`/api/foods/barcode/${barcode}`);
 
-      const normalizeProduct = (data) => {
-        if (!data) return null;
-        const product = data.product ? data.product : data;
+      const product = response.data;
 
-        const nutriments = product.nutriments || {};
-
-        const caloriesVal = product.calories ?? nutriments.energy_kcal_100g ?? nutriments['energy-kcal_100g'] ?? nutriments.energy_100g ?? null;
-        const proteinVal = product.protein ?? nutriments.proteins_100g ?? nutriments['proteins_100g'] ?? null;
-        const carbsVal = product.carbs ?? product.carbohydrates ?? nutriments.carbohydrates_100g ?? nutriments['carbohydrates_100g'] ?? null;
-        const fatVal = product.fat ?? nutriments.fat_100g ?? nutriments['fat_100g'] ?? null;
-        const sugarVal = product.sugar ?? nutriments.sugars_100g ?? nutriments['sugars_100g'] ?? null;
-        const saltVal = product.salt ?? nutriments.salt_100g ?? nutriments['salt_100g'] ?? nutriments.sodium_100g ?? null;
-
-        return {
-          productName: product.productName || product.product_name || product.name || '',
-          calories: parseNumber(caloriesVal),
-          protein: parseNumber(proteinVal),
-          carbs: parseNumber(carbsVal),
-          fat: parseNumber(fatVal),
-          sugar: parseNumber(sugarVal),
-          salt: parseNumber(saltVal),
-          imageUrl: extractImageUrl(product) || null,
-          _raw: product
-        };
+      searchedFood.value = {
+        productName: product.product_name || 'Nama tidak tersedia',
+        calories: parseNumber(product.nutriments?.['energy-kcal_100g'] || product.nutriments?.['energy-kcal'] || 0),
+        protein: parseNumber(product.nutriments?.['proteins_100g'] || product.nutriments?.proteins || 0),
+        carbs: parseNumber(product.nutriments?.['carbohydrates_100g'] || product.nutriments?.carbohydrates || product.nutriments?.carbs || 0),
+        fat: parseNumber(product.nutriments?.['fat_100g'] || product.nutriments?.fat || 0),
+        sugar: parseNumber(product.nutriments?.['sugars_100g'] || product.nutriments?.sugar || 0),
+        salt: parseNumber(product.nutriments?.['salt_100g'] || product.nutriments?.sodium_100g || product.nutriments?.sodium || 0),
+        imageUrl: extractImageUrl(product) || product.image_url || null,
+        brands: product.brands || 'Tidak Diketahui',
+        _raw: product
       };
 
-      searchedFood.value = normalizeProduct(response.data);
-      toast.info('Produk Ditemukan!', {
-        duration: 1500
-      });
-
-    } catch (error) {
-      console.error('Gagal mengambil dari backend untuk barcode:', error);
-      try {
-        const offResponse = await apiClient.get(`https://world.openfoodfacts.org/api/v2/product/${barcode}`);
-
-        if (offResponse.data && offResponse.data.status === 1) {
-          const product = offResponse.data.product;
-
-          searchedFood.value = {
-            productName: product.product_name || product.productName || 'Nama tidak ditemukan',
-            calories: parseNumber(product.nutriments?.energy_kcal_100g || product.nutriments?.['energy-kcal_100g'] || product.nutriments?.energy_100g),
-            protein: parseNumber(product.nutriments?.proteins_100g),
-            carbs: parseNumber(product.nutriments?.carbohydrates_100g),
-            fat: parseNumber(product.nutriments?.fat_100g),
-            sugar: parseNumber(product.nutriments?.sugars_100g),
-            salt: parseNumber(product.nutriments?.salt_100g),
-            imageUrl: extractImageUrl(product) || null,
-            _raw: product
-          };
-
-          toast.success('Produk Ditemukan!', {
-            description: 'Data diambil dari OpenFoodFacts',
-            duration: 1500
-          });
-        } else {
-          throw new Error('Produk tidak ditemukan di OpenFoodFacts');
-        }
-      } catch (offError) {
-        console.error('Gagal mencari barcode:', offError);
-        searchedFood.value = null;
-        toast.error('Tidak Ditemukan', {
-          description: 'Produk dengan barcode tersebut tidak ditemukan di database manapun.'
+      // Tampilkan notifikasi berdasarkan sumber data
+      if (product.cached) {
+        console.log('✅ Data dari cache lokal');
+        toast.success('Produk Ditemukan!', {
+          description: 'Data diambil dari database lokal',
+          duration: 1500
+        });
+      } else {
+        console.log('✅ Data dari API eksternal (fresh)');
+        toast.success('Produk Ditemukan!', {
+          description: 'Data diambil dan disimpan ke database',
+          duration: 1500
         });
       }
+    } catch (error) {
+      console.error('❌ Gagal mencari barcode:', error);
+
+      // Handle berbagai jenis error
+      if (error.response?.status === 404) {
+        // Produk tidak ditemukan
+        const errorData = error.response.data;
+
+        searchError.value = errorData.msg || 'Produk tidak ditemukan';
+
+        toast.error('Produk Tidak Ditemukan', {
+          description: errorData.msg || 'Produk tidak ditemukan di database manapun',
+          action: errorData.suggestion ? {
+            label: 'OK',
+            onClick: () => {}
+          } : undefined,
+          duration: 4000
+        });
+
+        // Jika ada nama produk (artinya ada di API tapi nutrisi kosong)
+        if (errorData.productName) {
+          console.log(`ℹ️ Produk ditemukan: ${errorData.productName}, tapi nutrisi tidak lengkap`);
+
+          toast.info('Lengkapi Data Nutrisi', {
+            description: `Produk "${errorData.productName}" ditemukan tetapi data nutrisinya tidak lengkap. Silakan gunakan input manual.`,
+            duration: 5000
+          });
+        }
+       } else if (error.response?.status === 400) {
+        // Barcode tidak valid
+        searchError.value = 'Barcode tidak valid';
+        toast.error('Barcode Tidak Valid', {
+          description: 'Format barcode yang Anda masukkan tidak valid.',
+          duration: 3000
+        });
+
+      } else if (error.response?.status === 503 || error.response?.status === 504) {
+        // Server eksternal bermasalah
+        searchError.value = 'Server data eksternal tidak dapat dijangkau';
+        toast.error('Koneksi Bermasalah', {
+          description: 'Gagal terhubung ke server data eksternal. Silakan coba lagi atau gunakan input manual.',
+          duration: 4000
+        });
+      } else {
+        // Error lainnya
+        searchError.value = 'Terjadi kesalahan saat mencari produk';
+        toast.error('Terjadi Kesalahan', {
+          description: error.response?.data?.msg || 'Gagal mencari produk. Silakan coba lagi.',
+          duration: 3000
+        });
+      }
+
+      // Tetap set searchedFood ke null agar UI tahu tidak ada hasil
+      searchedFood.value = null;
+
+    } finally {
+      searchLoading.value = false;
     }
   }
 
   function clearSearchedFood() {
     searchedFood.value = null;
+    searchError.value = null;
     analysisResult.value = null;
     analysisLoading.value = false;
   }
@@ -208,6 +255,7 @@ export const useFoodStore = defineStore('food', () => {
     try {
       const response = await apiClient.get(`/api/foods/summary?period=${period}`);
       const data = response.data || {};
+
       summary.value = {
         calories: data.calories ?? 0,
         carbs: data.carbs ?? 0,
@@ -216,6 +264,7 @@ export const useFoodStore = defineStore('food', () => {
         sugar: data.sugar ?? 0,
         salt: data.salt ?? 0,
       };
+
       summaryPeriod.value = period;
       return response.data;
     } catch (error) {
@@ -225,24 +274,8 @@ export const useFoodStore = defineStore('food', () => {
     }
   }
 
-  async function deleteFood(foodId) {
-    try {
-      await apiClient.delete(`/api/foods/${foodId}`);
-      foods.value = foods.value.filter(food => food._id !== foodId);
-      toast.success('Berhasil Dihapus', {
-        description: 'Item telah dihapus dari jurnal.',
-        duration: 2000
-      });
-    } catch (error) {
-      console.error('Gagal menghapus makanan:', error);
-      toast.error('Gagal', {
-        description: 'Gagal menghapus item dari jurnal.'
-      });
-    }
-  }
-
-  // ✨ ANALISIS AI - ENDPOINT PUBLIK (Tidak perlu token!)
-  async function analyzeFood(foodData) {
+  //AI Analisis
+   async function analyzeFood(foodData) {
     analysisResult.value = null;
     analysisLoading.value = true;
 
@@ -256,15 +289,14 @@ export const useFoodStore = defineStore('food', () => {
         sugar: foodData.sugar ?? 0,
         salt: foodData.salt ?? 0,
       };
-
-      console.log('🤖 Mengirim request analisis AI untuk:', payload.productName);
+      console.log('Mengirim request analisis AI untuk:', payload.productName);
 
       const response = await apiClient.post('/api/foods/analyze', payload);
 
       analysisResult.value = response.data.analysis;
 
       if (response.data.analysis) {
-        console.log('✅ Analisis AI berhasil!');
+        console.log('Analisis AI berhasil!');
         toast.success('Analisis Selesai', {
           description: 'Analisis nutrisi berhasil dimuat.',
           duration: 1500
@@ -272,7 +304,6 @@ export const useFoodStore = defineStore('food', () => {
       }
     } catch (error) {
       console.error('❌ Gagal menganalisis:', error);
-      console.error('Error response:', error.response?.data);
 
       analysisResult.value = 'Gagal menganalisis data makanan. Silakan coba lagi nanti.';
 
@@ -285,16 +316,7 @@ export const useFoodStore = defineStore('food', () => {
       analysisLoading.value = false;
     }
   }
-
-  // ========================================
-  // ✨ FUNGSI BARU: DAILY ANALYSIS dengan SMART CACHE
-  // ========================================
-
-  /**
-   * Mengambil analisis AI harian dari backend
-   * Backend akan otomatis menggunakan cache jika tersedia
-   * atau membuat analisis baru jika cache tidak ada
-   */
+  //daily analisis
   async function fetchDailyAnalysis() {
     dailyAnalysisLoading.value = true;
     dailyAnalysisError.value = null;
@@ -320,9 +342,9 @@ export const useFoodStore = defineStore('food', () => {
 
       // Log untuk debugging
       if (response.data.cached) {
-        console.log('✅ Daily analysis loaded from cache');
+        console.log('Daily analysis loaded from cache');
       } else {
-        console.log('✅ Daily analysis generated fresh');
+        console.log('Daily analysis generated fresh');
       }
 
     } catch (error) {
@@ -338,10 +360,6 @@ export const useFoodStore = defineStore('food', () => {
     }
   }
 
-  /**
-   * Reset state analisis harian
-   * Berguna saat user logout atau perlu refresh data
-   */
   function clearDailyAnalysis() {
     dailyAnalysis.value = null;
     dailyAnalysisLoading.value = false;
@@ -350,7 +368,7 @@ export const useFoodStore = defineStore('food', () => {
   }
 
   return {
-    // Existing state
+    // State
     foods,
     totals,
     searchedFood,
@@ -358,25 +376,33 @@ export const useFoodStore = defineStore('food', () => {
     analysisResult,
     analysisLoading,
     summaryPeriod,
+    searchLoading,
+    searchError,
 
-    // ✨ New state untuk Daily Analysis
+    // Daily Analysis state
     dailyAnalysis,
     dailyAnalysisLoading,
     dailyAnalysisError,
     dailyAnalysisCached,
 
-    // Existing actions
+    // Actions - Food Management
     fetchTodaysFoods,
     addFood,
+    deleteFood,
+
+    // Actions - Barcode Search
     fetchFoodByBarcode,
     clearSearchedFood,
+
+    // Actions - Summary
     fetchSummary,
     fetchSummaryByPeriod,
-    deleteFood,
-    analyzeFood,
 
-    // ✨ New actions untuk Daily Analysis
+    // Actions - AI Analysis
+    analyzeFood,
     fetchDailyAnalysis,
     clearDailyAnalysis
   };
 });
+
+
