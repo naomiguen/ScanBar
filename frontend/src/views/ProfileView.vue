@@ -287,15 +287,18 @@ const foodStore = useFoodStore()
 const user = computed(() => authStore.user)
 
 const selectedPeriod = ref('daily')
+import { normalizeSaltDisplay } from '@/utils/units'
+
 const summaryData = computed(() => {
   const s = foodStore.summary || {}
+  const sodiumNorm = normalizeSaltDisplay(s.salt ?? 0)
   return {
     calories: s.calories ?? 0,
     carbs: s.carbs ?? 0,
     protein: s.protein ?? 0,
     fat: s.fat ?? 0,
     sugar: s.sugar ?? 0,
-    sodium: Math.round((s.salt ?? 0) * 1000),
+    sodium: sodiumNorm.value,
   }
 })
 const loadingSummary = ref(false)
@@ -319,11 +322,8 @@ const dailyGoals = computed(() => {
     salt: (() => {
       const saltGoal = meta.dailySaltGoal || meta.dailySalt || 0
       const sodiumGoal = meta.dailySodiumGoal || meta.dailySodium || 0
-
-      if (saltGoal > 0 && saltGoal < 100) {
-        return Math.round(saltGoal * 1000)
-      }
-      return saltGoal || sodiumGoal || 0
+      const chosen = saltGoal || sodiumGoal || 0
+      return normalizeSaltDisplay(chosen).value
     })()
   }
 })

@@ -55,13 +55,22 @@
         <div class="grid grid-cols-2 gap-2 mb-4">
           <div class="bg-blue-100 rounded-xl p-2 text-center">
             <div class="text-lg font-bold text-blue-600">
-              {{ Math.round(fav.product?.nutriments?.['energy-kcal_100g'] || 0) }}
+              {{ Math.round(
+                fav.product?.nutriments?.calories ||
+                fav.product?.nutriments?.['energy-kcal'] ||
+                fav.product?.nutriments?.['energy-kcal_100g'] ||
+                0
+              ) }}
             </div>
             <div class="text-xs font-medium text-blue-700">kcal</div>
           </div>
           <div class="bg-orange-100 rounded-xl p-2 text-center">
             <div class="text-lg font-bold text-orange-600">
-              {{ Math.round(fav.product?.nutriments?.proteins_100g || 0) }}g
+              {{ Math.round(
+                fav.product?.nutriments?.proteins ||
+                fav.product?.nutriments?.proteins_100g ||
+                0
+              ) }}g
             </div>
             <div class="text-xs font-medium text-orange-700">protein</div>
           </div>

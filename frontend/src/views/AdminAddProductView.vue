@@ -332,9 +332,32 @@ const submitProduct = async () => {
 
   isLoading.value = true;
   try {
-    await apiClient.post('/api/products', form.value);
+    // Ensure proper data types and clean values
+    const payload = {
+      code: String(form.value.code || '').trim(),
+      product_name: String(form.value.product_name || '').trim(),
+      brands: String(form.value.brands || '').trim(),
+      image_url: String(form.value.image_url || '').trim(),
+      proteins: Number(form.value.proteins) || 0,
+      carbs: Number(form.value.carbs) || 0,
+      fat: Number(form.value.fat) || 0,
+      sugar: Number(form.value.sugar) || 0,
+      sodium: Number(form.value.sodium) || 0
+    };
 
-    toast.success('Berhasil Disimpan! 🎉', {
+    console.log('[FRONTEND] Sending payload to backend:', payload);
+    console.log('[FRONTEND] image_url value:', payload.image_url);
+    console.log('[FRONTEND] sodium value:', payload.sodium);
+
+    const response = await apiClient.post('/api/products', payload);
+    console.log('[FRONTEND] Server response:', response.data);
+
+    // Show debug info if available
+    if (response.data.debug) {
+      console.log('[FRONTEND] Debug info from server:', response.data.debug);
+    }
+
+    toast.success('Berhasil Disimpan!', {
       description: `Produk "${form.value.product_name}" berhasil ditambahkan ke database.`
     });
 
@@ -357,13 +380,14 @@ const submitProduct = async () => {
     setTimeout(() => router.push('/admin'), 1500);
 
   } catch (error) {
-    console.error(error);
+    console.error('❌ [FRONTEND ERROR]', error);
     const msg = error.response?.data?.msg || 'Gagal menyimpan produk. Silakan coba lagi.';
     toast.error('Terjadi Kesalahan', { description: msg });
   } finally {
     isLoading.value = false;
   }
 };
+
 </script>
 
 <style scoped>

@@ -24,7 +24,10 @@ const extractImageUrl = (product) => {
   ];
 
   for (const key of candidates) {
-    if (product[key]) return product[key];
+    // Check if value exists AND is not empty string
+    if (product[key] && product[key].trim() !== '') {
+      return product[key];
+    }
   }
 
   if (product.selected_images && product.selected_images.front && product.selected_images.front.display) {
@@ -46,6 +49,65 @@ const extractImageUrl = (product) => {
   }
 
   return null;
+};
+
+// 🆕 Helper function untuk normalize nutrisi data
+const getNutrimentValue = (nutriments, fieldName) => {
+  if (!nutriments) return 0;
+
+  // Priority order untuk setiap field
+  // Format: [OpenFoodFacts API, Local Database, Alternative names]
+  const fieldMap = {
+    'energy': [
+      'calories',           // ✅ Local DB format (PRIORITAS)
+      'energy-kcal',        // ✅ Local DB format alternate
+      'energy-kcal_100g',   // API format
+      'energy_100g',
+      'energy'
+    ],
+    'protein': [
+      'proteins',           // ✅ Local & API
+      'proteins_100g',
+      'protein'
+    ],
+    'carbs': [
+      'carbs',              // ✅ Local DB format (PRIORITAS)
+      'carbohydrates',      // API format
+      'carbohydrates_100g'
+    ],
+    'fat': [
+      'fat',                // ✅ Local & API
+      'fat_100g',
+      'fats'
+    ],
+    'sugar': [
+      'sugar',              // ✅ Local DB format (PRIORITAS)
+      'sugars',             // API format
+      'sugars_100g'
+    ],
+    'salt': [
+      'sodium',             // ✅ Local DB format (PRIORITAS)
+      'salt',
+      'sodium_100g',
+      'salt_100g'
+    ]
+  };
+
+  const candidates = fieldMap[fieldName] || [fieldName];
+
+  for (const candidate of candidates) {
+    if (nutriments[candidate] !== undefined && nutriments[candidate] !== null) {
+      const value = parseNumber(nutriments[candidate]);
+      // Debug log untuk troubleshooting
+      if (value > 0) {
+        console.log(`✓ Found ${fieldName}: ${candidate} = ${value}`);
+      }
+      return value;
+    }
+  }
+
+  console.warn(`⚠ No value found for ${fieldName} in:`, Object.keys(nutriments));
+  return 0;
 };
 
 export const useFoodStore = defineStore('food', () => {
@@ -144,34 +206,54 @@ export const useFoodStore = defineStore('food', () => {
     searchLoading.value = true;
 
     try {
-      const response = await apiClient.get(`/api/foods/barcode/${barcode}`);
+      console.log('🔍 Searching barcode:', barcode);
 
+      const response = await apiClient.get(`/api/foods/barcode/${barcode}`);
       const product = response.data;
 
+      console.log('📦 Product received:', {
+        name: product.product_name,
+        source: product.source,
+        cached: product.cached,
+        hasNutriments: !!product.nutriments
+      });
+
+      // 🆕 Gunakan helper function untuk extract nutrisi
+      const nutrimentsSource = product.nutriments || product
       searchedFood.value = {
         productName: product.product_name || 'Nama tidak tersedia',
-        calories: parseNumber(product.nutriments?.['energy-kcal_100g'] || product.nutriments?.['energy-kcal'] || 0),
-        protein: parseNumber(product.nutriments?.['proteins_100g'] || product.nutriments?.proteins || 0),
-        carbs: parseNumber(product.nutriments?.['carbohydrates_100g'] || product.nutriments?.carbohydrates || product.nutriments?.carbs || 0),
-        fat: parseNumber(product.nutriments?.['fat_100g'] || product.nutriments?.fat || 0),
-        sugar: parseNumber(product.nutriments?.['sugars_100g'] || product.nutriments?.sugar || 0),
-        salt: parseNumber(product.nutriments?.['salt_100g'] || product.nutriments?.sodium_100g || product.nutriments?.sodium || 0),
-        imageUrl: extractImageUrl(product) || product.image_url || null,
+        calories: getNutrimentValue(nutrimentsSource, 'energy'),
+        protein: getNutrimentValue(nutrimentsSource, 'protein'),
+        carbs: getNutrimentValue(nutrimentsSource, 'carbs'),
+        fat: getNutrimentValue(nutrimentsSource, 'fat'),
+        sugar: getNutrimentValue(nutrimentsSource, 'sugar'),
+        salt: getNutrimentValue(nutrimentsSource, 'salt'),
+        imageUrl: extractImageUrl(product) || null,
         brands: product.brands || 'Tidak Diketahui',
+        source: product.source || 'unknown', // Track sumber data
         _raw: product
       };
 
+      // Log hasil parsing
+      console.log('✅ Parsed food data:', {
+        name: searchedFood.value.productName,
+        calories: searchedFood.value.calories,
+        protein: searchedFood.value.protein,
+        carbs: searchedFood.value.carbs,
+        fat: searchedFood.value.fat
+      });
+
       // Tampilkan notifikasi berdasarkan sumber data
-      if (product.cached) {
-        console.log('✅ Data dari cache lokal');
+      if (product.cached || product.source === 'local_cache' || product.source === 'local_admin_input') {
+        console.log('✅ Data dari database lokal');
         toast.success('Produk Ditemukan!', {
-          description: 'Data diambil dari database lokal',
+          description: '📁 Data diambil dari database lokal',
           duration: 1500
         });
       } else {
         console.log('✅ Data dari API eksternal (fresh)');
         toast.success('Produk Ditemukan!', {
-          description: 'Data diambil dan disimpan ke database',
+          description: '🌐 Data diambil dari API dan disimpan',
           duration: 1500
         });
       }
@@ -404,5 +486,3 @@ export const useFoodStore = defineStore('food', () => {
     clearDailyAnalysis
   };
 });
-
-

@@ -99,18 +99,27 @@ router.get('/', auth, async (req, res) => {
     const productCodes = favorites.map(f => f.productCode);
     const products = await Product.find({ code: { $in: productCodes } });
 
-    // Buat map untuk lookup cepat
+    // Buat map untuk lookup cepat; pastikan kita meng-serialize dokumen ke plain object
     const productMap = {};
     products.forEach(p => {
-      productMap[p.code] = p;
+      const obj = p.toObject ? p.toObject() : p;
+
+      // Pastikan field nutriments selalu ada (set empty object jika tidak ada)
+      obj.nutriments = obj.nutriments || {};
+
+      // Tambahkan field turunan untuk memudahkan frontend (nilai default 0)
+      obj.nutriments['energy-kcal_100g'] = obj.nutriments['energy-kcal_100g'] || obj.nutriments.energy_kcal_100g || 0;
+      obj.nutriments['proteins_100g'] = obj.nutriments['proteins_100g'] || obj.nutriments.proteins_100g || 0;
+
+      productMap[p.code] = obj;
     });
 
-    // Gabungkan data favorit dengan data produk
+    // Gabungkan data favorit dengan data produk (selalu sertakan nutriments, bisa kosong)
     const favoritesWithProducts = favorites.map(fav => ({
       _id: fav._id,
       productCode: fav.productCode,
       addedAt: fav.addedAt,
-      product: productMap[fav.productCode] || null
+      product: productMap[fav.productCode] || { code: fav.productCode, nutriments: {} }
     }));
 
     res.json({

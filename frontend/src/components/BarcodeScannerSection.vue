@@ -278,7 +278,6 @@
               @error="onImageError"
               class="w-full h-[300px] object-contain rounded-xl shadow-lg bg-white"
             />
-            <!-- Kalau gambar gagal load atau tidak ada -->
             <div v-else class="w-full h-auto bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl p-8 text-center border-2 border-slate-200">
               <div class="text-6xl mb-4">📦</div>
               <h3 class="text-2xl font-bold text-slate-800">
@@ -326,58 +325,58 @@
           <!-- Nutrients Grid -->
           <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
             <!-- Calories -->
-              <div class="bg-gradient-to-br from-amber-50 to-amber-100 border-2 border-amber-400 p-6 rounded-2xl text-center hover:-translate-y-1 hover:shadow-xl transition-all duration-300">
-                <p class="text-sm font-semibold text-slate-600 uppercase tracking-wide mb-2">Kalori</p>
-                <p class="text-4xl font-extrabold text-slate-800 mb-1">
-                  {{ Math.round(searchedFood?.calories || 0) }}
-                </p>
-                <p class="text-sm text-slate-500">kcal</p>
-              </div>
+            <div class="bg-gradient-to-br from-amber-50 to-amber-100 border-2 border-amber-400 p-6 rounded-2xl text-center hover:-translate-y-1 hover:shadow-xl transition-all duration-300">
+              <p class="text-sm font-semibold text-slate-600 uppercase tracking-wide mb-2">Kalori</p>
+              <p class="text-4xl font-extrabold text-slate-800 mb-1">
+                {{ Math.round(searchedFood?.calories || 0) }}
+              </p>
+              <p class="text-sm text-slate-500">kcal</p>
+            </div>
 
-              <!-- Carbs -->
-              <div class="bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-blue-400 p-6 rounded-2xl text-center hover:-translate-y-1 hover:shadow-xl transition-all duration-300">
-                <p class="text-sm font-semibold text-slate-600 uppercase tracking-wide mb-2">Karbohidrat</p>
-                <p class="text-4xl font-extrabold text-slate-800 mb-1">
-                  {{ Math.round(searchedFood?.carbs || 0) }}
-                </p>
-                <p class="text-sm text-slate-500">gram</p>
-              </div>
+            <!-- Carbs -->
+            <div class="bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-blue-400 p-6 rounded-2xl text-center hover:-translate-y-1 hover:shadow-xl transition-all duration-300">
+              <p class="text-sm font-semibold text-slate-600 uppercase tracking-wide mb-2">Karbohidrat</p>
+              <p class="text-4xl font-extrabold text-slate-800 mb-1">
+                {{ Math.round(searchedFood?.carbs || 0) }}
+              </p>
+              <p class="text-sm text-slate-500">gram</p>
+            </div>
 
-              <!-- Protein -->
-              <div class="bg-gradient-to-br from-pink-50 to-pink-100 border-2 border-pink-400 p-6 rounded-2xl text-center hover:-translate-y-1 hover:shadow-xl transition-all duration-300">
-                <p class="text-sm font-semibold text-slate-600 uppercase tracking-wide mb-2">Protein</p>
-                <p class="text-4xl font-extrabold text-slate-800 mb-1">
-                  {{ Math.round(searchedFood?.protein || 0) }}
-                </p>
-                <p class="text-sm text-slate-500">gram</p>
-              </div>
+            <!-- Protein -->
+            <div class="bg-gradient-to-br from-pink-50 to-pink-100 border-2 border-pink-400 p-6 rounded-2xl text-center hover:-translate-y-1 hover:shadow-xl transition-all duration-300">
+              <p class="text-sm font-semibold text-slate-600 uppercase tracking-wide mb-2">Protein</p>
+              <p class="text-4xl font-extrabold text-slate-800 mb-1">
+                {{ Math.round(searchedFood?.protein || 0) }}
+              </p>
+              <p class="text-sm text-slate-500">gram</p>
+            </div>
 
-              <!-- Fat -->
-              <div class="bg-gradient-to-br from-purple-50 to-purple-100 border-2 border-purple-400 p-6 rounded-2xl text-center hover:-translate-y-1 hover:shadow-xl transition-all duration-300">
-                <p class="text-sm font-semibold text-slate-600 uppercase tracking-wide mb-2">Lemak</p>
-                <p class="text-4xl font-extrabold text-slate-800 mb-1">
-                  {{ Math.round(searchedFood?.fat || 0) }}
-                </p>
-                <p class="text-sm text-slate-500">gram</p>
-              </div>
+            <!-- Fat -->
+            <div class="bg-gradient-to-br from-purple-50 to-purple-100 border-2 border-purple-400 p-6 rounded-2xl text-center hover:-translate-y-1 hover:shadow-xl transition-all duration-300">
+              <p class="text-sm font-semibold text-slate-600 uppercase tracking-wide mb-2">Lemak</p>
+              <p class="text-4xl font-extrabold text-slate-800 mb-1">
+                {{ Math.round(searchedFood?.fat || 0) }}
+              </p>
+              <p class="text-sm text-slate-500">gram</p>
+            </div>
 
-              <!-- Sodium/Salt -->
-              <div class="bg-gradient-to-br from-orange-50 to-orange-100 border-2 border-orange-400 p-6 rounded-2xl text-center hover:-translate-y-1 hover:shadow-xl transition-all duration-300">
-                <p class="text-sm font-semibold text-slate-600 uppercase tracking-wide mb-2">Garam</p>
-                <p class="text-4xl font-extrabold text-slate-800 mb-1">
-                  {{ Math.round((searchedFood?.salt || 0) * 1000) }}
-                </p>
-                <p class="text-sm text-slate-500">mg</p>
-              </div>
+            <!-- Sodium/Salt -->
+            <div class="bg-gradient-to-br from-orange-50 to-orange-100 border-2 border-orange-400 p-6 rounded-2xl text-center hover:-translate-y-1 hover:shadow-xl transition-all duration-300">
+              <p class="text-sm font-semibold text-slate-600 uppercase tracking-wide mb-2">Garam</p>
+              <p class="text-4xl font-extrabold text-slate-800 mb-1">
+                {{ saltDisplay.value }}
+              </p>
+              <p class="text-sm text-slate-500">{{ saltDisplay.unit }}</p>
+            </div>
 
-              <!-- Sugar -->
-              <div class="bg-gradient-to-br from-pink-50 to-pink-100 border-2 border-pink-400 p-6 rounded-2xl text-center hover:-translate-y-1 hover:shadow-xl transition-all duration-300">
-                <p class="text-sm font-semibold text-slate-600 uppercase tracking-wide mb-2">Gula</p>
-                <p class="text-4xl font-extrabold text-slate-800 mb-1">
-                  {{ Math.round(searchedFood?.sugar || 0) }}
-                </p>
-                <p class="text-sm text-slate-500">gram</p>
-              </div>
+            <!-- Sugar -->
+            <div class="bg-gradient-to-br from-pink-50 to-pink-100 border-2 border-pink-400 p-6 rounded-2xl text-center hover:-translate-y-1 hover:shadow-xl transition-all duration-300">
+              <p class="text-sm font-semibold text-slate-600 uppercase tracking-wide mb-2">Gula</p>
+              <p class="text-4xl font-extrabold text-slate-800 mb-1">
+                {{ Math.round(searchedFood?.sugar || 0) }}
+              </p>
+              <p class="text-sm text-slate-500">gram</p>
+            </div>
           </div>
 
           <!-- Action Buttons -->
@@ -464,39 +463,99 @@ const fileInput = ref(null)
 const scannerSection = ref(null)
 const imageLoadFailed = ref(false)
 
-// Computed
+// Computed: Image Source dengan prioritas yang jelas
 const imageSrcValue = computed(() => {
   const product = props.searchedFood
   if (!product) return null
 
-  // Coba langsung dari imageUrl (sudah ada di response)
-  if (product.imageUrl) return product.imageUrl
+  // Priority order untuk gambar
+  const candidates = [
+    product.image_url,
+    product.imageUrl,
+    product.image_front_url,
+    product.image_small_url,
+    product.image_front_small_url
+  ]
 
-  // Fallback ke properti lain jika ada
+  // Fallback ke properti dalam _raw object
   const raw = product._raw || product
   if (raw && typeof raw === 'object') {
-    return raw.image_url || raw.image_small_url || raw.image_front_url || raw.image_front_small_url || null
+    candidates.push(
+      raw.image_url,
+      raw.image_front_url,
+      raw.image_small_url,
+      raw.image_front_small_url
+    )
   }
 
-  return null
+  // Cari URL yang valid (tidak kosong)
+  const found = candidates.find(u => u && String(u).trim() !== '') || null
+  if (!found) return null
+
+  // Pastikan URL absolute
+  const url = String(found)
+  if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:') || url.startsWith('blob:')) {
+    return url
+  }
+
+  // Handle relative URL
+  const base = (import.meta.env.VITE_API_URL && String(import.meta.env.VITE_API_URL).replace(/\/$/, '')) || 'http://localhost:3000'
+  if (url.startsWith('/')) return base + url
+  return base + '/' + url
 })
 
-// Methods
+// Computed: Format garam/sodium untuk tampilan
+const saltDisplay = computed(() => {
+  const product = props.searchedFood
+  if (!product) return { value: 0, unit: 'mg' }
+
+  // Ambil nutriments object
+  const nutriments = product.nutriments || {}
+
+  // Priority: sodium_100g > sodium_serving > sodium > salt
+  // sodium biasanya dalam gram, kita konversi ke mg
+  const sodiumGrams = nutriments.sodium_100g
+    || nutriments.sodium_serving
+    || nutriments.sodium
+    || product.sodium
+    || product.salt
+    || 0
+
+  const val = Number(sodiumGrams) || 0
+
+  // Heuristik konversi:
+  // - Jika nilai > 10 → anggap sudah dalam mg
+  // - Jika nilai <= 10 → anggap dalam gram, konversi ke mg (1g = 1000mg)
+  if (val > 10) {
+    return { value: Math.round(val), unit: 'mg' }
+  }
+
+  // Konversi dari gram ke mg
+  return { value: Math.round(val * 1000), unit: 'mg' }
+})
+
+// Methods: Normalize barcode
 const normalizeBarcode = (raw) => {
   if (!raw) return ''
   let b = String(raw).trim()
+  // Hapus semua karakter non-digit
   b = b.replace(/\D/g, '')
+  // Jika 12 digit (UPC-A), tambah 0 di depan untuk jadi EAN-13
   if (b.length === 12) b = '0' + b
   return b
 }
 
+// Methods: Handle image error
 const onImageError = (event) => {
   try {
     if (event?.target) event.target.style.display = 'none'
-  } catch {}
+  } catch (err) {
+    console.error('Image error handler failed:', err)
+  }
   imageLoadFailed.value = true
 }
 
+// Methods: Initialize camera
 const onInit = async (promise) => {
   try {
     await promise
@@ -506,12 +565,15 @@ const onInit = async (promise) => {
       cameraError.value = "Izin kamera diperlukan untuk menggunakan fitur ini."
     } else if (error.name === 'NotFoundError') {
       cameraError.value = "Tidak ada kamera yang ditemukan di perangkat ini."
+    } else if (error.name === 'NotReadableError') {
+      cameraError.value = "Kamera sedang digunakan oleh aplikasi lain."
     } else {
-      cameraError.value = "Terjadi kesalahan saat mengakses kamera."
+      cameraError.value = "Terjadi kesalahan saat mengakses kamera: " + error.message
     }
   }
 }
 
+// Methods: Decode barcode from camera
 const onDecode = async (decodedString) => {
   if (decodedString) {
     const normalized = normalizeBarcode(decodedString)
@@ -522,29 +584,52 @@ const onDecode = async (decodedString) => {
   }
 }
 
+// Methods: Start camera
 const startCamera = () => {
+  cameraError.value = ''
   isScanning.value = true
 }
 
+// Methods: Stop camera
 const stopCamera = () => {
   isScanning.value = false
+  cameraError.value = ''
 }
 
+// Methods: Trigger file input
 const triggerFileInput = () => {
   if (props.searchLoading) return
   uploadError.value = ''
-  fileInput.value.click()
+  fileInput.value?.click()
 }
 
+// Methods: Handle file change (upload)
 const onFileChange = (event) => {
-  const file = event.target.files[0]
+  const file = event.target.files?.[0]
   if (!file) return
+
+  // Validasi ukuran file (max 5MB)
+  if (file.size > 5 * 1024 * 1024) {
+    uploadError.value = 'Ukuran file terlalu besar. Maksimal 5MB.'
+    return
+  }
+
+  // Validasi tipe file
+  if (!file.type.startsWith('image/')) {
+    uploadError.value = 'File harus berupa gambar (JPG, PNG).'
+    return
+  }
 
   const reader = new FileReader()
   reader.onload = async (e) => {
     uploadedImage.value = e.target.result
 
+    // Simulasi processing dengan delay
+    uploadError.value = 'Memproses gambar...'
+
     setTimeout(async () => {
+      // TODO: Ganti dengan API OCR barcode yang sesungguhnya
+      // Saat ini menggunakan barcode dummy untuk demo
       const fakeBarcode = "8992761134017"
       const normalized = normalizeBarcode(fakeBarcode)
       barcodeInput.value = normalized
@@ -552,41 +637,59 @@ const onFileChange = (event) => {
       uploadError.value = ''
     }, 1500)
   }
+
+  reader.onerror = () => {
+    uploadError.value = 'Gagal membaca file. Silakan coba lagi.'
+  }
+
   reader.readAsDataURL(file)
-  event.target.value = ''
+  event.target.value = '' // Reset input
 }
 
+// Methods: Clear upload
 const clearUpload = () => {
   uploadedImage.value = null
   barcodeInput.value = ''
+  uploadError.value = ''
   emit('cancel')
 }
 
+// Methods: Change tab
 const changeTab = (tabName) => {
   activeTab.value = tabName
   barcodeInput.value = ''
   uploadedImage.value = null
+  uploadError.value = ''
+  cameraError.value = ''
   emit('cancel')
   stopCamera()
 }
 
+// Methods: Handle search
 const handleSearch = () => {
   if (!barcodeInput.value || props.searchLoading) return
 
   const normalized = normalizeBarcode(barcodeInput.value)
-  if (!normalized) return
+  if (!normalized) {
+    cameraError.value = 'Barcode tidak valid. Harap masukkan angka yang benar.'
+    return
+  }
 
   barcodeInput.value = normalized
   emit('search', normalized)
 }
 
+// Methods: Handle cancel
 const handleCancel = () => {
   barcodeInput.value = ''
   uploadedImage.value = null
+  uploadError.value = ''
+  cameraError.value = ''
   emit('cancel')
   stopCamera()
 }
 
+// Methods: Handle toggle favorite
 const handleToggleFavorite = () => {
   console.log('🌟 Toggle favorite clicked!')
   emit('toggle-favorite')
@@ -618,6 +721,28 @@ defineExpose({
 }
 
 .animate-fade-in {
-  animation: fadeIn 0.3s ease;
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Smooth transitions */
+button {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Focus states untuk accessibility */
+input:focus,
+button:focus {
+  outline: none;
+}
+
+/* Loading spinner animation */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
 }
 </style>

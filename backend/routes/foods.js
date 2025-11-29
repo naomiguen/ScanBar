@@ -488,59 +488,161 @@ router.get('/summary', auth, async (req, res) => {
 // @desc    Mencari produk berdasarkan barcode menggunakan Open Food Facts API
 // @access  Public (Siapa saja bisa mencari produk)
 router.get('/barcode/:barcode', async (req, res) => {
-  const raw = req.params.barcode;
-  const barcode = String(raw || '').replace(/\D/g, '');
-  console.info(`[foods] /barcode lookup requested. raw="${raw}" sanitized="${barcode}"`);
-
-  if (!barcode) {
-    return res.status(400).json({ message: 'Barcode tidak valid (harus berisi angka).' });
-  }
-
   try {
-    const food = await Food.findOne({ barcode });
-    if (food) {
-      console.info(`[foods] barcode ${barcode} found in local DB (id=${food._id})`);
-      return res.json(food.toObject());
+    const db = req.app.locals.db;
+    const { barcode } = req.params;
+
+    console.log(`🔍 [BARCODE SEARCH] Raw input: "${barcode}"`);
+
+    // Validasi dan normalisasi barcode
+    if (!barcode || barcode.trim() === '') {
+      return res.status(400).json({ msg: 'Kode barcode tidak valid' });
     }
 
-    const truncateForLog = (obj, max = 200) => {
-      try {
-        const s = JSON.stringify(obj);
-        return s.length > max ? s.slice(0, max) + '…' : s;
-      } catch (e) {
-        return String(obj).slice(0, max);
-      }
-    };
-
-    const attempts = [
-      { name: 'v2', url: `https://world.openfoodfacts.org/api/v2/product/${barcode}` },
-      { name: 'v0', url: `https://world.openfoodfacts.org/api/v0/product/${barcode}.json` },
-    ];
-
-    for (const attempt of attempts) {
-      try {
-        console.info(`[foods] trying OpenFoodFacts ${attempt.name} endpoint for barcode ${barcode}`);
-        const ofRes = await axios.get(attempt.url, { timeout: 6000 });
-        console.info(`[foods] OF ${attempt.name} status=${ofRes.status} for barcode ${barcode}`);
-
-        if (ofRes.status === 200 && ofRes.data) {
-          const product = ofRes.data.product || (ofRes.data.status === 1 ? ofRes.data.product : null);
-          console.info(`[foods] OF ${attempt.name} response preview: ${truncateForLog(ofRes.data)}`);
-
-          if (product) {
-            return res.json(product);
-          }
-        }
-      } catch (innerErr) {
-        console.warn(`[foods] OpenFoodFacts ${attempt.name} request failed for ${barcode}: ${innerErr.message}`);
-      }
+    const normalizedCode = barcode.trim().replace(/\D/g, '');
+    
+    if (normalizedCode.length < 8) {
+      return res.status(400).json({ msg: 'Kode barcode terlalu pendek (minimal 8 digit)' });
     }
 
-    console.info(`[foods] barcode ${barcode} not found in DB nor OpenFoodFacts`);
-    return res.status(404).json({ message: 'Produk dengan barcode tersebut tidak ditemukan di database maupun OpenFoodFacts.' });
+    console.log(`🔍 [BARCODE SEARCH] Normalized: "${normalizedCode}"`);
+
+    //cek database
+    console.log(`📁 [STEP 1] Checking local database for barcode: ${normalizedCode}`);
+    
+    const localProduct = await db.collection('products').findOne({ 
+      code: normalizedCode 
+    });
+
+    if (localProduct) {
+      console.log(`✅ [LOCAL DB HIT] Product found in local database!`);
+      console.log(`   - Name: ${localProduct.product_name}`);
+      console.log(`   - Source: ${localProduct.source}`);
+      console.log(`   - Nutriments:`, localProduct.nutriments);
+      
+      // Return dengan format yang konsisten
+      return res.json({
+        code: localProduct.code,
+        product_name: localProduct.product_name,
+        brands: localProduct.brands || 'Tidak Diketahui',
+        image_url: localProduct.image_url || '',
+        nutriments: localProduct.nutriments,
+        source: localProduct.source || 'local_cache',
+        cached: true // Flag: data dari local DB
+      });
+    }
+
+    // TIDAK ADA DI LOCAL → CEK OPEN FOOD FACTS API
+    console.log(`🌐 [STEP 2] Not found in local DB. Querying Open Food Facts API...`);
+
+    try {
+      const offResponse = await axios.get(
+        `https://world.openfoodfacts.org/api/v0/product/${normalizedCode}.json`,
+        { timeout: 8000 }
+      );
+
+      const offData = offResponse.data;
+
+      // Validasi response dari API
+      if (offData.status !== 1 || !offData.product) {
+        console.log(`❌ [API] Product not found in Open Food Facts`);
+        return res.status(404).json({ 
+          msg: 'Produk tidak ditemukan di database manapun',
+          suggestion: 'Silakan gunakan fitur input manual untuk menambahkan produk ini'
+        });
+      }
+
+      const p = offData.product;
+      const nutrients = p.nutriments || {};
+
+      console.log(`✅ [API] Product found: ${p.product_name || 'Unnamed'}`);
+      console.log(`   - Validating nutrition data...`);
+
+      // Ambil nilai nutrisi dengan fallback
+      const calories = nutrients["energy-kcal"] || nutrients["energy-kcal_100g"] || 0;
+      const proteins = nutrients.proteins_100g || nutrients.proteins || 0;
+      const carbs = nutrients.carbohydrates_100g || nutrients.carbohydrates || 0;
+      const fat = nutrients.fat_100g || nutrients.fat || 0;
+
+      // Validasi: Minimal ada 1 nilai nutrisi > 0
+      const hasValidNutrition = calories > 0 || proteins > 0 || carbs > 0 || fat > 0;
+
+      if (!hasValidNutrition) {
+        console.log(`⚠️ [VALIDATION FAILED] Nutrition data is empty or invalid`);
+        console.log(`   Calories: ${calories}, Protein: ${proteins}, Carbs: ${carbs}, Fat: ${fat}`);
+        
+        return res.status(404).json({ 
+          msg: 'Produk ditemukan tetapi data nutrisi tidak lengkap',
+          suggestion: 'Silakan gunakan fitur input manual untuk melengkapi data nutrisi',
+          productName: p.product_name || 'Nama tidak tersedia'
+        });
+      }
+
+      console.log(`✅ [VALIDATION PASSED] Nutrition data is valid`);
+      console.log(`   - Calories: ${calories} kcal`);
+      console.log(`   - Protein: ${proteins}g, Carbs: ${carbs}g, Fat: ${fat}g`);
+
+      // STEP 3: SIMPAN KE DATABASE LOKAL (CACHE)
+      const productToCache = {
+        code: normalizedCode,
+        product_name: p.product_name || 'Tanpa Nama',
+        brands: p.brands || 'Tidak Diketahui',
+        image_url: p.image_front_url || p.image_url || '',
+        nutriments: {
+          // PENTING: Gunakan format yang SAMA dengan input admin
+          calories: parseFloat(calories) || 0,       
+          proteins: parseFloat(proteins) || 0,       
+          carbs: parseFloat(carbs) || 0,                       
+          fat: parseFloat(fat) || 0,                 
+          sugar: parseFloat(nutrients.sugars_100g || nutrients.sugars || 0),
+          sodium: parseFloat(nutrients.sodium_100g || nutrients.sodium || 0)
+        },
+        source: 'open_food_facts',
+        created_at: new Date(),
+        last_updated: new Date()
+      };
+
+      await db.collection('products').insertOne(productToCache);
+      console.log(`💾 [CACHE SAVED] Product cached to local database`);
+
+      // Return data yang sudah disimpan
+      return res.json({
+        ...productToCache,
+        cached: false // Flag: data fresh dari API
+      });
+
+    } catch (apiError) {
+      // Handle error dari external API
+      console.error(`❌ [API ERROR]`, apiError.message);
+
+      if (apiError.code === 'ECONNABORTED' || apiError.code === 'ETIMEDOUT') {
+        return res.status(504).json({ 
+          msg: 'Koneksi ke server data eksternal timeout',
+          suggestion: 'Silakan coba lagi atau gunakan input manual'
+        });
+      }
+
+      if (apiError.response?.status === 404) {
+        return res.status(404).json({ 
+          msg: 'Produk tidak ditemukan di database manapun',
+          suggestion: 'Silakan gunakan fitur input manual'
+        });
+      }
+
+      // Error lainnya
+      return res.status(503).json({ 
+        msg: 'Gagal menghubungi server data eksternal',
+        suggestion: 'Silakan coba lagi atau gunakan input manual',
+        error: process.env.NODE_ENV === 'development' ? apiError.message : undefined
+      });
+    }
+
   } catch (err) {
-    console.error('[foods] barcode lookup error', err && err.stack ? err.stack : err);
-    return res.status(500).json({ message: 'Terjadi kesalahan saat mencari produk.' });
+    console.error('💥 [SERVER ERROR]', err.message);
+    res.status(500).json({ 
+      msg: 'Terjadi kesalahan pada server',
+      error: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
   }
 });
 

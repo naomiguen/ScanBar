@@ -139,7 +139,7 @@
               <!-- Kartu Garam (ditampilkan dalam mg) -->
               <div class="bg-slate-100 rounded-xl p-3 text-center">
                 <div class="text-xl md:text-2xl font-bold text-slate-600">
-                  {{ Math.round((food.salt || 0) * 1000) }}mg
+                  {{ normalizeSaltDisplay(food.salt || 0).value }}{{ normalizeSaltDisplay(food.salt || 0).unit }}
                 </div>
                 <div class="text-xs font-medium text-slate-700 mt-1">
                   garam
@@ -336,6 +336,7 @@ import { toast } from 'vue-sonner'
 import { useAuthStore } from '@/stores/auth'
 import { useFoodStore } from '@/stores/food'
 import FavoritesList from '@/components/FavoritesList.vue'
+import { normalizeSaltDisplay } from '@/utils/units'
 
 // Inisialisasi store untuk autentikasi dan data makanan
 const authStore = useAuthStore()
@@ -410,8 +411,12 @@ const summaryData = computed(() => ({
   },
   garam: {
     label: 'Garam',
-    value: Math.round((foodStore.totals.salt || 0) * 1000),
-    max: authStore.user?.user_metadata?.dailySodiumGoal || 2000,
+    value: normalizeSaltDisplay(foodStore.totals.salt || 0).value,
+    max: (() => {
+      const meta = authStore.user?.user_metadata || {}
+      const pref = meta.dailySodiumGoal || meta.dailySaltGoal || 2000
+      return normalizeSaltDisplay(pref).value
+    })(),
     unit: 'mg',
     class: 'garam',
   },
@@ -454,7 +459,7 @@ const executeDelete = async () => {
     await foodStore.deleteFood(deleteConfirm.value.foodId)
     cancelDelete()
 
-    // ✨ REFRESH ANALISIS setelah delete (karena cache akan di-invalidate di backend)
+    // REFRESH ANALISIS setelah delete (karena cache akan di-invalidate di backend)
     // Kita tunggu sebentar biar backend sempat delete cache dulu
     setTimeout(async () => {
       await foodStore.fetchDailyAnalysis()

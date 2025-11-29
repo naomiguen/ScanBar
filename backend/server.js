@@ -49,7 +49,7 @@ https.createServer(httpsOptions, app).listen(PORT, '0.0.0.0', () => {
 
 MongoClient.connect(process.env.MONGODB_URI)
   .then(client => {
-    console.log("✅ MongoDB Lokal Terhubung...");
+    console.log(" MongoDB Lokal Terhubung...");
 
     const db = client.db('scanbar'); 
     

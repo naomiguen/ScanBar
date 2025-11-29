@@ -118,6 +118,11 @@
           <div v-else class="space-y-4">
             <div class="relative rounded-xl overflow-hidden bg-slate-100">
               <img :src="capturedImage" alt="Captured food" class="w-full h-auto max-h-[400px] md:max-h-[500px] object-contain" />
+
+              <!-- Compression indicator -->
+              <div v-if="imageCompressed" class="absolute top-2 right-2 bg-green-500 text-white text-xs px-3 py-1 rounded-full shadow-lg">
+                ✓ Dioptimalkan
+              </div>
             </div>
 
             <div class="flex flex-col sm:flex-row gap-3">
@@ -138,7 +143,7 @@
                     : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/30 hover:-translate-y-0.5 hover:shadow-xl'
                 ]"
               >
-                <span v-if="!isAnalyzing"></span>
+                <span v-if="!isAnalyzing">🔍</span>
                 <span v-else class="animate-spin">⏳</span>
                 {{ isAnalyzing ? 'Menganalisis...' : 'Analisis Nutrisi' }}
               </button>
@@ -252,6 +257,10 @@
               <span class="text-green-600 font-bold flex-shrink-0">✓</span>
               <span>Untuk makanan kompleks, hasil mungkin berbeda dengan nilai aktual</span>
             </li>
+            <li class="flex items-start gap-2">
+              <span class="text-green-600 font-bold flex-shrink-0">✓</span>
+              <span>Gambar akan dioptimalkan otomatis untuk proses analisis yang lebih cepat</span>
+            </li>
           </ul>
         </div>
       </div>
@@ -260,7 +269,7 @@
 </template>
 
 <script setup>
-import { ref, onUnmounted } from 'vue'
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useFoodStore } from '@/stores/food'
@@ -276,6 +285,7 @@ const capturedImage = ref(null)
 const analysisResult = ref(null)
 const isAnalyzing = ref(false)
 const isSaving = ref(false)
+const imageCompressed = ref(false)
 
 // Modal state
 const showModal = ref(false)
@@ -302,10 +312,8 @@ const isMobileDevice = () => {
   return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
 }
 
-// Camera functions - Different approach for mobile vs desktop
+// Camera functions
 const openCamera = () => {
-  // On mobile devices, the input with capture="environment" should directly open camera
-  // On desktop, it will show file picker
   fileInput.value?.click()
 }
 
@@ -317,11 +325,47 @@ const onFileChange = (event) => {
   reader.onload = (e) => {
     capturedImage.value = e.target.result
     analysisResult.value = null
+    imageCompressed.value = false
   }
   reader.readAsDataURL(file)
 
   // Reset input value so the same file can be selected again
   event.target.value = ''
+}
+
+// Helper function untuk compress image
+const compressImage = (base64Image) => {
+  return new Promise((resolve) => {
+    const img = new Image()
+    img.onload = () => {
+      const canvas = document.createElement('canvas')
+      const ctx = canvas.getContext('2d')
+
+      // Resize jika lebih besar dari 1024px
+      let width = img.width
+      let height = img.height
+      const maxDimension = 1024
+
+      if (width > maxDimension || height > maxDimension) {
+        if (width > height) {
+          height = (height / width) * maxDimension
+          width = maxDimension
+        } else {
+          width = (width / height) * maxDimension
+          height = maxDimension
+        }
+      }
+
+      canvas.width = width
+      canvas.height = height
+      ctx.drawImage(img, 0, 0, width, height)
+
+      // Compress quality 0.8
+      const compressed = canvas.toDataURL('image/jpeg', 0.8)
+      resolve(compressed.split(',')[1])
+    }
+    img.src = base64Image
+  })
 }
 
 // Analyze image with AI
@@ -334,37 +378,83 @@ const analyzeImage = async () => {
   isAnalyzing.value = true
 
   try {
-    // Extract base64 string and mime type
-    const base64WithPrefix = capturedImage.value
-    const [mimeTypePart, base64Data] = base64WithPrefix.split(',')
-    const mimeType = mimeTypePart.match(/:(.*?);/)[1]
+    // Extract base64 string
+    let base64Data = capturedImage.value.split(',')[1]
 
-    console.log('📤 Sending to backend:', { mimeType, dataLength: base64Data.length })
+    // Compress image jika terlalu besar
+    const maxSize = 1024 * 1024 // 1MB
+    if (base64Data.length > maxSize) {
+      console.log('🗜️ Compressing large image...')
+      base64Data = await compressImage(capturedImage.value)
+      imageCompressed.value = true
+      console.log('✅ Image compressed successfully')
+    }
 
-    // Call backend API
-    const response = await apiClient.post('/api/ai/analyze-image', {
-      imageData: base64Data,
-      mimeType: mimeType
+    // Get mime type
+    const mimeTypePart = capturedImage.value.split(',')[0]
+    const mimeType = mimeTypePart.match(/:(.*?);/)?.[1] || 'image/jpeg'
+
+    console.log('📤 Sending to backend:', {
+      mimeType,
+      dataLength: base64Data.length,
+      compressed: imageCompressed.value
     })
 
-    console.log('✅ Backend response:', response.data)
+    // Call backend API with timeout handling
+    const timeoutMs = 60000 // 60 seconds timeout
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs)
 
-    analysisResult.value = response.data
+    try {
+      const response = await apiClient.post('/api/ai/analyze-image', {
+        imageData: base64Data,
+        mimeType: mimeType
+      }, {
+        signal: controller.signal
+      })
 
-    showNotification(
-      'success',
-      'Analisis Selesai!',
-      'AI berhasil menganalisis kandungan nutrisi makanan Anda'
-    )
+      clearTimeout(timeoutId)
+      console.log('✅ Backend response:', response.data)
+
+      analysisResult.value = response.data
+
+      showNotification(
+        'success',
+        'Analisis Selesai!',
+        'AI berhasil menganalisis kandungan nutrisi makanan Anda'
+      )
+
+    } catch (error) {
+      clearTimeout(timeoutId)
+
+      if (error.name === 'AbortError' || error.code === 'ECONNABORTED') {
+        throw {
+          type: 'timeout',
+          message: 'Analisis memakan waktu terlalu lama. Coba foto dengan pencahayaan lebih baik atau makanan lebih sederhana.'
+        }
+      }
+      throw error
+    }
 
   } catch (error) {
     console.error('❌ Error analyzing image:', error)
 
+    let errorMessage = 'Terjadi kesalahan saat menganalisis gambar.'
+    let errorDetail = error.response?.data?.error || error.message || 'Silakan coba lagi'
+
+    if (error.type === 'timeout') {
+      errorMessage = 'Waktu Analisis Habis'
+      errorDetail = error.message
+    } else if (!navigator.onLine) {
+      errorMessage = 'Tidak Ada Koneksi'
+      errorDetail = 'Tidak dapat terhubung ke server. Periksa koneksi internet Anda.'
+    }
+
     showNotification(
       'error',
-      'Gagal Menganalisis',
-      'Terjadi kesalahan saat menganalisis gambar.',
-      error.response?.data?.error || error.message || 'Silakan coba lagi'
+      errorMessage,
+      'Mohon coba lagi dengan foto yang lebih jelas.',
+      errorDetail
     )
   } finally {
     isAnalyzing.value = false
@@ -434,6 +524,7 @@ const resetAll = () => {
   analysisResult.value = null
   isAnalyzing.value = false
   isSaving.value = false
+  imageCompressed.value = false
 }
 </script>
 
