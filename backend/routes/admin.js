@@ -12,7 +12,8 @@ router.get('/stats', auth, admin, async (req, res) => {
   try {
     const { count: userCount, error: userError } = await supabase
       .from('profiles')
-      .select('*', { count: 'exact', head: true });
+      .select('*', { count: 'exact', head: true })
+      .is('deleted_at', null);
 
     if (userError) throw userError;
 
@@ -37,33 +38,61 @@ router.get('/stats', auth, admin, async (req, res) => {
 // @desc    Ambil daftar semua pengguna dengan metadata tambahan
 router.get('/users', auth, admin, async (req, res) => {
   try {
-    // Gunakan RPC function
     const { data, error } = await supabase
-      .rpc('admin_get_users_with_metadata');
+      .from('profiles')
+      .select('*')
+      .is('deleted_at', null)
+      .order('created_at', { ascending: false });
 
-    if (error) {
-      console.error('❌ RPC Error:', error.message);
-      throw error;
-    }
-
-    console.log(`✅ Fetched ${data.length} users via RPC`);
-    if (data.length > 0) {
-      console.log('Sample user:', {
-        email: data[0].email,
-        calories: data[0].daily_calorie_goal,
-        protein: data[0].daily_protein_goal
-      });
-    }
-
+    if (error) throw error;
     res.json(data);
   } catch (err) {
-    console.error("❌ Route Error:", err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+// @route   GET /api/admin/users/trash
+// @desc    Ambil daftar pengguna yang sudah dihapus (Recycle Bin)
+router.get('/users/trash', auth, admin, async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .not('deleted_at', 'is', null)
+      .order('deleted_at', { ascending: false });
+
+    if (error) throw error;
+    res.json(data);
+  } catch (err) {
+    console.error('Trash Fetch Error:', err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+// @route   PUT /api/admin/users/:id/restore
+// @desc    Restore pengguna yang sudah dihapus (set deleted_at = NULL)
+router.put('/users/:id/restore', auth, admin, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const { error } = await supabase
+      .from('profiles')
+      .update({ deleted_at: null })
+      .eq('id', id);
+
+    if (error) throw error;
+
+    console.log(`User ${id} restored successfully`);
+    res.json({ msg: 'Pengguna berhasil dipulihkan!' });
+
+  } catch (err) {
+    console.error('Restore Error:', err.message);
     res.status(500).send('Server Error');
   }
 });
 
 // @route   DELETE /api/admin/users/:id
-// @desc    Hapus pengguna berdasarkan ID
+// @desc    Soft Delete pengguna (Menandai deleted_at dengan waktu sekarang)
 router.delete('/users/:id', auth, admin, async (req, res) => {
   try {
     const { id } = req.params;
@@ -78,16 +107,15 @@ router.delete('/users/:id', auth, admin, async (req, res) => {
       return res.status(403).json({ msg: 'TIDAK BOLEH menghapus sesama Admin!' });
     }
 
-    // Hapus dari profiles
     const { error } = await supabase
       .from('profiles')
-      .delete()
+      .update({ deleted_at: new Date() }) 
       .eq('id', id);
 
     if (error) throw error;
 
-    console.log(` User ${id} deleted successfully`);
-    res.json({ msg: 'Pengguna berhasil dihapus' });
+    console.log(`User ${id} soft-deleted successfully`);
+    res.json({ msg: 'Pengguna berhasil dinonaktifkan (Soft Delete)' });
 
   } catch (err) {
     console.error('Delete Error:', err.message);

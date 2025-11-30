@@ -65,7 +65,7 @@ export const useAuthStore = defineStore('auth', () => {
       console.log('=========================');
 
       // Redirect ke route yang sesuai, router guard akan validasi
-      const targetRoute = isAdmin.value ? '/admin' : '/dashboard';
+      const targetRoute = isAdmin.value ? '/admin' : '/';
       console.log('➡️ Attempting redirect to:', targetRoute);
 
       // Gunakan nextTick untuk pastikan state sudah ter-update sepenuhnya

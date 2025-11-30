@@ -11,6 +11,7 @@ import ResetPasswordView from '../views/ResetPasswordView.vue'
 import PhotoScanView from '../views/PhotoScan.vue'
 import AdminDashboardView from '../views/AdminDashboard.vue'
 import AdminAddProductView from '@/views/AdminAddProductView.vue'
+import AdminTrashView from '@/views/AdminTrashView.vue';
 
 const routes = [
   {
@@ -77,6 +78,13 @@ const routes = [
   component: AdminAddProductView,
   meta: { requiresAuth: true, requiresAdmin: true }
 },
+
+  {
+    path: '/admin/trash',
+    name: 'AdminTrash',
+    component: AdminTrashView,
+    meta: { requiresAuth: true, requiresAdmin: true }
+  }
 
 ]
 

@@ -51,7 +51,7 @@ router.post('/analyze-image', auth, async (req, res) => {
     const imageBuffer = Buffer.from(imageData, "base64");
     const imageParts = [bufferToGenerativePart(imageBuffer, mimeType)];
 
-    // GUNAKAN FLASH untuk kecepatan optimal
+    // GUNAKAN FLASH 
     const modelName = process.env.GENERATIVE_MODEL || "gemini-1.5-flash-latest";
     const visionModel = genAI.getGenerativeModel({ 
       model: modelName,

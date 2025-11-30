@@ -1,8 +1,10 @@
 <template>
-  <div class="scanner-container">
-    <video ref="videoElement" class="scanner-video" autoplay></video>
-    <div class="overlay"></div>
-    <p class="status-text">{{ statusText }}</p>
+  <div class="w-full h-[300px] relative overflow-hidden rounded-xl">
+    <video ref="videoElement" class="w-full h-full object-cover" autoplay></video>
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4/5 h-[100px] border-2 border-white/80 shadow-[0_0_0_100vmax_rgba(0,0,0,0.5)]"></div>
+    <p class="absolute bottom-2.5 left-1/2 -translate-x-1/2 text-white bg-black/70 px-2.5 py-1.5 rounded-lg text-sm">
+      {{ statusText }}
+    </p>
   </div>
 </template>
 
@@ -60,38 +62,3 @@ onUnmounted(() => {
   }
 });
 </script>
-
-<style scoped>
-.scanner-container {
-  width: 100%;
-  height: 300px;
-  position: relative;
-  overflow: hidden;
-  border-radius: 12px;
-}
-.scanner-video {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-.overlay {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 80%;
-  height: 100px;
-  border: 2px solid rgba(255, 255, 255, 0.8);
-  box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.5);
-}
-.status-text {
-  position: absolute;
-  bottom: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  color: white;
-  background-color: rgba(0, 0, 0, 0.7);
-  padding: 5px 10px;
-  border-radius: 5px;
-}
-</style>
