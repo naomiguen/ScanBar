@@ -123,4 +123,57 @@ router.delete('/users/:id', auth, admin, async (req, res) => {
   }
 });
 
+
+// @route   DELETE /api/admin/users/:id/permanent
+// @desc    Hard Delete pengguna secara permanen dari database
+router.delete('/users/:id/permanent', auth, admin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    console.log('Attempting to permanently delete user:', id);
+    
+    // Cek apakah user ada (termasuk yang sudah soft deleted)
+    const { data: user, error: fetchError } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', id)
+      .single();
+    
+    if (fetchError || !user) {
+      console.log('User not found:', id);
+      return res.status(404).json({ 
+        success: false, 
+        msg: 'User tidak ditemukan' 
+      });
+    }
+    
+    console.log('User found:', user.email, 'Permanently deleting...');
+    
+    // Hard delete dari database (permanent delete)
+    const { error: deleteError } = await supabase
+      .from('profiles')
+      .delete()
+      .eq('id', id);
+    
+    if (deleteError) {
+      console.error('Delete error:', deleteError);
+      throw deleteError;
+    }
+    
+    console.log('User successfully deleted permanently:', id);
+    
+    return res.status(200).json({ 
+      success: true, 
+      msg: 'User berhasil dihapus permanen' 
+    });
+    
+  } catch (error) {
+    console.error('Error deleting user permanently:', error);
+    return res.status(500).json({ 
+      success: false, 
+      msg: 'Gagal menghapus user: ' + error.message
+    });
+  }
+});
+
 module.exports = router;

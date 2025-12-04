@@ -12,6 +12,16 @@
       @confirm="confirmRestore"
     />
 
+    <!-- Delete Permanent Modal -->
+    <DeletePermanentModal
+      :is-open="deleteModal.isOpen"
+      :user-name="deleteModal.userName"
+      :user-email="deleteModal.userEmail"
+      :deleted-at="deleteModal.deletedAt"
+      @close="closeDeleteModal"
+      @confirm="confirmDeletePermanent"
+    />
+
     <main class="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
 
       <!-- Stats Card - Responsive -->
@@ -134,15 +144,28 @@
                     </div>
                   </td>
                   <td class="p-2 sm:p-3 md:p-4 pr-3 sm:pr-4 md:pr-6 text-center align-middle">
-                    <button
-                      @click="openRestoreModal(user)"
-                      class="text-emerald-600 hover:text-white hover:bg-gradient-to-r hover:from-emerald-500 hover:to-green-600 text-[10px] sm:text-xs font-semibold border-2 border-emerald-200 hover:border-emerald-500 px-2 sm:px-2.5 md:px-3 py-1 sm:py-1.5 rounded-md sm:rounded-lg transition-all duration-200 active:scale-95 shadow-sm hover:shadow-md inline-flex items-center gap-1 sm:gap-1.5 touch-manipulation"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd" />
-                      </svg>
-                      <span class="hidden sm:inline">Pulihkan</span>
-                    </button>
+                    <div class="flex items-center justify-center gap-1.5 sm:gap-2">
+                      <button
+                        @click="openRestoreModal(user)"
+                        class="text-emerald-600 hover:text-white hover:bg-gradient-to-r hover:from-emerald-500 hover:to-green-600 text-[10px] sm:text-xs font-semibold border-2 border-emerald-200 hover:border-emerald-500 px-2 sm:px-2.5 md:px-3 py-1 sm:py-1.5 rounded-md sm:rounded-lg transition-all duration-200 active:scale-95 shadow-sm hover:shadow-md inline-flex items-center gap-1 sm:gap-1.5 touch-manipulation"
+                        title="Pulihkan Pengguna"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4" viewBox="0 0 20 20" fill="currentColor">
+                          <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd" />
+                        </svg>
+                        <span class="hidden sm:inline">Pulihkan</span>
+                      </button>
+                      <button
+                        @click="openDeleteModal(user)"
+                        class="text-red-600 hover:text-white hover:bg-gradient-to-r hover:from-red-500 hover:to-red-600 text-[10px] sm:text-xs font-semibold border-2 border-red-200 hover:border-red-500 px-2 sm:px-2.5 md:px-3 py-1 sm:py-1.5 rounded-md sm:rounded-lg transition-all duration-200 active:scale-95 shadow-sm hover:shadow-md inline-flex items-center gap-1 sm:gap-1.5 touch-manipulation"
+                        title="Hapus Permanen"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4" viewBox="0 0 20 20" fill="currentColor">
+                          <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                        </svg>
+                        <span class="hidden sm:inline">Hapus</span>
+                      </button>
+                    </div>
                   </td>
                 </tr>
 
@@ -160,7 +183,7 @@
                       </div>
                       <div class="flex justify-between items-center py-1 pt-2 border-t border-slate-200">
                         <div class="font-semibold">Aksi</div>
-                        <div>
+                        <div class="flex gap-1.5">
                           <button
                             @click="openRestoreModal(user)"
                             class="text-emerald-600 hover:text-white hover:bg-gradient-to-r hover:from-emerald-500 hover:to-green-600 text-[10px] sm:text-xs font-semibold border-2 border-emerald-200 hover:border-emerald-500 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-md sm:rounded-lg transition-all duration-200 active:scale-95 shadow-sm hover:shadow-md inline-flex items-center gap-1 touch-manipulation"
@@ -169,6 +192,15 @@
                               <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd" />
                             </svg>
                             Pulihkan
+                          </button>
+                          <button
+                            @click="openDeleteModal(user)"
+                            class="text-red-600 hover:text-white hover:bg-gradient-to-r hover:from-red-500 hover:to-red-600 text-[10px] sm:text-xs font-semibold border-2 border-red-200 hover:border-red-500 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-md sm:rounded-lg transition-all duration-200 active:scale-95 shadow-sm hover:shadow-md inline-flex items-center gap-1 touch-manipulation"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 sm:w-3.5 sm:h-3.5" viewBox="0 0 20 20" fill="currentColor">
+                              <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                            </svg>
+                            Hapus
                           </button>
                         </div>
                       </div>
@@ -194,6 +226,7 @@
 <script setup>
 import AdminNavbar from '@/components/AdminNavbar.vue';
 import RestoreUserModal from '@/components/RestoreUserModal.vue';
+import DeletePermanentModal from '@/components/DeletePermanentModal.vue';
 import { ref, onMounted } from 'vue';
 import apiClient from '@/axios-config';
 import { toast } from 'vue-sonner';
@@ -211,6 +244,14 @@ const toggleRow = (id) => {
 };
 
 const restoreModal = ref({
+  isOpen: false,
+  userId: null,
+  userName: '',
+  userEmail: '',
+  deletedAt: ''
+});
+
+const deleteModal = ref({
   isOpen: false,
   userId: null,
   userName: '',
@@ -263,6 +304,41 @@ const confirmRestore = async () => {
     const msg = error.response?.data?.msg || 'Gagal memulihkan pengguna.';
     toast.error('Gagal Memulihkan', { description: msg });
     closeRestoreModal();
+  }
+};
+
+const openDeleteModal = (user) => {
+  deleteModal.value = {
+    isOpen: true,
+    userId: user.id,
+    userName: user.name || 'Tanpa Nama',
+    userEmail: user.email,
+    deletedAt: formatDate(user.deleted_at)
+  };
+};
+
+const closeDeleteModal = () => {
+  deleteModal.value.isOpen = false;
+};
+
+const confirmDeletePermanent = async () => {
+  try {
+    await apiClient.delete(`/api/admin/users/${deleteModal.value.userId}/permanent`);
+
+    trashedUsers.value = trashedUsers.value.filter(
+      user => user.id !== deleteModal.value.userId
+    );
+
+    closeDeleteModal();
+
+    toast.success('Berhasil Dihapus!', {
+      description: 'Pengguna telah dihapus secara permanen dari database.'
+    });
+  } catch (error) {
+    console.error(error);
+    const msg = error.response?.data?.msg || 'Gagal menghapus pengguna secara permanen.';
+    toast.error('Gagal Menghapus', { description: msg });
+    closeDeleteModal();
   }
 };
 
