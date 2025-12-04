@@ -45,24 +45,19 @@
     </Transition>
 
     <!-- Header Section -->
-    <section class="relative py-8 md:py-12 bg-gradient-to-br from-blue-600 to-indigo-600 overflow-hidden">
+    <section class="relative py-8 md:py-12 bg-gradient-to-br from-slate-50 to-slate-100 overflow-hidden">
       <div class="absolute inset-0 opacity-10">
-        <div class="absolute w-64 h-64 md:w-96 md:h-96 bg-white rounded-full blur-3xl -top-20 -left-20"></div>
-        <div class="absolute w-64 h-64 md:w-96 md:h-96 bg-white rounded-full blur-3xl -bottom-20 -right-20"></div>
+        <div class="absolute w-64 h-64 md:w-96 md:h-96 bg-blue-900 rounded-full blur-3xl -top-20 -left-20"></div>
+        <div class="absolute w-64 h-64 md:w-96 md:h-96 bg-blue-900 rounded-full blur-3xl -bottom-20 -right-20"></div>
       </div>
 
       <div class="max-w-7xl mx-auto px-4 relative z-10">
         <div class="text-center">
-          <router-link to="/" class="inline-flex items-center gap-2 text-white/80 hover:text-white mb-4 md:mb-6 transition-colors">
-            <span class="text-lg md:text-xl">←</span>
-            <span class="text-sm md:text-base font-semibold">Kembali ke Home</span>
-          </router-link>
-
-          <h1 class="text-3xl md:text-4xl lg:text-5xl font-extrabold text-white mb-3 md:mb-4 px-4">
+          <h1 class="text-3xl md:text-4xl lg:text-5xl font-extrabold text-blue-900 mb-3 md:mb-4 px-4">
             Foto Makanan
           </h1>
 
-          <p class="text-base md:text-lg text-white/90 max-w-2xl mx-auto px-4">
+          <p class="text-base md:text-lg text-slate-600 max-w-2xl mx-auto px-4">
             Ambil foto makanan dan dapatkan informasi kandungan nutrisinya secara otomatis
           </p>
         </div>

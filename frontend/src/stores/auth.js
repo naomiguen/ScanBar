@@ -163,26 +163,55 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   //  Update Profil
-  async function updateProfile(dataToUpdate) {
-    try {
-      const { data, error } = await supabase.auth.updateUser({
-        data: dataToUpdate,
-      });
-      if (error) throw error;
+ //  Update Profil (PERBAIKAN)
+async function updateProfile(dataToUpdate) {
+  try {
+    // 1. Update user metadata di Supabase Auth (opsional, untuk backward compatibility)
+    const { data: authData, error: authError } = await supabase.auth.updateUser({
+      data: dataToUpdate,
+    });
+    if (authError) throw authError;
 
-      user.value = data.user;
-      await fetchUserProfile();
-      toast.success('Berhasil!', {
-        description: 'Profil Anda telah diperbarui.',
-        duration: 2000
-      });
-    } catch (error) {
-      console.error('Update Profile Error:', error.message);
-      toast.error('Gagal', {
-        description: 'Gagal memperbarui profil.'
-      });
-    }
+    // 2. PENTING: Update juga ke table profiles
+    const { data: profileData, error: profileError } = await supabase
+      .from('profiles')
+      .update({
+        age: dataToUpdate.age,
+        weight: dataToUpdate.weight,
+        height: dataToUpdate.height,
+        daily_calorie_goal: dataToUpdate.dailyCalorieGoal,
+        daily_protein_goal: dataToUpdate.dailyProteinGoal,
+        daily_carbs_goal: dataToUpdate.dailyCarbsGoal,
+        daily_fat_goal: dataToUpdate.dailyFatGoal,
+        daily_sugar_goal: dataToUpdate.dailySugarGoal,
+        daily_sodium_goal: dataToUpdate.dailySodiumGoal,
+        daily_salt_goal: dataToUpdate.dailySaltGoal,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', user.value.id)
+      .select()
+      .single();
+
+    if (profileError) throw profileError;
+
+    // 3. Update state lokal
+    user.value = authData.user;
+    profile.value = profileData;
+
+    toast.success('Berhasil!', {
+      description: 'Profil Anda telah diperbarui.',
+      duration: 2000
+    });
+
+    return profileData;
+  } catch (error) {
+    console.error('Update Profile Error:', error.message);
+    toast.error('Gagal', {
+      description: 'Gagal memperbarui profil: ' + error.message
+    });
+    throw error;
   }
+}
 
   // Fetch profil dari tabel "profiles"
   async function fetchUserProfile() {

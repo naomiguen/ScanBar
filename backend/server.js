@@ -40,23 +40,78 @@ const httpsOptions = {
   cert: fs.readFileSync(certPath)
 };
 
-// app.listen(PORT, () => console.log(`Server berjalan di port ${PORT}`));
+// Helper: try to extract certificate info (subject, issuer, validity, SANs)
+const { execFileSync } = require('child_process');
+function getCertificateInfo(pemPath) {
+  try {
+    const { X509Certificate } = require('crypto');
+    const pem = fs.readFileSync(pemPath);
+    const x509 = new X509Certificate(pem);
+    // Some Node versions expose subjectAltName via `subjectAltName` or `altNames`; try common fields
+    const info = {
+      subject: x509.subject || null,
+      issuer: x509.issuer || null,
+      validFrom: x509.validFrom || null,
+      validTo: x509.validTo || null,
+      subjectAltName: x509.subjectAltName || x509.altNames || null
+    };
+    return { ok: true, info };
+  } catch (e) {
+    // Fallback: try to use openssl if available to read SANs
+    try {
+      const out = execFileSync('openssl', ['x509', '-in', pemPath, '-noout', '-text'], { encoding: 'utf8' });
+      const sanMatch = out.match(/X509v3 Subject Alternative Name:\s*\n\s*([^\n]+)/i);
+      const subject = out.match(/Subject:\s*([^\n]+)/i)?.[1] || null;
+      const issuer = out.match(/Issuer:\s*([^\n]+)/i)?.[1] || null;
+      const validFrom = out.match(/Not Before:\s*([^\n]+)/i)?.[1] || null;
+      const validTo = out.match(/Not After :\s*([^\n]+)/i)?.[1] || out.match(/Not After:\s*([^\n]+)/i)?.[1] || null;
+      return { ok: true, info: { subject, issuer, validFrom, validTo, subjectAltName: sanMatch ? sanMatch[1].trim() : null } };
+    } catch (e2) {
+      return { ok: false, error: `Unable to parse certificate: ${e.message}; fallback error: ${e2.message}` };
+    }
+  }
+}
 
-https.createServer(httpsOptions, app).listen(PORT, '0.0.0.0', () => {
-  console.log(`Server HTTPS berjalan di port ${PORT}`);
-  console.log(`MongoDB Connected...`); 
-});
 
+// Start HTTPS server only after MongoDB connection is ready
 MongoClient.connect(process.env.MONGODB_URI)
   .then(client => {
-    console.log(" MongoDB Lokal Terhubung...");
+    console.log("MongoDB Lokal Terhubung...");
 
-    const db = client.db('scanbar'); 
-    
-    app.locals.db = db; 
-  
+    const db = client.db('scanbar');
+    app.locals.db = db;
+
     app.use('/api/products', productRoutes);
 
-    app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+    // Print startup info about HTTPS and certificate (helpful for debugging mkcert)
+    try {
+      console.log('Starting HTTPS server...');
+      console.log('  Listening on:', `https://0.0.0.0:${PORT}`);
+      console.log('  Key path:', keyPath, 'exists=', fs.existsSync(keyPath));
+      console.log('  Cert path:', certPath, 'exists=', fs.existsSync(certPath));
+
+      const certResult = getCertificateInfo(certPath);
+      if (certResult.ok) {
+        console.log('  Certificate subject:', certResult.info.subject);
+        console.log('  Certificate issuer :', certResult.info.issuer);
+        console.log('  Valid from         :', certResult.info.validFrom);
+        console.log('  Valid to           :', certResult.info.validTo);
+        console.log('  SubjectAltName     :', certResult.info.subjectAltName || certResult.info.subjectAltName === null ? certResult.info.subjectAltName : '(none)');
+      } else {
+        console.warn('  Certificate info: could not parse certificate.', certResult.error);
+        console.warn('  If needed, run `openssl x509 -in "' + certPath + '" -text -noout` to inspect SANs.');
+      }
+    } catch (logErr) {
+      console.warn('Failed to log certificate info:', logErr);
+    }
+
+    // Create and start HTTPS server after DB is connected
+    https.createServer(httpsOptions, app).listen(PORT, '0.0.0.0', () => {
+      console.log(`Server HTTPS berjalan di port ${PORT}`);
+      console.log(`MongoDB Connected...`);
+    });
   })
-  .catch(err => console.error(err));
+  .catch(err => {
+    console.error('Gagal koneksi ke MongoDB:', err);
+    // NOTE: jika Anda ingin fallback ke HTTP (dev), Anda bisa membuka server HTTP di sini.
+  });
