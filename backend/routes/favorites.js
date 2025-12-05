@@ -4,12 +4,49 @@ const Favorite = require('../models/Favorite');
 const Product = require('../models/Product');
 const auth = require('../middleware/auth');
 
+// Helper: normalisasi nutriments ke key yang konsisten untuk frontend
+function normalizeNutriments(nutriments) {
+  const n = nutriments || {};
+
+  const pick = (candidates) => {
+    for (const k of candidates) {
+      if (n[k] !== undefined && n[k] !== null && n[k] !== '') {
+        const v = Number(n[k]);
+        return isNaN(v) ? 0 : v;
+      }
+    }
+    return 0;
+  };
+
+  const normalized = {};
+
+  normalized['energy-kcal_100g'] = pick(['energy-kcal_100g', 'energy_100g', 'energy-kcal', 'energy', 'calories']);
+  normalized['calories'] = normalized['energy-kcal_100g'];
+
+  normalized['proteins_100g'] = pick(['proteins_100g', 'proteins', 'protein']);
+  normalized['proteins'] = normalized['proteins_100g'];
+
+  normalized['carbohydrates_100g'] = pick(['carbohydrates_100g', 'carbohydrates', 'carbs', 'carbohydrate']);
+  normalized['carbohydrates'] = normalized['carbohydrates_100g'];
+
+  normalized['fat_100g'] = pick(['fat_100g', 'fat', 'fats']);
+  normalized['fat'] = normalized['fat_100g'];
+
+  normalized['sugars_100g'] = pick(['sugars_100g', 'sugars', 'sugar']);
+  normalized['sugars'] = normalized['sugars_100g'];
+
+  normalized['salt_100g'] = pick(['salt_100g', 'salt', 'sodium_100g', 'sodium']);
+  normalized['salt'] = normalized['salt_100g'];
+
+  return normalized;
+}
+
 // Toggle favorit (Tambah/Hapus)
 router.post('/', auth, async (req, res) => {
   try {
     const { productCode, productData } = req.body;
     
-    // ✅ Debug log lebih detail
+    // Debug log lebih detail
     console.log('📥 Full request body:', req.body);
     console.log('📥 productCode:', productCode);
     console.log('📥 productData:', productData);
@@ -19,7 +56,7 @@ router.post('/', auth, async (req, res) => {
       console.log('❌ productCode is missing!');
       return res.status(400).json({ 
         error: 'productCode diperlukan',
-        received: req.body  // ⭐ Kirim balik apa yang diterima
+        received: req.body  
       });
     }
 
@@ -59,7 +96,7 @@ router.post('/', auth, async (req, res) => {
     if (existing) {
       // Hapus dari favorit
       await Favorite.deleteOne({ _id: existing._id });
-      console.log('⭐ Removed from favorites'); // Debug log
+      console.log('Removed from favorites'); // Debug log
       return res.json({
         success: true,
         isFavorited: false,
@@ -72,7 +109,7 @@ router.post('/', auth, async (req, res) => {
         productCode: productCode
       });
       await favorite.save();
-      console.log('⭐ Added to favorites'); // Debug log
+      console.log('Added to favorites'); // Debug log
       return res.json({
         success: true,
         isFavorited: true,
@@ -107,9 +144,11 @@ router.get('/', auth, async (req, res) => {
       // Pastikan field nutriments selalu ada (set empty object jika tidak ada)
       obj.nutriments = obj.nutriments || {};
 
-      // Tambahkan field turunan untuk memudahkan frontend (nilai default 0)
-      obj.nutriments['energy-kcal_100g'] = obj.nutriments['energy-kcal_100g'] || obj.nutriments.energy_kcal_100g || 0;
-      obj.nutriments['proteins_100g'] = obj.nutriments['proteins_100g'] || obj.nutriments.proteins_100g || 0;
+      // Normalisasi berbagai variasi key nutriments agar frontend menerima nilai konsisten
+      const norm = normalizeNutriments(obj.nutriments);
+
+      // Gabungkan normalisasi ke objek nutriments (tidak menimpa nilai asli bila ada)
+      obj.nutriments = Object.assign({}, obj.nutriments, norm);
 
       productMap[p.code] = obj;
     });

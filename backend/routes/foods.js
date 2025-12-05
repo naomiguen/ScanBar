@@ -308,26 +308,40 @@ router.get('/analysis/today', auth, async (req, res) => {
 // @access  Private (Dijaga oleh satpam 'auth')
 router.post('/', auth, async (req, res) => {
   try {
+    // Log payload and user for easier debugging
+    console.info('[POST /api/foods] user:', req.user?.id || req.user);
+    console.info('[POST /api/foods] raw body:', util.inspect(req.body, { depth: 4 }));
+
     const { productName, calories, protein, carbs, fat, sugar, salt, imageUrl, barcode } = req.body;
 
-    const newFood = new Food({
+    // Normalize numeric values to numbers for consistent storage and logs
+    const parseNum = (v) => {
+      const n = Number(v);
+      return Number.isFinite(n) ? n : 0;
+    };
+
+    const payload = {
       user: req.user.id,
-      productName,
-      calories,
-      protein,
-      carbs,
-      fat,
-      sugar,
-      salt,
-      imageUrl,
-      barcode
-    });
+      productName: productName || 'Tanpa Nama',
+      calories: parseNum(calories),
+      protein: parseNum(protein),
+      carbs: parseNum(carbs),
+      fat: parseNum(fat),
+      sugar: parseNum(sugar),
+      salt: parseNum(salt),
+      imageUrl: imageUrl || null,
+      barcode: barcode || null
+    };
+
+    console.info('[POST /api/foods] parsed payload:', util.inspect(payload, { depth: 3 }));
+
+    const newFood = new Food(payload);
 
     const food = await newFood.save();
-    
+
     // ← INVALIDASI CACHE setelah menambah makanan
     await invalidateDailyCache(req.user.id);
-    
+
     res.json(food);
   } catch (err) {
     console.error('Add Food Error:', err.message);

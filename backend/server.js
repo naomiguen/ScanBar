@@ -106,10 +106,37 @@ MongoClient.connect(process.env.MONGODB_URI)
     }
 
     // Create and start HTTPS server after DB is connected
-    https.createServer(httpsOptions, app).listen(PORT, '0.0.0.0', () => {
-      console.log(`Server HTTPS berjalan di port ${PORT}`);
-      console.log(`MongoDB Connected...`);
-    });
+    // Use a resilient starter that will try next ports when EADDRINUSE occurs
+    function startHttpsServer(startPort, host = '0.0.0.0', maxAttempts = 10) {
+      let attempt = 0;
+
+      const tryListen = (port) => {
+        const server = https.createServer(httpsOptions, app);
+
+        server.on('error', (err) => {
+          if (err && err.code === 'EADDRINUSE' && attempt < maxAttempts) {
+            console.warn(`Port ${port} in use, trying ${port + 1} (attempt ${attempt + 1}/${maxAttempts})`);
+            attempt += 1;
+            setTimeout(() => tryListen(port + 1), 300);
+          } else {
+            console.error('Failed to start HTTPS server:', err);
+            // If we can't recover, exit with non-zero so process managers notice
+            process.exit(1);
+          }
+        });
+
+        server.listen(port, host, () => {
+          console.log(`Server HTTPS berjalan di port ${port}`);
+          console.log(`MongoDB Connected...`);
+        });
+      };
+
+      // Ensure numeric port
+      const p = parseInt(startPort, 10) || 3000;
+      tryListen(p);
+    }
+
+    startHttpsServer(PORT);
   })
   .catch(err => {
     console.error('Gagal koneksi ke MongoDB:', err);
