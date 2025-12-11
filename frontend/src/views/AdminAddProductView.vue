@@ -338,6 +338,7 @@ const submitProduct = async () => {
       product_name: String(form.value.product_name || '').trim(),
       brands: String(form.value.brands || '').trim(),
       image_url: String(form.value.image_url || '').trim(),
+        calories: Number(form.value.calories) || 0,
       proteins: Number(form.value.proteins) || 0,
       carbs: Number(form.value.carbs) || 0,
       fat: Number(form.value.fat) || 0,
@@ -346,6 +347,7 @@ const submitProduct = async () => {
     };
 
     console.log('[FRONTEND] Sending payload to backend:', payload);
+    console.log('[FRONTEND] calories value:', payload.calories);
     console.log('[FRONTEND] image_url value:', payload.image_url);
     console.log('[FRONTEND] sodium value:', payload.sodium);
 

@@ -16,6 +16,7 @@
     "@supabase/supabase-js": "^2.39.7",
     "axios": "^1.13.1",
     "pinia": "^2.1.7",
+    "quagga": "^0.12.1",
     "vue": "^3.4.21",
     "vue-qrcode-reader": "^5.7.3",
     "vue-router": "^4.3.0",

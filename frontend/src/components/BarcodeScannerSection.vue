@@ -116,16 +116,26 @@
               </button>
 
               <p class="text-center text-sm text-slate-600">
-                📍 Posisikan barcode di dalam frame untuk hasil terbaik
+                Posisikan barcode di dalam frame untuk hasil terbaik
               </p>
             </div>
           </div>
 
           <!-- Camera Tab -->
           <div v-if="activeTab === 'camera'" class="animate-fade-in">
-            <div v-if="!isScanning">
+            <!-- Hidden File Input for Mobile Camera -->
+            <input
+              ref="cameraInput"
+              type="file"
+              accept="image/*"
+              capture="environment"
+              @change="onCameraCapture"
+              class="hidden"
+            />
+
+            <div v-if="!isScanning && !capturedBarcodeImage">
               <div
-                @click="startCamera"
+                @click="openMobileCamera"
                 class="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-dashed border-blue-300 rounded-3xl py-16 px-8 text-center cursor-pointer hover:border-blue-600 hover:bg-gradient-to-br hover:from-blue-100 hover:to-purple-100 hover:shadow-lg hover:shadow-blue-500/15 transition-all duration-300"
               >
                 <div class="w-20 h-20 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-blue-500/30">
@@ -133,11 +143,14 @@
                 </div>
 
                 <h3 class="text-2xl font-bold text-slate-800 mb-3">
-                  Aktifkan Kamera
+                  {{ isMobileDevice() ? 'Buka Kamera' : 'Aktifkan Kamera' }}
                 </h3>
 
                 <p class="text-base text-slate-600 mb-4 max-w-md mx-auto">
-                  Klik untuk mengaktifkan kamera dan scan barcode pada kemasan produk
+                  {{ isMobileDevice()
+                    ? 'Klik untuk membuka kamera dan foto barcode pada kemasan produk'
+                    : 'Klik untuk mengaktifkan kamera dan scan barcode pada kemasan produk'
+                  }}
                 </p>
 
                 <p class="text-sm text-slate-500">
@@ -146,7 +159,39 @@
               </div>
             </div>
 
-            <div v-else class="flex flex-col gap-4">
+            <!-- Preview captured image (mobile) -->
+            <div v-else-if="capturedBarcodeImage && !isScanning" class="flex flex-col gap-4">
+              <img :src="capturedBarcodeImage" alt="Captured barcode" class="w-full h-[300px] object-contain rounded-xl bg-slate-100" />
+
+              <div v-if="processingBarcode" class="flex flex-col items-center justify-center py-8 gap-4">
+                <div class="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                <p class="text-base font-semibold text-slate-700">Membaca barcode...</p>
+              </div>
+
+              <p v-if="cameraError" class="p-4 bg-red-50 border border-red-200 rounded-xl text-red-600 text-center text-sm">
+                {{ cameraError }}
+              </p>
+
+              <div class="flex gap-3">
+                <button
+                  @click="retakeBarcodePhoto"
+                  class="flex-1 px-4 py-3 bg-white text-slate-700 border-2 border-slate-300 rounded-xl font-bold hover:bg-slate-50 hover:border-slate-400 transition-all duration-300 flex items-center justify-center gap-2"
+                >
+                Foto Ulang
+                </button>
+
+                <button
+                  v-if="!processingBarcode && !cameraError"
+                  @click="processBarcodeImage"
+                  class="flex-1 px-4 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-bold hover:-translate-y-0.5 hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2"
+                >
+                Proses Gambar
+                </button>
+              </div>
+            </div>
+
+            <!-- QR Code Stream (desktop) -->
+            <div v-else-if="isScanning" class="flex flex-col gap-4">
               <qrcode-stream @decode="onDecode" @init="onInit" class="w-full h-[400px] rounded-xl overflow-hidden bg-black"></qrcode-stream>
 
               <p v-if="cameraError" class="p-8 bg-red-50 border border-red-200 rounded-xl text-red-600 text-center">
@@ -460,8 +505,11 @@ const uploadError = ref('')
 const uploadedImage = ref(null)
 const isScanning = ref(false)
 const fileInput = ref(null)
+const cameraInput = ref(null)
 const scannerSection = ref(null)
 const imageLoadFailed = ref(false)
+const capturedBarcodeImage = ref(null)
+const processingBarcode = ref(false)
 
 // Computed: Image Source dengan prioritas yang jelas
 const imageSrcValue = computed(() => {
@@ -584,7 +632,7 @@ const onDecode = async (decodedString) => {
   }
 }
 
-// Methods: Start camera
+// Methods: Start camera (untuk desktop - QrcodeStream)
 const startCamera = () => {
   cameraError.value = ''
   isScanning.value = true
@@ -594,6 +642,144 @@ const startCamera = () => {
 const stopCamera = () => {
   isScanning.value = false
   cameraError.value = ''
+  capturedBarcodeImage.value = null
+  processingBarcode.value = false
+}
+
+// Methods: Detect if mobile device
+const isMobileDevice = () => {
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+}
+
+// Methods: Open mobile camera (untuk HP)
+const openMobileCamera = () => {
+  cameraError.value = ''
+  capturedBarcodeImage.value = null
+  processingBarcode.value = false
+
+  // Deteksi apakah device mobile
+  if (isMobileDevice()) {
+    // Gunakan native camera input untuk mobile
+    cameraInput.value?.click()
+  } else {
+    // Gunakan QrcodeStream untuk desktop
+    startCamera()
+  }
+}
+
+// Methods: Handle camera capture (untuk HP)
+const onCameraCapture = async (event) => {
+  const file = event.target.files?.[0]
+  if (!file) return
+
+  // Validasi ukuran file (max 5MB)
+  if (file.size > 5 * 1024 * 1024) {
+    cameraError.value = 'Ukuran file terlalu besar. Maksimal 5MB.'
+    event.target.value = ''
+    return
+  }
+
+  // Validasi tipe file
+  if (!file.type.startsWith('image/')) {
+    cameraError.value = 'File harus berupa gambar (JPG, PNG).'
+    event.target.value = ''
+    return
+  }
+
+  const reader = new FileReader()
+  reader.onload = (e) => {
+    capturedBarcodeImage.value = e.target.result
+    cameraError.value = ''
+    processingBarcode.value = false
+  }
+
+  reader.onerror = () => {
+    cameraError.value = 'Gagal membaca file. Silakan coba lagi.'
+    capturedBarcodeImage.value = null
+  }
+
+  reader.readAsDataURL(file)
+  event.target.value = '' // Reset input
+}
+
+// Methods: Retake barcode photo
+const retakeBarcodePhoto = () => {
+  capturedBarcodeImage.value = null
+  cameraError.value = ''
+  processingBarcode.value = false
+  openMobileCamera()
+}
+
+// Methods: Process barcode image with OCR
+const processBarcodeImage = async () => {
+  if (!capturedBarcodeImage.value) return
+
+  processingBarcode.value = true
+  cameraError.value = ''
+
+  try {
+    // Import Quagga dynamically
+    const Quagga = (await import('quagga')).default
+
+    // Create temporary canvas to process image
+    const img = new Image()
+    img.src = capturedBarcodeImage.value
+
+    await new Promise((resolve, reject) => {
+      img.onload = resolve
+      img.onerror = reject
+    })
+
+    // Create canvas
+    const canvas = document.createElement('canvas')
+    canvas.width = img.width
+    canvas.height = img.height
+    const ctx = canvas.getContext('2d')
+    ctx.drawImage(img, 0, 0)
+
+    // Process with Quagga
+    Quagga.decodeSingle({
+      src: capturedBarcodeImage.value,
+      numOfWorkers: 0,
+      locate: true,
+      inputStream: {
+        size: 800
+      },
+      decoder: {
+        readers: [
+          'ean_reader',
+          'ean_8_reader',
+          'code_128_reader',
+          'code_39_reader',
+          'upc_reader',
+          'upc_e_reader'
+        ]
+      }
+    }, (result) => {
+      processingBarcode.value = false
+
+      if (result && result.codeResult) {
+        const barcode = result.codeResult.code
+        const normalized = normalizeBarcode(barcode)
+
+        if (normalized) {
+          barcodeInput.value = normalized
+          emit('search', normalized)
+          activeTab.value = 'manual'
+          capturedBarcodeImage.value = null
+        } else {
+          cameraError.value = 'Barcode tidak valid. Silakan coba lagi dengan foto yang lebih jelas.'
+        }
+      } else {
+        cameraError.value = 'Tidak dapat membaca barcode. Pastikan foto jelas dan barcode terlihat dengan baik.'
+      }
+    })
+
+  } catch (error) {
+    console.error('Error processing barcode:', error)
+    processingBarcode.value = false
+    cameraError.value = 'Terjadi kesalahan saat memproses gambar. Silakan coba lagi.'
+  }
 }
 
 // Methods: Trigger file input
@@ -604,7 +790,7 @@ const triggerFileInput = () => {
 }
 
 // Methods: Handle file change (upload)
-const onFileChange = (event) => {
+const onFileChange = async (event) => {
   const file = event.target.files?.[0]
   if (!file) return
 
@@ -623,19 +809,51 @@ const onFileChange = (event) => {
   const reader = new FileReader()
   reader.onload = async (e) => {
     uploadedImage.value = e.target.result
-
-    // Simulasi processing dengan delay
     uploadError.value = 'Memproses gambar...'
 
-    setTimeout(async () => {
-      // TODO: Ganti dengan API OCR barcode yang sesungguhnya
-      // Saat ini menggunakan barcode dummy untuk demo
-      const fakeBarcode = "8992761134017"
-      const normalized = normalizeBarcode(fakeBarcode)
-      barcodeInput.value = normalized
-      emit('search', normalized)
-      uploadError.value = ''
-    }, 1500)
+    try {
+      // Import Quagga dynamically
+      const Quagga = (await import('quagga')).default
+
+      // Process with Quagga
+      Quagga.decodeSingle({
+        src: uploadedImage.value,
+        numOfWorkers: 0,
+        locate: true,
+        inputStream: {
+          size: 800
+        },
+        decoder: {
+          readers: [
+            'ean_reader',
+            'ean_8_reader',
+            'code_128_reader',
+            'code_39_reader',
+            'upc_reader',
+            'upc_e_reader'
+          ]
+        }
+      }, (result) => {
+        if (result && result.codeResult) {
+          const barcode = result.codeResult.code
+          const normalized = normalizeBarcode(barcode)
+
+          if (normalized) {
+            barcodeInput.value = normalized
+            emit('search', normalized)
+            uploadError.value = ''
+          } else {
+            uploadError.value = 'Barcode tidak valid. Silakan upload foto yang lebih jelas.'
+          }
+        } else {
+          uploadError.value = 'Tidak dapat membaca barcode dari gambar. Pastikan barcode terlihat jelas.'
+        }
+      })
+
+    } catch (error) {
+      console.error('Error processing uploaded image:', error)
+      uploadError.value = 'Terjadi kesalahan saat memproses gambar. Silakan coba lagi.'
+    }
   }
 
   reader.onerror = () => {
@@ -661,6 +879,8 @@ const changeTab = (tabName) => {
   uploadedImage.value = null
   uploadError.value = ''
   cameraError.value = ''
+  capturedBarcodeImage.value = null
+  processingBarcode.value = false
   emit('cancel')
   stopCamera()
 }
@@ -685,6 +905,8 @@ const handleCancel = () => {
   uploadedImage.value = null
   uploadError.value = ''
   cameraError.value = ''
+  capturedBarcodeImage.value = null
+  processingBarcode.value = false
   emit('cancel')
   stopCamera()
 }

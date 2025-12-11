@@ -147,7 +147,7 @@
               <ul class="space-y-3 mb-6">
                 <li class="flex items-start gap-3 text-slate-700">
                   <span class="text-green-500 text-xl flex-shrink-0">✓</span>
-                  <span>Estimasi nutrisi dengan AI Gemini</span>
+                  <span>Estimasi nutrisi</span>
                 </li>
                 <li class="flex items-start gap-3 text-slate-700">
                   <span class="text-green-500 text-xl flex-shrink-0">✓</span>

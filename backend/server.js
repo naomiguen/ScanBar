@@ -140,5 +140,5 @@ MongoClient.connect(process.env.MONGODB_URI)
   })
   .catch(err => {
     console.error('Gagal koneksi ke MongoDB:', err);
-    // NOTE: jika Anda ingin fallback ke HTTP (dev), Anda bisa membuka server HTTP di sini.
+   
   });

@@ -10,6 +10,7 @@
         </router-link>
       </div>
 
+      <!-- button menu untuk tampilan mobile -->
       <button class="md:hidden focus:outline-none" @click="toggleMenu">
         <svg v-if="!isMenuOpen" xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
@@ -19,8 +20,8 @@
         </svg>
       </button>
 
+      <!-- navbar untuk tampilan desktop -->
       <nav class="hidden md:flex items-center space-x-5">
-
         <div v-if="!authStore.isAuthenticated" class="flex space-x-3">
           <router-link to="/" class="px-4 py-2 rounded-md hover:bg-blue-500 transition" active-class="bg-white text-blue-600 font-semibold">Home</router-link>
           <router-link to="/login" class="px-4 py-2 rounded-md hover:bg-blue-500 transition" active-class="bg-white text-blue-600 font-semibold">Login</router-link>
@@ -42,6 +43,7 @@
       </nav>
     </div>
 
+    <!-- navbar untuk tampilan mobile -->
     <transition name="slide-fade">
       <div v-if="isMenuOpen" class="md:hidden bg-blue-600 border-t border-white/20 px-6 py-3 space-y-3 shadow-inner">
         <router-link to="/" class="block bg-white/10 hover:bg-blue-500 text-white font-semibold px-4 py-2 rounded-md" active-class="bg-white !text-blue-600" @click="closeMenu">Home</router-link>

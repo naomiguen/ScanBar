@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-b from-white to-slate-50">
+  <div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-10 px-4">
     <!-- Custom Modal Notification -->
     <Transition name="modal">
       <div v-if="showModal" class="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" @click.self="closeModal">
@@ -45,32 +45,21 @@
     </Transition>
 
     <!-- Header Section -->
-    <section class="relative py-8 md:py-12 bg-gradient-to-br from-slate-50 to-slate-100 overflow-hidden">
-      <div class="absolute inset-0 opacity-10">
-        <div class="absolute w-64 h-64 md:w-96 md:h-96 bg-blue-900 rounded-full blur-3xl -top-20 -left-20"></div>
-        <div class="absolute w-64 h-64 md:w-96 md:h-96 bg-blue-900 rounded-full blur-3xl -bottom-20 -right-20"></div>
-      </div>
-
-      <div class="max-w-7xl mx-auto px-4 relative z-10">
-        <div class="text-center">
-          <h1 class="text-3xl md:text-4xl lg:text-5xl font-extrabold text-blue-900 mb-3 md:mb-4 px-4">
-            Foto Makanan
-          </h1>
-
-          <p class="text-base md:text-lg text-slate-600 max-w-2xl mx-auto px-4">
-            Ambil foto makanan dan dapatkan informasi kandungan nutrisinya secara otomatis
-          </p>
-        </div>
-      </div>
-    </section>
+    <div class="text-center mb-10">
+      <h1 class="text-4xl md:text-5xl font-extrabold text-blue-900 mb-2">
+        Foto Makanan
+      </h1>
+      <p class="text-lg text-slate-600">
+        Ambil foto makanan dan dapatkan informasi kandungan nutrisinya secara otomatis
+      </p>
+    </div>
 
     <!-- Main Content -->
-    <section class="py-8 md:py-12 px-4">
-      <div class="max-w-4xl mx-auto">
+    <div class="max-w-7xl mx-auto">
         <!-- Camera Card -->
-        <div class="bg-white rounded-2xl shadow-xl border border-slate-100 p-4 md:p-6 mb-6">
-          <h2 class="text-xl md:text-2xl font-bold text-slate-800 mb-4 flex items-center gap-2 md:gap-3">
-            <span class="text-2xl md:text-3xl">📷</span>
+        <div class="bg-white rounded-3xl shadow-xl p-6 md:p-8 mb-10">
+          <h2 class="text-2xl md:text-3xl font-bold text-blue-900 mb-6 flex items-center gap-2">
+            <span class="text-3xl">📷</span>
             <span>Ambil Foto Makanan</span>
           </h2>
 
@@ -147,10 +136,10 @@
         </div>
 
         <!-- Analysis Results -->
-        <div v-if="analysisResult" class="bg-white rounded-2xl shadow-xl border border-slate-100 p-4 md:p-6">
-          <h2 class="text-xl md:text-2xl font-bold text-slate-800 mb-4 md:mb-6 flex items-center gap-2 md:gap-3">
-            <span class="text-2xl md:text-3xl">📊</span>
-            <span>Hasil Analisis AI</span>
+        <div v-if="analysisResult" class="bg-white rounded-3xl shadow-xl p-6 md:p-8 mb-10">
+          <h2 class="text-2xl md:text-3xl font-bold text-blue-900 mb-6 flex items-center gap-2">
+            <span class="text-3xl">📊</span>
+            <span>Hasil Analisis</span>
           </h2>
 
           <!-- Food Description -->
@@ -204,7 +193,7 @@
           <div class="bg-amber-50 border-l-4 border-amber-400 p-3 md:p-4 rounded-lg mb-4 md:mb-6">
             <p class="text-xs md:text-sm text-amber-800 flex items-start gap-2">
               <span class="text-base md:text-lg flex-shrink-0">⚠️</span>
-              <span><strong>Catatan:</strong> Hasil ini adalah estimasi AI dan mungkin tidak 100% akurat. Gunakan sebagai panduan umum saja.</span>
+              <span><strong>Catatan:</strong> Hasil ini adalah hanya estimasi dan mungkin tidak 100% akurat. Gunakan sebagai panduan umum saja.</span>
             </p>
           </div>
 
@@ -235,9 +224,10 @@
         </div>
 
         <!-- Info Card -->
-        <div class="mt-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-4 md:p-6 border border-blue-200">
-          <h3 class="text-base md:text-lg font-bold text-slate-800 mb-3 flex items-center gap-2">
-            <span>💡</span> Tips untuk Hasil Terbaik
+        <div class="bg-white rounded-3xl shadow-xl p-6 md:p-8">
+          <h3 class="text-xl md:text-2xl font-bold text-blue-900 mb-4 flex items-center gap-2">
+            <span class="text-2xl">💡</span>
+            <span>Tips untuk Hasil Terbaik</span>
           </h3>
           <ul class="space-y-2 text-sm md:text-base text-slate-700">
             <li class="flex items-start gap-2">
@@ -257,9 +247,8 @@
               <span>Gambar akan dioptimalkan otomatis untuk proses analisis yang lebih cepat</span>
             </li>
           </ul>
-        </div>
       </div>
-    </section>
+    </div>
   </div>
 </template>
 
