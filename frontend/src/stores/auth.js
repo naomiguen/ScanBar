@@ -57,7 +57,7 @@ export const useAuthStore = defineStore('auth', () => {
 
       // TAMBAHAN DEBUG
       console.log('=== AFTER LOGIN DEBUG ===');
-      console.log('🔐 Login berhasil');
+      console.log('Login berhasil');
       console.log('role.value:', role.value);
       console.log('isAdmin.value:', isAdmin.value);
       console.log('typeof role.value:', typeof role.value);
@@ -66,7 +66,7 @@ export const useAuthStore = defineStore('auth', () => {
 
       // Redirect ke route yang sesuai, router guard akan validasi
       const targetRoute = isAdmin.value ? '/admin' : '/';
-      console.log('➡️ Attempting redirect to:', targetRoute);
+      console.log('Attempting redirect to:', targetRoute);
 
       // Gunakan nextTick untuk pastikan state sudah ter-update sepenuhnya
       await new Promise(resolve => setTimeout(resolve, 100));

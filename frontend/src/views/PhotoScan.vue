@@ -59,7 +59,6 @@
         <!-- Camera Card -->
         <div class="bg-white rounded-3xl shadow-xl p-6 md:p-8 mb-10">
           <h2 class="text-2xl md:text-3xl font-bold text-blue-900 mb-6 flex items-center gap-2">
-            <span class="text-3xl">📷</span>
             <span>Ambil Foto Makanan</span>
           </h2>
 
@@ -78,9 +77,6 @@
             @click="openCamera"
             class="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-dashed border-blue-300 rounded-2xl py-12 md:py-20 text-center cursor-pointer hover:border-blue-600 hover:bg-gradient-to-br hover:from-blue-100 hover:to-purple-100 hover:shadow-lg transition-all duration-300"
           >
-            <div class="w-20 h-20 md:w-24 md:h-24 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6 shadow-lg shadow-blue-500/30">
-              <span class="text-white text-4xl md:text-5xl">📷</span>
-            </div>
 
             <h3 class="text-xl md:text-2xl font-bold text-slate-800 mb-2 md:mb-3 px-4">
               {{ isMobileDevice() ? 'Buka Kamera' : 'Pilih Foto Makanan' }}
@@ -94,7 +90,7 @@
             </p>
 
             <p class="text-xs md:text-sm text-slate-500 px-4">
-              {{ isMobileDevice() ? '📱 Pastikan izin kamera diaktifkan' : '🖼️ Pilih foto dengan pencahayaan yang baik' }}
+              {{ isMobileDevice() ? 'Pastikan izin kamera diaktifkan' : 'Pilih foto dengan pencahayaan yang baik' }}
             </p>
           </div>
 
@@ -114,7 +110,7 @@
                 @click="openCamera"
                 class="w-full sm:flex-1 px-4 md:px-6 py-3 bg-white text-slate-700 border-2 border-slate-300 rounded-xl font-bold hover:bg-slate-50 hover:border-slate-400 transition-all duration-300 flex items-center justify-center gap-2 text-sm md:text-base"
               >
-                <span>🔄</span> Ambil Ulang
+                Ambil Ulang
               </button>
 
               <button
@@ -127,7 +123,7 @@
                     : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/30 hover:-translate-y-0.5 hover:shadow-xl'
                 ]"
               >
-                <span v-if="!isAnalyzing">🔍</span>
+                <span v-if="!isAnalyzing"></span>
                 <span v-else class="animate-spin">⏳</span>
                 {{ isAnalyzing ? 'Menganalisis...' : 'Analisis Nutrisi' }}
               </button>
@@ -138,14 +134,13 @@
         <!-- Analysis Results -->
         <div v-if="analysisResult" class="bg-white rounded-3xl shadow-xl p-6 md:p-8 mb-10">
           <h2 class="text-2xl md:text-3xl font-bold text-blue-900 mb-6 flex items-center gap-2">
-            <span class="text-3xl">📊</span>
             <span>Hasil Analisis</span>
           </h2>
 
           <!-- Food Description -->
           <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-4 md:p-6 mb-4 md:mb-6">
             <h3 class="text-base md:text-lg font-bold text-slate-800 mb-2 flex items-center gap-2">
-              <span>🍽️</span> Deskripsi Makanan
+              Deskripsi Makanan
             </h3>
             <p class="text-sm md:text-base text-slate-700 leading-relaxed">{{ analysisResult.description }}</p>
           </div>
@@ -192,7 +187,7 @@
           <!-- Disclaimer -->
           <div class="bg-amber-50 border-l-4 border-amber-400 p-3 md:p-4 rounded-lg mb-4 md:mb-6">
             <p class="text-xs md:text-sm text-amber-800 flex items-start gap-2">
-              <span class="text-base md:text-lg flex-shrink-0">⚠️</span>
+              <span class="text-base md:text-lg flex-shrink-0"></span>
               <span><strong>Catatan:</strong> Hasil ini adalah hanya estimasi dan mungkin tidak 100% akurat. Gunakan sebagai panduan umum saja.</span>
             </p>
           </div>
@@ -209,7 +204,7 @@
                   : 'bg-gradient-to-r from-green-600 to-green-700 text-white shadow-lg shadow-green-500/30 hover:-translate-y-0.5 hover:shadow-xl'
               ]"
             >
-              <span v-if="!isSaving">💾</span>
+              <span v-if="!isSaving"></span>
               <span v-else class="animate-spin">⏳</span>
               {{ isSaving ? 'Menyimpan...' : 'Simpan ke Jurnal' }}
             </button>
@@ -218,7 +213,7 @@
               @click="resetAll"
               class="w-full sm:flex-1 px-4 md:px-6 py-3 md:py-4 bg-white text-slate-700 border-2 border-slate-300 rounded-xl font-bold hover:bg-slate-50 hover:border-slate-400 transition-all duration-300 flex items-center justify-center gap-2 text-sm md:text-base"
             >
-              <span>🔄</span> Analisis Baru
+            Analisis Baru
             </button>
           </div>
         </div>
@@ -226,7 +221,6 @@
         <!-- Info Card -->
         <div class="bg-white rounded-3xl shadow-xl p-6 md:p-8">
           <h3 class="text-xl md:text-2xl font-bold text-blue-900 mb-4 flex items-center gap-2">
-            <span class="text-2xl">💡</span>
             <span>Tips untuk Hasil Terbaik</span>
           </h3>
           <ul class="space-y-2 text-sm md:text-base text-slate-700">
@@ -371,14 +365,14 @@ const analyzeImage = async () => {
       console.log('🗜️ Compressing large image...')
       base64Data = await compressImage(capturedImage.value)
       imageCompressed.value = true
-      console.log('✅ Image compressed successfully')
+      console.log('Image compressed successfully')
     }
 
     // Get mime type
     const mimeTypePart = capturedImage.value.split(',')[0]
     const mimeType = mimeTypePart.match(/:(.*?);/)?.[1] || 'image/jpeg'
 
-    console.log('📤 Sending to backend:', {
+    console.log('Sending to backend:', {
       mimeType,
       dataLength: base64Data.length,
       compressed: imageCompressed.value

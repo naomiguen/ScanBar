@@ -13,7 +13,7 @@
     <!-- Section Ringkasan Harian: Menampilkan progress bar untuk setiap nutrisi -->
     <div class="bg-white rounded-3xl shadow-xl p-6 md:p-8 mb-10 max-w-7xl mx-auto">
       <h2 class="text-2xl md:text-3xl font-bold text-blue-900 mb-6 flex items-center gap-2">
-        <span class="text-3xl">📈</span> Ringkasan Harian
+      Ringkasan Harian
       </h2>
 
       <!-- Grid untuk menampilkan kartu-kartu nutrisi -->
@@ -52,12 +52,11 @@
     <!-- Section Jurnal Makanan: Daftar semua makanan yang sudah dicatat hari ini -->
     <div class="bg-white rounded-3xl shadow-xl p-6 md:p-8 max-w-7xl mx-auto">
       <h2 class="text-2xl md:text-3xl font-bold text-blue-900 mb-6 flex items-center gap-2">
-        <span class="text-3xl">🍽️</span> Jurnal Makanan Harian
+      Jurnal Makanan Harian
       </h2>
 
       <!-- Empty State: Ditampilkan jika belum ada makanan yang dicatat -->
       <div v-if="foodStore.foods.length === 0" class="text-center py-16">
-        <div class="text-6xl mb-4">🍴</div>
         <p class="text-lg text-slate-500">
           Anda belum mencatat makanan apa pun hari ini.
         </p>
@@ -169,7 +168,6 @@
       <div class="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full animate-scale-in">
         <!-- Icon Warning -->
         <div class="text-center mb-6">
-          <div class="text-6xl mb-4">⚠️</div>
           <h3 class="text-2xl font-bold text-slate-900 mb-2">
             Hapus Makanan?
           </h3>
@@ -210,7 +208,7 @@
   <!--  SECTION BARU: Analisis AI Harian -->
     <div class="bg-white rounded-3xl shadow-xl p-6 md:p-10 mb-10 mt-10 max-w-7xl mx-auto">
       <h2 class="text-2xl md:text-3xl font-bold text-blue-900 mb-6 flex items-center gap-2">
-        <span class="text-3xl">🤖</span> Analisis Jurnal Harian
+      Analisis Jurnal Harian
       </h2>
 
       <!-- Loading State -->
@@ -222,7 +220,6 @@
 
       <!-- Error State -->
       <div v-else-if="foodStore.dailyAnalysisError" class="text-center py-12">
-        <div class="text-6xl mb-4">⚠️</div>
         <p class="text-lg text-red-600 font-semibold mb-2">Gagal Memuat Analisis</p>
         <p class="text-sm text-slate-600 mb-4">{{ foodStore.dailyAnalysisError }}</p>
         <button
@@ -235,16 +232,10 @@
 
       <!-- Analysis Content -->
       <div v-else-if="foodStore.dailyAnalysis" class="space-y-6">
-        <!-- Cache Badge -->
-        <div v-if="foodStore.dailyAnalysisCached" class="inline-flex items-center gap-2 bg-green-100 text-green-800 text-sm font-semibold px-4 py-2 rounded-full">
-          <span>⚡</span>
-          <span>Loaded from cache (instant!)</span>
-        </div>
-
         <!-- Summary -->
         <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6">
           <h3 class="text-xl font-bold text-blue-900 mb-3 flex items-center gap-2">
-            <span>📊</span> Ringkasan
+          Ringkasan
           </h3>
           <p class="text-slate-700 leading-relaxed">
             {{ foodStore.dailyAnalysis.summary || 'Tidak ada ringkasan tersedia' }}
@@ -255,7 +246,7 @@
         <div v-if="foodStore.dailyAnalysis.risks && foodStore.dailyAnalysis.risks.length > 0"
              class="bg-gradient-to-br from-red-50 to-orange-50 rounded-2xl p-6">
           <h3 class="text-xl font-bold text-red-900 mb-3 flex items-center gap-2">
-            <span>⚠️</span> Risiko Kesehatan
+          Risiko Kesehatan
           </h3>
           <ul class="space-y-2">
             <li v-for="(risk, index) in foodStore.dailyAnalysis.risks" :key="index"
@@ -270,7 +261,7 @@
         <div v-if="foodStore.dailyAnalysis.warnings && foodStore.dailyAnalysis.warnings.length > 0"
              class="bg-gradient-to-br from-yellow-50 to-amber-50 rounded-2xl p-6">
           <h3 class="text-xl font-bold text-amber-900 mb-3 flex items-center gap-2">
-            <span>🚨</span> Peringatan
+          Peringatan
           </h3>
           <ul class="space-y-2">
             <li v-for="(warning, index) in foodStore.dailyAnalysis.warnings" :key="index"
@@ -285,7 +276,7 @@
         <div v-if="foodStore.dailyAnalysis.dietSuitability"
              class="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-6">
           <h3 class="text-xl font-bold text-purple-900 mb-3 flex items-center gap-2">
-            <span>🥗</span> Kesesuaian Diet
+          Kesesuaian Diet
           </h3>
           <p class="text-slate-700 leading-relaxed">
             {{ foodStore.dailyAnalysis.dietSuitability }}
@@ -296,7 +287,7 @@
         <div v-if="foodStore.dailyAnalysis.recommendations && foodStore.dailyAnalysis.recommendations.length > 0"
              class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-6">
           <h3 class="text-xl font-bold text-green-900 mb-3 flex items-center gap-2">
-            <span>💡</span> Rekomendasi
+          Rekomendasi
           </h3>
           <ul class="space-y-2">
             <li v-for="(rec, index) in foodStore.dailyAnalysis.recommendations" :key="index"
@@ -318,7 +309,6 @@
 
       <!-- Empty State (belum ada analisis) -->
       <div v-else class="text-center py-12">
-        <div class="text-6xl mb-4">🍽️</div>
         <p class="text-lg text-slate-600">
           Belum ada analisis untuk hari ini
         </p>

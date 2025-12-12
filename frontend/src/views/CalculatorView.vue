@@ -210,7 +210,6 @@
       <div class="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full animate-scale-in">
         <!-- Icon Info -->
         <div class="text-center mb-6">
-          <div class="text-6xl mb-4">💾</div>
           <h3 class="text-2xl font-bold text-slate-900 mb-2">
             Simpan Target Nutrisi?
           </h3>

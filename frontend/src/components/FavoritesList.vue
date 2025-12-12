@@ -2,7 +2,6 @@
   <div class="bg-white rounded-3xl shadow-xl p-6 md:p-8 mb-10 max-w-7xl mx-auto">
     <!-- Header -->
     <h2 class="text-2xl md:text-3xl font-bold text-blue-900 mb-6 flex items-center gap-2">
-      <span class="text-3xl">⭐</span>
       <span>Favorit Saya</span>
     </h2>
 
@@ -14,7 +13,6 @@
 
     <!-- Empty State -->
     <div v-else-if="favorites.length === 0" class="text-center py-16">
-      <div class="text-6xl mb-4">📦</div>
       <p class="text-lg text-slate-700 font-medium mb-2">Belum ada produk favorit</p>
       <p class="text-slate-500">
         Bintangi produk dari halaman scan untuk akses cepat!
@@ -36,9 +34,6 @@
             :alt="fav.product.product_name"
             class="w-24 h-24 object-contain rounded-xl"
           />
-          <div v-else class="w-24 h-24 bg-slate-200 rounded-xl flex items-center justify-center text-4xl">
-            📦
-          </div>
         </div>
 
         <!-- Info Produk -->

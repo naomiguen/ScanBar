@@ -10,7 +10,7 @@
       <!-- Section Header -->
       <div class="text-center mb-12">
         <span class="inline-block bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-full font-semibold text-sm shadow-lg shadow-blue-500/30 mb-4">
-          📰 Artikel Terkini
+        Artikel Terkini
         </span>
 
         <h2 class="text-4xl md:text-5xl font-extrabold text-slate-800 mb-4">
@@ -34,7 +34,6 @@
       <div v-if="!isLoading && articles.length === 0" class="flex justify-center items-center py-20">
         <div class="text-center max-w-md">
           <div class="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <span class="text-4xl">📰</span>
           </div>
           <h3 class="text-xl font-bold text-slate-800 mb-2">Tidak Ada Artikel</h3>
           <p class="text-slate-600">Gagal memuat artikel saat ini. Coba lagi nanti.</p>

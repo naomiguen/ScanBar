@@ -34,7 +34,7 @@
           <router-link to="/" class="px-4 py-2 rounded-md hover:bg-blue-500 transition" active-class="bg-white text-blue-600 font-semibold">Home</router-link>
 
           <router-link to="/dashboard" class="px-4 py-2 rounded-md hover:bg-blue-500 transition" active-class="bg-white text-blue-600 font-semibold">Dashboard</router-link>
-          <router-link to="/photo-scan" class="px-4 py-2 rounded-md hover:bg-blue-500 transition" active-class="bg-white text-blue-600 font-semibold">Scan AI</router-link>
+          <router-link to="/photo-scan" class="px-4 py-2 rounded-md hover:bg-blue-500 transition" active-class="bg-white text-blue-600 font-semibold">Scan Makanan</router-link>
           <router-link to="/calculator" class="px-4 py-2 rounded-md hover:bg-blue-500 transition" active-class="bg-white text-blue-600 font-semibold">Kalkulator</router-link>
           <router-link to="/profile" class="px-4 py-2 rounded-md hover:bg-blue-500 transition" active-class="bg-white text-blue-600 font-semibold">Profil</router-link>
           <router-link to="/about-me" class="px-4 py-2 rounded-md hover:bg-blue-500 transition" active-class="bg-white text-blue-600 font-semibold">About Me</router-link>

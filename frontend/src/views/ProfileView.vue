@@ -1,13 +1,13 @@
 <template>
   <div class="min-h-screen bg-slate-50 py-10 px-4">
-    <!-- Manmpilkan konten hanya jika data userr yersedia -->
+    <!-- Menampilkan konten hanya jika data user tersedia -->
     <div v-if="user" class="max-w-7xl mx-auto">
 
       <!-- Profile Banner Card -->
       <div class="bg-gradient-to-br from-blue-600 to-blue-500 text-white rounded-3xl p-6 md:p-8 flex flex-col md:flex-row items-center gap-6 md:gap-8 mb-8 shadow-xl shadow-blue-500/30">
-        <!-- Avatar(inisial nama pengguna)-->
-        <div class="w-24 h-24 md:w-28 md:h-28 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-4xl md:text-5xl font-bold uppercase flex-shrink-0">
-          {{ userInitials }}
+        <!-- Avatar Component (dengan foto upload) -->
+        <div class="flex-shrink-0">
+          <ProfileAvatar />
         </div>
 
         <!-- User Info -->
@@ -20,7 +20,7 @@
           </p>
         </div>
 
-        <!-- Statistik pengguna(umur, berat, tinggi, BMi) -->
+        <!-- Statistik pengguna (umur, berat, tinggi, BMI) -->
         <div class="flex gap-4 md:gap-5 bg-black/10 backdrop-blur-sm px-6 py-4 rounded-2xl">
           <div class="text-center">
             <div class="text-2xl md:text-3xl font-bold">{{ user.user_metadata?.age || 'N/A' }}</div>
@@ -281,13 +281,14 @@
 import { ref, onMounted, computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useFoodStore } from '@/stores/food'
+import { normalizeSaltDisplay } from '@/utils/units'
+import ProfileAvatar from '@/components/ProfileAvatar.vue'
 
 const authStore = useAuthStore()
 const foodStore = useFoodStore()
 const user = computed(() => authStore.user)
 
 const selectedPeriod = ref('daily')
-import { normalizeSaltDisplay } from '@/utils/units'
 
 const summaryData = computed(() => {
   const s = foodStore.summary || {}
@@ -350,14 +351,6 @@ async function changePeriod(period) {
     loadingSummary.value = false
   }
 }
-
-const userInitials = computed(() => {
-  const name = user.value?.user_metadata?.name
-  if (!name) return user.value?.email?.[0]?.toUpperCase() || '?'
-
-  const names = name.split(' ')
-  return names.length > 1 ? names[0][0] + names[names.length - 1][0] : names[0].substring(0, 2)
-})
 
 const bmi = computed(() => {
   const weight = user.value?.user_metadata?.weight

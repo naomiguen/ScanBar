@@ -58,7 +58,7 @@
         <!-- Section Header -->
         <div class="text-center mb-16">
           <span class="inline-block bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-full font-semibold text-sm shadow-lg shadow-blue-500/30 mb-4">
-            ✨ Fitur Unggulan
+           Fitur Unggulan
           </span>
 
           <h2 class="text-4xl md:text-5xl font-extrabold text-slate-800 mb-4">
@@ -85,17 +85,13 @@
                 Untuk Produk Kemasan
               </div>
 
-              <div class="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-4xl mb-6 shadow-lg shadow-blue-500/30 group-hover:scale-110 transition-transform duration-300">
-                📦
-              </div>
-
               <h3 class="text-3xl font-extrabold text-slate-800 mb-4">
                 Scan Barcode Kemasan
               </h3>
 
               <p class="text-base text-slate-600 leading-relaxed mb-6">
-                Scan barcode pada kemasan makanan & minuman untuk mendapatkan informasi nutrisi lengkap.
-              </p>
+                Scan barcode pada kemasan makanan & minuman untuk mendapatkan informasi nutrisi lengkap. Pakai ini untuk scan makanan kemasan, snack, minuman botol, produk supermarket</p>
+
 
               <ul class="space-y-3 mb-6">
                 <li class="flex items-start gap-3 text-slate-700">
@@ -132,16 +128,12 @@
                 Untuk Makanan
               </div>
 
-              <div class="w-20 h-20 rounded-2xl bg-gradient-to-br from-green-600 to-emerald-600 flex items-center justify-center text-4xl mb-6 shadow-lg shadow-green-500/30 group-hover:scale-110 transition-transform duration-300">
-                📸
-              </div>
-
               <h3 class="text-3xl font-extrabold text-slate-800 mb-4">
                 Foto Makanan
               </h3>
 
               <p class="text-base text-slate-600 leading-relaxed mb-6">
-                Ambil foto makanan tanpa kemasan dan lihat kandungan nutrisinya secara otomatis.
+                Ambil foto makanan tanpa kemasan dan lihat kandungan nutrisinya secara otomatis. Pakai ini untuk scan Makanan seperti Nasi goreng, sayur, buah segar, makanan restoran, masakan rumah
               </p>
 
               <ul class="space-y-3 mb-6">
@@ -166,32 +158,8 @@
             </div>
           </div>
         </div>
-
-        <!-- Info Banner -->
-        <div class="mt-12 max-w-4xl mx-auto">
-          <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-2xl p-6">
-            <div class="flex items-start gap-4">
-              <span class="text-3xl flex-shrink-0">💡</span>
-              <div>
-                <h4 class="text-lg font-bold text-slate-800 mb-2">
-                  Kapan Menggunakan Metode Mana?
-                </h4>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-slate-700">
-                  <div>
-                    <p class="font-semibold text-blue-700 mb-1">Scan Barcode:</p>
-                    <p>Makanan kemasan, snack, minuman botol, produk supermarket</p>
-                  </div>
-                  <div>
-                    <p class="font-semibold text-green-700 mb-1">Foto Makanan:</p>
-                    <p>Nasi goreng, sayur, buah segar, makanan restoran, masakan rumah</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
-    </section>
+     </section>
 
     <!-- BARCODE SCANNER SECTION COMPONENT -->
     <BarcodeScannerSection
@@ -207,7 +175,7 @@
       @cancel="handleCancel"
       @toggle-favorite="handleToggleFavorite"
       @show-manual-input="showManualInputModal"
-      ref="scannerRef"
+      ref="barcodeScannerSectionRef"
     />
 
     <!-- Tips & Facts Section -->
@@ -304,7 +272,17 @@ const scrollToFeatures = () => {
 }
 
 const scrollToScanner = () => {
-  barcodeScannerSectionRef.value?.scannerSection?.scrollIntoView({ behavior: 'smooth' })
+  // Try component root element first
+  const comp = barcodeScannerSectionRef.value
+  const el = comp?.$el || comp
+  if (el && typeof el.scrollIntoView === 'function') {
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    return
+  }
+
+  // Fallback to smooth scrolling to an element with an id if present
+  const fallback = document.getElementById('scan-barcode-kemasan')
+  if (fallback) fallback.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
 
 // Normalize barcode

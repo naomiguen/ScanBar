@@ -27,7 +27,6 @@
               @click="$emit('scroll-to-scanner')"
               class="px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-bold text-sm sm:text-base shadow-lg shadow-blue-500/30 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-blue-500/40 transition-all duration-300 inline-flex items-center gap-2"
             >
-              <span>📷</span>
               <span class="hidden xs:inline">Mulai Pindai Sekarang</span>
               <span class="xs:hidden">Pindai Sekarang</span>
             </button>

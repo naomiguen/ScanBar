@@ -8,8 +8,7 @@
     <div class="max-w-7xl mx-auto px-4 relative z-10">
       <div class="text-center mb-12">
         <div class="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-full font-semibold shadow-lg shadow-blue-500/30 mb-6 text-base">
-          <span>📱</span>
-          <span>Mudah & Cepat</span>
+          <span>Scan Barcode Kemasan</span>
         </div>
 
         <h2 class="text-4xl md:text-5xl font-extrabold text-slate-800 mb-4">
@@ -154,7 +153,7 @@
                 </p>
 
                 <p class="text-sm text-slate-500">
-                  📱 Pastikan izin kamera diaktifkan
+                Pastikan izin kamera diaktifkan
                 </p>
               </div>
             </div>
@@ -202,11 +201,11 @@
                 @click="stopCamera"
                 class="w-full px-4 py-3 bg-white text-slate-700 border-2 border-slate-300 rounded-xl font-bold hover:bg-slate-50 hover:border-slate-400 transition-all duration-300 flex items-center justify-center gap-2"
               >
-                <span>❌</span> Tutup Kamera
+              Tutup Kamera
               </button>
 
               <p class="text-center text-sm text-slate-600">
-                📍 Posisikan barcode di dalam frame untuk hasil terbaik
+              Posisikan barcode di dalam frame untuk hasil terbaik
               </p>
             </div>
           </div>
@@ -324,7 +323,6 @@
               class="w-full h-[300px] object-contain rounded-xl shadow-lg bg-white"
             />
             <div v-else class="w-full h-auto bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl p-8 text-center border-2 border-slate-200">
-              <div class="text-6xl mb-4">📦</div>
               <h3 class="text-2xl font-bold text-slate-800">
                 {{ searchedFood.productName }}
               </h3>
