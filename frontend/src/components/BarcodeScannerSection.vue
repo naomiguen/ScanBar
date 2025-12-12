@@ -456,8 +456,10 @@
 </template>
 
 <script setup>
+import Quagga from 'quagga'
 import { ref, computed, watch } from 'vue'
 import { QrcodeStream } from 'vue-qrcode-reader'
+
 
 // Props
 const props = defineProps({
@@ -510,6 +512,62 @@ const scannerSection = ref(null)
 const imageLoadFailed = ref(false)
 const capturedBarcodeImage = ref(null)
 const processingBarcode = ref(false)
+
+//pre-processing image
+const preprocessImage = (imageData) => {
+  return new Promise((resolve) => {
+    const img = new Image()
+    img.onload = () => {
+      const canvas = document.createElement('canvas')
+      const ctx = canvas.getContext('2d')
+
+      // Resize untuk optimal processing
+      const maxWidth = 1200
+      const scale = Math.min(1, maxWidth / img.width)
+      canvas.width = img.width * scale
+      canvas.height = img.height * scale
+
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+
+      // Tingkatkan kontras
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
+      const data = imageData.data
+
+      for (let i = 0; i < data.length; i += 4) {
+        // Simple contrast enhancement
+        const avg = (data[i] + data[i + 1] + data[i + 2]) / 3
+        const factor = 1.5
+        data[i] = Math.min(255, (data[i] - avg) * factor + avg)
+        data[i + 1] = Math.min(255, (data[i + 1] - avg) * factor + avg)
+        data[i + 2] = Math.min(255, (data[i + 2] - avg) * factor + avg)
+      }
+
+      ctx.putImageData(imageData, 0, 0)
+      resolve(canvas.toDataURL())
+    }
+    img.src = imageData
+  })
+}
+
+//request kamer permision
+const requestCameraPermission = async () => {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: {
+        facingMode: 'environment', // Gunakan kamera belakang di mobile
+        width: { ideal: 1280 },
+        height: { ideal: 720 }
+      }
+    })
+    // Stop stream setelah dapat permission
+    stream.getTracks().forEach(track => track.stop())
+    return true
+  } catch (error) {
+    console.error('Camera permission error:', error)
+    return false
+  }
+}
+
 
 // Computed: Image Source dengan prioritas yang jelas
 const imageSrcValue = computed(() => {
@@ -621,9 +679,17 @@ const onInit = async (promise) => {
   }
 }
 
+//onedecode dengan vibration
+
+
 // Methods: Decode barcode from camera
 const onDecode = async (decodedString) => {
   if (decodedString) {
+    // Vibrate untuk feedback (hanya di mobile yang support)
+    if ('vibrate' in navigator) {
+      navigator.vibrate(200) // Vibrate 200ms
+    }
+
     const normalized = normalizeBarcode(decodedString)
     barcodeInput.value = normalized
     emit('camera-decode', normalized)
@@ -652,17 +718,29 @@ const isMobileDevice = () => {
 }
 
 // Methods: Open mobile camera (untuk HP)
-const openMobileCamera = () => {
+const openMobileCamera = async () => {
   cameraError.value = ''
   capturedBarcodeImage.value = null
   processingBarcode.value = false
 
   // Deteksi apakah device mobile
   if (isMobileDevice()) {
+    // Request permission dulu sebelum buka camera
+    const hasPermission = await requestCameraPermission()
+    if (!hasPermission) {
+      cameraError.value = 'Izin kamera diperlukan. Silakan aktifkan di pengaturan browser.'
+      return
+    }
+
     // Gunakan native camera input untuk mobile
     cameraInput.value?.click()
   } else {
     // Gunakan QrcodeStream untuk desktop
+    const hasPermission = await requestCameraPermission()
+    if (!hasPermission) {
+      cameraError.value = 'Izin kamera diperlukan. Silakan aktifkan di pengaturan browser.'
+      return
+    }
     startCamera()
   }
 }
@@ -712,38 +790,26 @@ const retakeBarcodePhoto = () => {
 
 // Methods: Process barcode image with OCR
 const processBarcodeImage = async () => {
-  if (!capturedBarcodeImage.value) return
+  if (!capturedBarcodeImage.value) return;
 
-  processingBarcode.value = true
-  cameraError.value = ''
+  processingBarcode.value = true;
+  cameraError.value = '';
 
   try {
-    // Import Quagga dynamically
-    const Quagga = (await import('quagga')).default
+    const processedImage = await preprocessImage(capturedBarcodeImage.value)
+    const Quagga = (await import('quagga')).default;
 
-    // Create temporary canvas to process image
-    const img = new Image()
-    img.src = capturedBarcodeImage.value
-
-    await new Promise((resolve, reject) => {
-      img.onload = resolve
-      img.onerror = reject
-    })
-
-    // Create canvas
-    const canvas = document.createElement('canvas')
-    canvas.width = img.width
-    canvas.height = img.height
-    const ctx = canvas.getContext('2d')
-    ctx.drawImage(img, 0, 0)
-
-    // Process with Quagga
+    // Process with Quagga (config ditingkatkan)
     Quagga.decodeSingle({
-      src: capturedBarcodeImage.value,
+      src: processedImage,
       numOfWorkers: 0,
       locate: true,
       inputStream: {
-        size: 800
+        size: 1200
+      },
+      locator: {
+        patchSize: 'medium',
+        halfSample: true
       },
       decoder: {
         readers: [
@@ -763,6 +829,9 @@ const processBarcodeImage = async () => {
         const normalized = normalizeBarcode(barcode)
 
         if (normalized) {
+          if ('vibrate' in navigator) {
+            navigator.vibrate(200)
+          }
           barcodeInput.value = normalized
           emit('search', normalized)
           activeTab.value = 'manual'
@@ -774,13 +843,13 @@ const processBarcodeImage = async () => {
         cameraError.value = 'Tidak dapat membaca barcode. Pastikan foto jelas dan barcode terlihat dengan baik.'
       }
     })
-
   } catch (error) {
     console.error('Error processing barcode:', error)
     processingBarcode.value = false
     cameraError.value = 'Terjadi kesalahan saat memproses gambar. Silakan coba lagi.'
   }
 }
+
 
 // Methods: Trigger file input
 const triggerFileInput = () => {
@@ -812,16 +881,21 @@ const onFileChange = async (event) => {
     uploadError.value = 'Memproses gambar...'
 
     try {
+      const processedImage = await preprocessImage(uploadedImage.value)
       // Import Quagga dynamically
       const Quagga = (await import('quagga')).default
 
       // Process with Quagga
       Quagga.decodeSingle({
-        src: uploadedImage.value,
+        src: processedImage,
         numOfWorkers: 0,
         locate: true,
         inputStream: {
-          size: 800
+          size:1200
+        },
+        locator: {
+          patchSize: 'medium',
+          halfSample: true
         },
         decoder: {
           readers: [
@@ -839,6 +913,10 @@ const onFileChange = async (event) => {
           const normalized = normalizeBarcode(barcode)
 
           if (normalized) {
+            if ('vibrate' in navigator) {
+              navigator.vibrate(200)
+            }
+
             barcodeInput.value = normalized
             emit('search', normalized)
             uploadError.value = ''
@@ -849,19 +927,16 @@ const onFileChange = async (event) => {
           uploadError.value = 'Tidak dapat membaca barcode dari gambar. Pastikan barcode terlihat jelas.'
         }
       })
-
     } catch (error) {
       console.error('Error processing uploaded image:', error)
       uploadError.value = 'Terjadi kesalahan saat memproses gambar. Silakan coba lagi.'
     }
   }
-
   reader.onerror = () => {
     uploadError.value = 'Gagal membaca file. Silakan coba lagi.'
   }
-
   reader.readAsDataURL(file)
-  event.target.value = '' // Reset input
+  event.target.value = ''
 }
 
 // Methods: Clear upload
@@ -888,13 +963,11 @@ const changeTab = (tabName) => {
 // Methods: Handle search
 const handleSearch = () => {
   if (!barcodeInput.value || props.searchLoading) return
-
   const normalized = normalizeBarcode(barcodeInput.value)
   if (!normalized) {
     cameraError.value = 'Barcode tidak valid. Harap masukkan angka yang benar.'
     return
   }
-
   barcodeInput.value = normalized
   emit('search', normalized)
 }
