@@ -12,6 +12,7 @@ import PhotoScanView from '../views/PhotoScan.vue'
 import AdminDashboardView from '../views/AdminDashboard.vue'
 import AdminAddProductView from '@/views/AdminAddProductView.vue'
 import AdminTrashView from '@/views/AdminTrashView.vue';
+import CvView from '@/views/cvView.vue'
 
 const routes = [
   {
@@ -64,6 +65,12 @@ const routes = [
     path: '/profile',
     name: 'Profile',
     component: ProfileView,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/about-me',
+    name: 'AboutMe',
+    component: CvView,
     meta: { requiresAuth: true }
   },
   {
