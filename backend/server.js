@@ -76,9 +76,8 @@ function getCertificateInfo(pemPath) {
 // Start HTTPS server only after MongoDB connection is ready
 MongoClient.connect(process.env.MONGODB_URI)
   .then(client => {
-    console.log("MongoDB Lokal Terhubung...");
 
-    const db = client.db('scanbar');
+    const db = client.db('Scanbar');
     app.locals.db = db;
 
     app.use('/api/products', productRoutes);

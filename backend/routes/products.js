@@ -167,15 +167,27 @@ router.get('/:code', async (req, res) => {
     }
 
     // CEK DATABASE LOKAL
-    console.log(`🔍 [STEP 1] Mencari produk ${normalizedCode} di database lokal...`);
+    console.log(`� [STEP 1] Checking local database for barcode: ${normalizedCode}`);
+    console.log(`   - Original code: ${code}`);
+    console.log(`   - Normalized code: ${normalizedCode}`);
+    console.log(`   - Searching with query: { code: "${normalizedCode}" }`);
     
     const localProduct = await db.collection('products').findOne({ 
       code: normalizedCode 
     });
+    
+    if (localProduct) {
+      console.log(`   ✅ Found in local DB:`, JSON.stringify(localProduct, null, 2));
+    } else {
+      console.log(`   ❌ Not found - checking what codes exist in collection...`);
+      const allCodes = await db.collection('products').find({}).project({ code: 1 }).toArray();
+      console.log(`   Available codes in DB:`, allCodes.map(p => p.code));
+    }
 
     if (localProduct) {
-      console.log('✅ Ditemukan di database lokal!');
+      console.log('✅ Found in local database!');
       console.log(`   - Source: ${localProduct.source}`);
+      console.log(`   - Product Name: ${localProduct.product_name}`);
       
       // Format response yang konsisten
       return res.json({

@@ -93,7 +93,7 @@
                   :disabled="searchLoading || !barcodeInput"
                   class="w-full px-6 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-bold text-base hover:-translate-y-0.5 hover:shadow-xl hover:shadow-blue-500/40 transition-all duration-300 flex items-center justify-center gap-2 shadow-md shadow-blue-500/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                 >
-                  <span v-if="!searchLoading">🔍</span>
+                  <span v-if="!searchLoading"></span>
                   <div v-else class="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                   <span>{{ searchLoading ? 'Mencari...' : 'Cari Produk' }}</span>
                 </button>
@@ -293,20 +293,7 @@
               >
                 Coba Lagi
               </button>
-              <button
-                v-if="isAuthenticated"
-                @click="$emit('show-manual-input')"
-                class="px-6 py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-all duration-300 shadow-lg shadow-blue-500/30"
-              >
-                Input Manual
-              </button>
-              <router-link
-                v-else
-                to="/login"
-                class="px-6 py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-all duration-300 shadow-lg shadow-blue-500/30"
-              >
-                Login untuk Input Manual
-              </router-link>
+
             </div>
           </div>
         </div>

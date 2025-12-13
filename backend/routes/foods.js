@@ -5,6 +5,7 @@ const Food = require('../models/Food');
 const DailyAnalysis = require('../models/DailyAnalysis'); // ← IMPORT MODEL BARU
 const axios = require('axios');
 const mongoose = require('mongoose');
+const { MongoClient } = require('mongodb');
 const util = require('util');
 const { generateHeuristicAnalysis } = require('../utils/heuristic');
 
@@ -523,6 +524,8 @@ router.get('/barcode/:barcode', async (req, res) => {
 
     //cek database
     console.log(`📁 [STEP 1] Checking local database for barcode: ${normalizedCode}`);
+    console.log(`   - DB object exists: ${!!db}`);
+    console.log(`   - Searching query: { code: "${normalizedCode}" }`);
     
     const localProduct = await db.collection('products').findOne({ 
       code: normalizedCode 
@@ -544,6 +547,46 @@ router.get('/barcode/:barcode', async (req, res) => {
         source: localProduct.source || 'local_cache',
         cached: true // Flag: data dari local DB
       });
+    } else {
+      console.log(`   ❌ NOT FOUND in database`);
+      console.log(`   - Checking all available codes in 'products' collection...`);
+      try {
+        const allCodes = await db.collection('products').find({}).project({ code: 1, product_name: 1 }).limit(10).toArray();
+        console.log(`   - Sample codes in DB:`, allCodes.map(p => ({ code: p.code, name: p.product_name })));
+      } catch (checkErr) {
+        console.log(`   - Error checking codes:`, checkErr.message);
+      }
+    }
+
+    // Jika tidak ditemukan di DB utama (mis. Anda pindah ke Atlas tapi masih punya data di Mongo lokal),
+    // coba fallback ke LOCAL_MONGODB_URI jika diset di environment.
+    if (!localProduct && process.env.LOCAL_MONGODB_URI) {
+      try {
+        console.log('[FALLBACK] LOCAL_MONGODB_URI diset, mencoba query ke Mongo lokal sebagai fallback...');
+        const localClient = new MongoClient(process.env.LOCAL_MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true });
+        await localClient.connect();
+        const localDb = localClient.db('scanbar');
+        const fallbackProduct = await localDb.collection('products').findOne({ code: normalizedCode });
+
+        if (fallbackProduct) {
+          console.log('✅ [FALLBACK HIT] Product ditemukan di Mongo lokal (fallback).');
+          await localClient.close();
+          return res.json({
+            code: fallbackProduct.code,
+            product_name: fallbackProduct.product_name,
+            brands: fallbackProduct.brands || 'Tidak Diketahui',
+            image_url: fallbackProduct.image_url || '',
+            nutriments: fallbackProduct.nutriments,
+            source: fallbackProduct.source || 'local_fallback',
+            cached: true
+          });
+        }
+
+        await localClient.close();
+      } catch (fbErr) {
+        console.warn('[FALLBACK] Gagal query ke LOCAL_MONGODB_URI:', fbErr && fbErr.message ? fbErr.message : fbErr);
+        // tidak melempar error, lanjutkan ke cek ke Open Food Facts
+      }
     }
 
     // TIDAK ADA DI LOCAL → CEK OPEN FOOD FACTS API
