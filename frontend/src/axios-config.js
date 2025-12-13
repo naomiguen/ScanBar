@@ -13,13 +13,12 @@ const getBaseUrl = () => {
   }
 
   // Check Vue CLI environment variable (for Vue CLI projects)
-  // `process` is not defined in the browser; guard with typeof check
   let vueUrl;
   if (typeof process !== 'undefined' && process && process.env && process.env.VUE_APP_API_URL) {
     vueUrl = process.env.VUE_APP_API_URL;
   }
   if (vueUrl && typeof vueUrl === 'string' && vueUrl.trim() !== '') {
-    console.log(' Using Vue CLI API URL:', vueUrl);
+    console.log('Using Vue CLI API URL:', vueUrl);
     return vueUrl;
   }
 
