@@ -20,6 +20,7 @@ app.use(cors({
 }));
 
 // API Routes
+app.use('/api/users', require('./routes/users'));
 app.use('/api/foods', require('./routes/foods')); 
 app.use('/api/articles', articleRoutes);
 app.use('/api/favorites', favoritesRouter);

@@ -27,7 +27,7 @@ router.post('/register', async (req, res) => {
     user.verificationToken = crypto.createHash('sha256').update(verificationToken).digest('hex');
     await user.save();
     try {
-      const verifyURL = `http://localhost:3000/api/users/verifyemail/${verificationToken}`;
+      const verifyURL = `${process.env.BACKEND_URL}/api/users/verifyemail/${verificationToken}`;
       const message = `
         <h1>Verifikasi Akun ScanBar</h1>
         <p>Terima kasih sudah mendaftar! Silakan klik link di bawah ini untuk mengaktifkan akun Anda:</p>
@@ -200,39 +200,6 @@ router.put('/goals', auth, async (req, res) => {
 });
 
 
-// @route   POST /api/users/forgotpassword
-// @desc    Meminta link reset password
-router.post('/forgotpassword', async (req, res) => {
-  try {
-    const user = await User.findOne({ email: req.body.email });
-    if (!user) {
-      return res.status(200).json({ message: 'Email untuk reset password telah dikirim.' });
-    }
-
-    //buat token reset password
-    const resetToken = crypto.randomBytes(20).toString('hex');
-    //SIMPAN HASIL HASH DI DATABASE
-    user.resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex');
-    user.resetPasswordExpire = Date.now() + 15 * 60 * 1000; // 15 menit
-    await user.save();
-
-    //KIRIM EMAIL DENGAN LINK RESET
-    const resetUrl = `http://localhost:5173/resetpassword/${resetToken}`;
-    const message = `<h1>Reset Password Akun ScanBar</h1><p>Anda menerima email ini karena ada permintaan untuk reset password. Silakan klik link di bawah ini untuk melanjutkan:</p><a href="${resetUrl}">Reset Password Saya</a><p>Link ini akan kedaluwarsa dalam 15 menit.</p>`;
-
-    await sendEmail({
-      email: user.email,
-      subject: 'Reset Password Akun ScanBar',
-      message
-    });
-
-    res.status(200).json({ message: 'Email untuk reset password telah dikirim.' });
-  } catch (err) {
-    console.error(err);
-    res.status(500).send('Server Error');
-  }
-});
-
 
 // @route   POST /api/users/forgotpassword
 // @desc    Meminta link reset password
@@ -250,7 +217,7 @@ router.post('/forgotpassword', async (req, res) => {
     user.resetPasswordExpire = Date.now() + 15 * 60 * 1000; // Kedaluwarsa dalam 15 menit
     await user.save();
 
-    const resetUrl = `http://localhost:5173/resetpassword/${resetToken}`;
+    const resetUrl = `${process.env.FRONTEND_URL}/resetpassword/${resetToken}`;
     const message = `<h1>Reset Password Akun ScanBar</h1><p>Silakan klik link di bawah ini untuk melanjutkan:</p><a href="${resetUrl}">Reset Password Saya</a><p>Link ini akan kedaluwarsa dalam 15 menit.</p>`;
     
     await sendEmail({ email: user.email, subject: 'Permintaan Reset Password', message });
