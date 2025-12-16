@@ -383,16 +383,18 @@ router.delete('/:id', auth, async (req, res) => {
 // @access  Private
 router.get('/', auth, async (req, res) => {
     try {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
+        const todayStart = getStartOfDay();
+        const todayEnd = getEndOfDay();
 
-        const tomorrow = new Date(today);
-        tomorrow.setDate(tomorrow.getDate() + 1);
+        console.log(`[GET /foods] Fetching foods for user ${req.user.id}`);
+        console.log(`   Date range: ${todayStart.toISOString()} to ${todayEnd.toISOString()}`);
 
         const foods = await Food.find({
             user: req.user.id,
-            date: { $gte: today, $lt: tomorrow }
+            date: { $gte: todayStart, $lte: todayEnd }
         }).sort({ date: -1 });
+
+        console.log(`   Found ${foods.length} foods for today`);
 
         res.json(foods);
     } catch (err) {
@@ -407,17 +409,26 @@ router.get('/', auth, async (req, res) => {
 router.get('/summary', auth, async (req, res) => {
   try {
     const userId = req.user.id;
-    const now = new Date();
+    
+    
+    const todayStart = getStartOfDay();
+    const todayEnd = getEndOfDay();
 
-    const todayStart = new Date(now);
-    todayStart.setHours(0, 0, 0, 0);
-    const todayEnd = new Date(now);
-    todayEnd.setHours(23, 59, 59, 999);
-
+    // Hitung week start (Minggu = hari pertama minggu)
     const weekStart = new Date(todayStart);
-    weekStart.setDate(weekStart.getDate() - todayStart.getDay());
+    const dayOfWeek = weekStart.getDay(); // 0 = Minggu, 6 = Sabtu
+    weekStart.setDate(weekStart.getDate() - dayOfWeek);
+    weekStart.setHours(0, 0, 0, 0);
 
-    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    // Hitung month start (tanggal 1)
+    const monthStart = new Date(todayStart);
+    monthStart.setDate(1);
+    monthStart.setHours(0, 0, 0, 0);
+
+    console.log(`[GET /summary] user: ${userId}`);
+    console.log(`   Today: ${todayStart.toISOString()} to ${todayEnd.toISOString()}`);
+    console.log(`   Week start: ${weekStart.toISOString()}`);
+    console.log(`   Month start: ${monthStart.toISOString()}`);
 
     const calculateAverage = async (startDate) => {
       const result = await Food.aggregate([
@@ -466,7 +477,15 @@ router.get('/summary', auth, async (req, res) => {
       calculateAverage(monthStart),
     ]);
 
-    const todayTotals = todayResult[0] || { totalCalories: 0, totalProtein: 0, totalCarbs: 0, totalFat: 0 };
+    const todayTotals = todayResult[0] || { 
+      totalCalories: 0, 
+      totalProtein: 0, 
+      totalCarbs: 0, 
+      totalFat: 0,
+      totalSugar: 0,
+      totalSalt: 0
+    };
+    
     const weekly = {
       avgCalories: Math.round(weeklyAvg.avgCalories || 0),
       avgProtein: Math.round(weeklyAvg.avgProtein || 0),
@@ -475,6 +494,7 @@ router.get('/summary', auth, async (req, res) => {
       avgSugar: Math.round(weeklyAvg.avgSugar || 0),
       avgSalt: Math.round(weeklyAvg.avgSalt || 0),
     };
+    
     const monthly = {
       avgCalories: Math.round(monthlyAvg.avgCalories || 0),
       avgProtein: Math.round(monthlyAvg.avgProtein || 0),
@@ -485,14 +505,27 @@ router.get('/summary', auth, async (req, res) => {
     };
 
     const period = (req.query.period || 'daily').toLowerCase();
+    
     if (period === 'weekly') {
-      return res.json({ calories: weekly.avgCalories, protein: weekly.avgProtein, carbs: weekly.avgCarbs, fat: weekly.avgFat, sugar: weekly.avgSugar || 0, salt: weekly.avgSalt || 0 });
+      console.log(`   Returning weekly average`);
+      return res.json(weekly);
     }
+    
     if (period === 'monthly') {
-      return res.json({ calories: monthly.avgCalories, protein: monthly.avgProtein, carbs: monthly.avgCarbs, fat: monthly.avgFat, sugar: monthly.avgSugar || 0, salt: monthly.avgSalt || 0 });
+      console.log(`   Returning monthly average`);
+      return res.json(monthly);
     }
 
-    return res.json({ calories: todayTotals.totalCalories || 0, protein: todayTotals.totalProtein || 0, carbs: todayTotals.totalCarbs || 0, fat: todayTotals.totalFat || 0, sugar: todayTotals.totalSugar || 0, salt: todayTotals.totalSalt || 0 });
+    console.log(`   Returning daily totals`);
+    return res.json({
+      calories: todayTotals.totalCalories || 0,
+      protein: todayTotals.totalProtein || 0,
+      carbs: todayTotals.totalCarbs || 0,
+      fat: todayTotals.totalFat || 0,
+      sugar: todayTotals.totalSugar || 0,
+      salt: todayTotals.totalSalt || 0
+    });
+    
   } catch (err) {
     console.error('Summary Error:', err.message);
     res.status(500).send('Server Error');
@@ -507,7 +540,7 @@ router.get('/barcode/:barcode', async (req, res) => {
     const db = req.app.locals.db;
     const { barcode } = req.params;
 
-    console.log(`🔍 [BARCODE SEARCH] Raw input: "${barcode}"`);
+    console.log(`[BARCODE SEARCH] Raw input: "${barcode}"`);
 
     // Validasi dan normalisasi barcode
     if (!barcode || barcode.trim() === '') {
