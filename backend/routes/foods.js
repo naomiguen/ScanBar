@@ -410,13 +410,12 @@ router.get('/summary', auth, async (req, res) => {
   try {
     const userId = req.user.id;
     
-    
     const todayStart = getStartOfDay();
     const todayEnd = getEndOfDay();
 
     // Hitung week start (Minggu = hari pertama minggu)
     const weekStart = new Date(todayStart);
-    const dayOfWeek = weekStart.getDay(); // 0 = Minggu, 6 = Sabtu
+    const dayOfWeek = weekStart.getDay();
     weekStart.setDate(weekStart.getDate() - dayOfWeek);
     weekStart.setHours(0, 0, 0, 0);
 
@@ -425,7 +424,9 @@ router.get('/summary', auth, async (req, res) => {
     monthStart.setDate(1);
     monthStart.setHours(0, 0, 0, 0);
 
-    console.log(`[GET /summary] user: ${userId}`);
+    const period = (req.query.period || 'daily').toLowerCase();
+
+    console.log(`[GET /summary] user: ${userId}, period: ${period}`);
     console.log(`   Today: ${todayStart.toISOString()} to ${todayEnd.toISOString()}`);
     console.log(`   Week start: ${weekStart.toISOString()}`);
     console.log(`   Month start: ${monthStart.toISOString()}`);
@@ -459,22 +460,53 @@ router.get('/summary', auth, async (req, res) => {
       return result[0] || {};
     };
 
-    const [todayResult, weeklyAvg, monthlyAvg] = await Promise.all([
-      Food.aggregate([
-        { $match: { user: userId, date: { $gte: todayStart, $lte: todayEnd } } },
-        { $group: {
-            _id: null,
-            totalCalories: { $sum: '$calories' },
-            totalProtein: { $sum: '$protein' },
-            totalCarbs: { $sum: '$carbs' },
-            totalFat: { $sum: '$fat' },
-            totalSugar: { $sum: '$sugar' },
-            totalSalt: { $sum: '$salt' },
-          } 
-        }
-      ]),
-      calculateAverage(weekStart),
-      calculateAverage(monthStart),
+    if (period === 'weekly') {
+      const weeklyAvg = await calculateAverage(weekStart);
+      
+      console.log(`   Returning weekly average:`, weeklyAvg);
+      
+      return res.json({
+        calories: Math.round(weeklyAvg.avgCalories || 0),
+        protein: Math.round(weeklyAvg.avgProtein || 0),
+        carbs: Math.round(weeklyAvg.avgCarbs || 0),
+        fat: Math.round(weeklyAvg.avgFat || 0),
+        sugar: Math.round(weeklyAvg.avgSugar || 0),
+        salt: Math.round(weeklyAvg.avgSalt || 0),
+        period: 'weekly',
+        startDate: weekStart.toISOString()
+      });
+    }
+
+    if (period === 'monthly') {
+      const monthlyAvg = await calculateAverage(monthStart);
+      
+      console.log(`   Returning monthly average:`, monthlyAvg);
+
+      return res.json({
+        calories: Math.round(monthlyAvg.avgCalories || 0),
+        protein: Math.round(monthlyAvg.avgProtein || 0),
+        carbs: Math.round(monthlyAvg.avgCarbs || 0),
+        fat: Math.round(monthlyAvg.avgFat || 0),
+        sugar: Math.round(monthlyAvg.avgSugar || 0),
+        salt: Math.round(monthlyAvg.avgSalt || 0),
+        period: 'monthly',
+        startDate: monthStart.toISOString()
+      });
+    }
+
+    const todayResult = await Food.aggregate([
+      { $match: { user: userId, date: { $gte: todayStart, $lte: todayEnd } } },
+      { 
+        $group: {
+          _id: null,
+          totalCalories: { $sum: '$calories' },
+          totalProtein: { $sum: '$protein' },
+          totalCarbs: { $sum: '$carbs' },
+          totalFat: { $sum: '$fat' },
+          totalSugar: { $sum: '$sugar' },
+          totalSalt: { $sum: '$salt' },
+        } 
+      }
     ]);
 
     const todayTotals = todayResult[0] || { 
@@ -485,50 +517,25 @@ router.get('/summary', auth, async (req, res) => {
       totalSugar: 0,
       totalSalt: 0
     };
-    
-    const weekly = {
-      avgCalories: Math.round(weeklyAvg.avgCalories || 0),
-      avgProtein: Math.round(weeklyAvg.avgProtein || 0),
-      avgCarbs: Math.round(weeklyAvg.avgCarbs || 0),
-      avgFat: Math.round(weeklyAvg.avgFat || 0),
-      avgSugar: Math.round(weeklyAvg.avgSugar || 0),
-      avgSalt: Math.round(weeklyAvg.avgSalt || 0),
-    };
-    
-    const monthly = {
-      avgCalories: Math.round(monthlyAvg.avgCalories || 0),
-      avgProtein: Math.round(monthlyAvg.avgProtein || 0),
-      avgCarbs: Math.round(monthlyAvg.avgCarbs || 0),
-      avgFat: Math.round(monthlyAvg.avgFat || 0),
-      avgSugar: Math.round(monthlyAvg.avgSugar || 0),
-      avgSalt: Math.round(monthlyAvg.avgSalt || 0),
-    };
+    console.log(`   Returning daily totals:`, todayTotals);
 
-    const period = (req.query.period || 'daily').toLowerCase();
-    
-    if (period === 'weekly') {
-      console.log(`   Returning weekly average`);
-      return res.json(weekly);
-    }
-    
-    if (period === 'monthly') {
-      console.log(`   Returning monthly average`);
-      return res.json(monthly);
-    }
-
-    console.log(`   Returning daily totals`);
     return res.json({
       calories: todayTotals.totalCalories || 0,
       protein: todayTotals.totalProtein || 0,
       carbs: todayTotals.totalCarbs || 0,
       fat: todayTotals.totalFat || 0,
       sugar: todayTotals.totalSugar || 0,
-      salt: todayTotals.totalSalt || 0
+      salt: todayTotals.totalSalt || 0,
+      period: 'daily',
+      date: todayStart.toISOString()
     });
     
   } catch (err) {
     console.error('Summary Error:', err.message);
-    res.status(500).send('Server Error');
+    res.status(500).json({ 
+      error: 'Server Error',
+      message: err.message 
+    });
   }
 });
 
