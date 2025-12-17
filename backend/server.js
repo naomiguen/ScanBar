@@ -6,6 +6,7 @@ const articleRoutes = require('./routes/articles');
 const favoritesRouter = require('./routes/favorites');
 const { MongoClient } = require('mongodb');
 const productRoutes = require('./routes/products');
+const chatbotRoutes = require('./routes/chatbot');
 
 dotenv.config();
 connectDB();
@@ -26,6 +27,7 @@ app.use('/api/articles', articleRoutes);
 app.use('/api/favorites', favoritesRouter);
 app.use('/api/ai', require('./routes/ai'));
 app.use('/api/admin', require('./routes/admin'));
+app.use('/api/chatbot', chatbotRoutes);
 
 app.get('/', (req, res) => {
     res.send('API is running...');

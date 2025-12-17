@@ -1,10 +1,12 @@
+require('dotenv').config();
+
 const jwt = require('jsonwebtoken');
 const { createClient } = require('@supabase/supabase-js');
 
 // Inisialisasi Supabase client
 const supabase = createClient(
   process.env.SUPABASE_URL, 
-  process.env.SUPABASE_KEY
+  process.env.SUPABASE_ANON_KEY
 );
 
 module.exports = async function (req, res, next) {
