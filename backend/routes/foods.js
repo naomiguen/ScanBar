@@ -5,6 +5,7 @@ const Food = require('../models/Food');
 const DailyAnalysis = require('../models/DailyAnalysis'); // ← IMPORT MODEL BARU
 const axios = require('axios');
 const mongoose = require('mongoose');
+const ProductRequest = require('../models/ProductRequest');
 const { MongoClient } = require('mongodb');
 const util = require('util');
 const { generateHeuristicAnalysis } = require('../utils/heuristic');
@@ -81,6 +82,92 @@ async function invalidateDailyCache(userId) {
   } catch (err) {
     console.error('[cache] failed to invalidate cache:', err.message);
     // Non-blocking error - jangan throw
+  }
+}
+
+// Helper function untuk membuat/update product request
+
+async function createOrUpdateProductRequest(barcode, userId, userName, userEmail) {
+  try {
+    const normalizedBarcode = barcode.trim().replace(/\D/g, '');
+    
+    console.log('='.repeat(60));
+    console.log(' [CREATE REQUEST] Starting...');
+    console.log('    Barcode:', normalizedBarcode);
+    console.log('    User ID:', userId);
+    console.log('    User Email:', userEmail);
+    console.log('    User Name:', userName);
+    console.log('='.repeat(60));
+
+    // VALIDASI: Pastikan userId ada
+    if (!userId) {
+      console.error(' [CREATE REQUEST] FAILED: userId is undefined!');
+      console.error('   This means auth middleware did not set req.user');
+      return null;
+    }
+
+    // Cek apakah sudah ada request pending untuk barcode ini
+    console.log(' [CREATE REQUEST] Checking existing pending request...');
+    const existingRequest = await ProductRequest.findOne({
+      barcode: normalizedBarcode,
+      status: 'pending'
+    });
+
+    if (existingRequest) {
+      console.log(' [CREATE REQUEST] Found existing pending request!');
+      console.log('   - Request ID:', existingRequest._id);
+      console.log('   - Current attempt count:', existingRequest.attemptCount);
+      console.log('   - Previous request date:', existingRequest.lastAttemptDate);
+      
+      // Update attempt count dan last attempt date
+      existingRequest.attemptCount += 1;
+      existingRequest.lastAttemptDate = new Date();
+      
+      const updatedRequest = await existingRequest.save();
+      
+      console.log(' [CREATE REQUEST] Updated existing request!');
+      console.log('   - New attempt count:', updatedRequest.attemptCount);
+      console.log('   - Updated date:', updatedRequest.lastAttemptDate);
+      console.log('='.repeat(60));
+      
+      return updatedRequest;
+    }
+
+    // Tidak ada request pending, buat yang baru
+    console.log(' [CREATE REQUEST] No existing request found. Creating new...');
+    
+    const newRequest = new ProductRequest({
+      barcode: normalizedBarcode,
+      requestedBy: userId,
+      requestedByName: userName,
+      requestedByEmail: userEmail,
+      status: 'pending',
+      attemptCount: 1,
+      lastAttemptDate: new Date(),
+      createdAt: new Date()
+    });
+    
+    console.log(' [CREATE REQUEST] Saving to database...');
+    console.log('   - Data to save:', JSON.stringify(newRequest, null, 2));
+    
+    const savedRequest = await newRequest.save();
+    
+    console.log(' [CREATE REQUEST] SUCCESS! New request created!');
+    console.log('   - Request ID:', savedRequest._id);
+    console.log('   - Barcode:', savedRequest.barcode);
+    console.log('   - Status:', savedRequest.status);
+    console.log('   - Requested by:', savedRequest.requestedByName);
+    console.log('   - Attempt count:', savedRequest.attemptCount);
+    console.log('='.repeat(60));
+    
+    return savedRequest;
+    
+  } catch (err) {
+    console.error(' [CREATE REQUEST] ERROR occurred!');
+    console.error('   - Error message:', err.message);
+    console.error('   - Error stack:', err.stack);
+    console.error('='.repeat(60));
+    return null;
   }
 }
 
@@ -542,12 +629,13 @@ router.get('/summary', auth, async (req, res) => {
 // @route   GET /api/foods/barcode/:barcode
 // @desc    Mencari produk berdasarkan barcode menggunakan Open Food Facts API
 // @access  Public (Siapa saja bisa mencari produk)
-router.get('/barcode/:barcode', async (req, res) => {
+router.get('/barcode/:barcode', auth, async (req, res) => {
   try {
     const db = req.app.locals.db;
     const { barcode } = req.params;
 
     console.log(`[BARCODE SEARCH] Raw input: "${barcode}"`);
+    console.log(`[BARCODE SEARCH] User: ${req.user?.email || req.user?.id}`);
 
     // Validasi dan normalisasi barcode
     if (!barcode || barcode.trim() === '') {
@@ -560,10 +648,10 @@ router.get('/barcode/:barcode', async (req, res) => {
       return res.status(400).json({ msg: 'Kode barcode terlalu pendek (minimal 8 digit)' });
     }
 
-    console.log(`🔍 [BARCODE SEARCH] Normalized: "${normalizedCode}"`);
+    console.log(`[BARCODE SEARCH] Normalized: "${normalizedCode}"`);
 
     //cek database
-    console.log(`📁 [STEP 1] Checking local database for barcode: ${normalizedCode}`);
+    console.log(`[STEP 1] Checking local database for barcode: ${normalizedCode}`);
     console.log(`   - DB object exists: ${!!db}`);
     console.log(`   - Searching query: { code: "${normalizedCode}" }`);
     
@@ -572,7 +660,7 @@ router.get('/barcode/:barcode', async (req, res) => {
     });
 
     if (localProduct) {
-      console.log(`✅ [LOCAL DB HIT] Product found in local database!`);
+      console.log(` [LOCAL DB HIT] Product found in local database!`);
       console.log(`   - Name: ${localProduct.product_name}`);
       console.log(`   - Source: ${localProduct.source}`);
       console.log(`   - Nutriments:`, localProduct.nutriments);
@@ -588,14 +676,7 @@ router.get('/barcode/:barcode', async (req, res) => {
         cached: true // Flag: data dari local DB
       });
     } else {
-      console.log(`   ❌ NOT FOUND in database`);
-      console.log(`   - Checking all available codes in 'products' collection...`);
-      try {
-        const allCodes = await db.collection('products').find({}).project({ code: 1, product_name: 1 }).limit(10).toArray();
-        console.log(`   - Sample codes in DB:`, allCodes.map(p => ({ code: p.code, name: p.product_name })));
-      } catch (checkErr) {
-        console.log(`   - Error checking codes:`, checkErr.message);
-      }
+      console.log(`   NOT FOUND in database`);
     }
 
     // Jika tidak ditemukan di DB utama (mis. Anda pindah ke Atlas tapi masih punya data di Mongo lokal),
@@ -609,7 +690,7 @@ router.get('/barcode/:barcode', async (req, res) => {
         const fallbackProduct = await localDb.collection('products').findOne({ code: normalizedCode });
 
         if (fallbackProduct) {
-          console.log('✅ [FALLBACK HIT] Product ditemukan di Mongo lokal (fallback).');
+          console.log('[FALLBACK HIT] Product ditemukan di Mongo lokal (fallback).');
           await localClient.close();
           return res.json({
             code: fallbackProduct.code,
@@ -630,7 +711,7 @@ router.get('/barcode/:barcode', async (req, res) => {
     }
 
     // TIDAK ADA DI LOCAL → CEK OPEN FOOD FACTS API
-    console.log(`🌐 [STEP 2] Not found in local DB. Querying Open Food Facts API...`);
+    console.log(` [STEP 2] Not found in local DB. Querying Open Food Facts API...`);
 
     try {
       const offResponse = await axios.get(
@@ -642,7 +723,19 @@ router.get('/barcode/:barcode', async (req, res) => {
 
       // Validasi response dari API
       if (offData.status !== 1 || !offData.product) {
-        console.log(`❌ [API] Product not found in Open Food Facts`);
+        console.log(`[API] Product not found in Open Food Facts`);
+        console.log(`[NOTIFICATION] Creating product request for ${normalizedCode}`);
+        console.log(`   - User ID: ${req.user.id}`);
+        console.log(`   - User Name: ${req.user.name || req.user.email}`);
+
+        await createOrUpdateProductRequest(
+          normalizedCode, 
+          req.user.id,
+          req.user.name || req.user.email || 'Unknown User',
+          req.user.email || 'unknown@example.com'
+        );
+       console.log(` [NOTIFICATION] Product request created successfully`);
+
         return res.status(404).json({ 
           msg: 'Produk tidak ditemukan di database manapun',
           suggestion: 'Silakan gunakan fitur input manual untuk menambahkan produk ini'
@@ -652,7 +745,7 @@ router.get('/barcode/:barcode', async (req, res) => {
       const p = offData.product;
       const nutrients = p.nutriments || {};
 
-      console.log(`✅ [API] Product found: ${p.product_name || 'Unnamed'}`);
+      console.log(`[API] Product found: ${p.product_name || 'Unnamed'}`);
       console.log(`   - Validating nutrition data...`);
 
       // Ambil nilai nutrisi dengan fallback
@@ -665,9 +758,19 @@ router.get('/barcode/:barcode', async (req, res) => {
       const hasValidNutrition = calories > 0 || proteins > 0 || carbs > 0 || fat > 0;
 
       if (!hasValidNutrition) {
-        console.log(`⚠️ [VALIDATION FAILED] Nutrition data is empty or invalid`);
+        console.log(`VALIDASI GAGAL: Data nutrisi kosong atau tidak valid`);
         console.log(`   Calories: ${calories}, Protein: ${proteins}, Carbs: ${carbs}, Fat: ${fat}`);
-        
+        console.log(` [NOTIFICATION] Creating product request for incomplete nutrition`);
+
+        await createOrUpdateProductRequest(
+          normalizedCode,
+          req.user.id,
+          req.user.name || req.user.email || 'Unknown User',
+          req.user.email || 'unknown@example.com'
+        );
+
+        console.log(` [NOTIFICATION] Product request created successfully`);
+
         return res.status(404).json({ 
           msg: 'Produk ditemukan tetapi data nutrisi tidak lengkap',
           suggestion: 'Silakan gunakan fitur input manual untuk melengkapi data nutrisi',
@@ -675,7 +778,7 @@ router.get('/barcode/:barcode', async (req, res) => {
         });
       }
 
-      console.log(`✅ [VALIDATION PASSED] Nutrition data is valid`);
+      console.log(`[VALIDATION PASSED] Nutrition data is valid`);
       console.log(`   - Calories: ${calories} kcal`);
       console.log(`   - Protein: ${proteins}g, Carbs: ${carbs}g, Fat: ${fat}g`);
 
@@ -700,7 +803,7 @@ router.get('/barcode/:barcode', async (req, res) => {
       };
 
       await db.collection('products').insertOne(productToCache);
-      console.log(`💾 [CACHE SAVED] Product cached to local database`);
+      console.log(` [CACHE SAVED] Product cached to local database`);
 
       // Return data yang sudah disimpan
       return res.json({
@@ -710,7 +813,7 @@ router.get('/barcode/:barcode', async (req, res) => {
 
     } catch (apiError) {
       // Handle error dari external API
-      console.error(`❌ [API ERROR]`, apiError.message);
+      console.error(` [API ERROR]`, apiError.message);
 
       if (apiError.code === 'ECONNABORTED' || apiError.code === 'ETIMEDOUT') {
         return res.status(504).json({ 
@@ -720,8 +823,18 @@ router.get('/barcode/:barcode', async (req, res) => {
       }
 
       if (apiError.response?.status === 404) {
+        console.log(` [NOTIFICATION] Creating product request for API 404`);
+        
+        await createOrUpdateProductRequest(
+          normalizedCode,
+          req.user.id,
+          req.user.name || req.user.email || 'Unknown User',
+          req.user.email || 'unknown@example.com'
+        );
+
+        console.log(` [NOTIFICATION] Product request created successfully`);
         return res.status(404).json({ 
-          msg: 'Produk tidak ditemukan di database manapun',
+          msg: 'Produk tidak ditemukan',
           suggestion: 'Silakan gunakan fitur input manual'
         });
       }
@@ -735,7 +848,7 @@ router.get('/barcode/:barcode', async (req, res) => {
     }
 
   } catch (err) {
-    console.error('💥 [SERVER ERROR]', err.message);
+    console.error('[SERVER ERROR]', err.message);
     res.status(500).json({ 
       msg: 'Terjadi kesalahan pada server',
       error: process.env.NODE_ENV === 'development' ? err.message : undefined

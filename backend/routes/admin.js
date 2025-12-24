@@ -1,10 +1,142 @@
 const express = require('express');
+const ProductRequest = require('../models/ProductRequest');
 const router = express.Router();
 const auth = require('../middleware/auth');
 const admin = require('../middleware/admin');
 const { createClient } = require('@supabase/supabase-js');
 
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_KEY);
+
+// @route   GET /api/admin/product-requests
+// @desc    Ambil semua product request dengan status pending
+// @access  Private + Admin
+router.get('/product-requests', auth, admin, async (req, res) => {
+  try {
+    const { status } = req.query;
+    
+    console.log(' [ADMIN] Fetching product requests');
+    console.log('   - Filter status:', status || 'all');
+    
+    const query = status ? { status } : {};
+    
+    const requests = await ProductRequest.find(query)
+      .sort({ lastAttemptDate: -1, createdAt: -1 })
+      .limit(100);
+    
+    console.log('   - Found requests:', requests.length);
+    
+    res.json(requests);
+  } catch (err) {
+    console.error(' [ADMIN] Error fetching requests:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// @route   GET /api/admin/product-requests/count
+// @desc    Hitung jumlah product request pending (untuk badge notifikasi)
+// @access  Private + Admin
+router.get('/product-requests/count', auth, admin, async (req, res) => {
+  try {
+    const count = await ProductRequest.countDocuments({ status: 'pending' });
+    res.json({ count });
+  } catch (err) {
+    console.error('Error counting product requests:', err.message);
+    res.status(500).json({ msg: 'Server Error', error: err.message });
+  }
+});
+
+// @route   PUT /api/admin/product-requests/:id/status
+// @desc    Update status product request (processing, completed, rejected)
+// @access  Private + Admin
+router.put('/product-requests/:id/status', auth, admin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status, adminNotes } = req.body;
+    
+    const validStatuses = ['pending', 'processing', 'completed', 'rejected'];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ msg: 'Status tidak valid' });
+    }
+    
+    const updateData = {
+      status,
+      adminNotes: adminNotes || ''
+    };
+    
+    if (status === 'completed' || status === 'rejected') {
+      updateData.resolvedAt = new Date();
+      updateData.resolvedBy = req.user.id;
+    }
+    const request = await ProductRequest.findByIdAndUpdate(
+      id,
+      updateData,
+      { new: true }
+    ).populate('requestedBy', 'name email');
+    
+    if (!request) {
+      return res.status(404).json({ msg: 'Request tidak ditemukan' });
+    }
+    
+    res.json({ msg: 'Status berhasil diupdate', request });
+  } catch (err) {
+    console.error('Error updating product request status:', err.message);
+    res.status(500).json({ msg: 'Server Error', error: err.message });
+  }
+});
+
+// @route   DELETE /api/admin/product-requests/:id
+// @desc    Hapus product request
+// @access  Private + Admin
+router.delete('/product-requests/:id', auth, admin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const request = await ProductRequest.findByIdAndDelete(id);
+    
+    if (!request) {
+      return res.status(404).json({ msg: 'Request tidak ditemukan' });
+    }
+    
+    res.json({ msg: 'Request berhasil dihapus' });
+  } catch (err) {
+    console.error('Error deleting product request:', err.message);
+    res.status(500).json({ msg: 'Server Error', error: err.message });
+  }
+});
+
+// @route   PUT /api/admin/product-requests/bulk-update
+// @desc    Update multiple requests sekaligus (mark as completed after adding product)
+// @access  Private + Admin
+router.put('/product-requests/bulk-update', auth, admin, async (req, res) => {
+  try {
+    const { barcode, status = 'completed' } = req.body;
+    
+    if (!barcode) {
+      return res.status(400).json({ msg: 'Barcode diperlukan' });
+    }
+    
+    const normalizedBarcode = barcode.trim().replace(/\D/g, '');
+    
+    // Update semua request dengan barcode yang sama
+    const result = await ProductRequest.updateMany(
+      { barcode: normalizedBarcode, status: 'pending' },
+      {
+        status,
+        resolvedAt: new Date(),
+        resolvedBy: req.user.id,
+        adminNotes: 'Product has been added to database'
+      }
+    );
+    res.json({ 
+      msg: `${result.modifiedCount} request(s) updated`,
+      modifiedCount: result.modifiedCount 
+    });
+  } catch (err) {
+    console.error('Error bulk updating requests:', err.message);
+    res.status(500).json({ msg: 'Server Error', error: err.message });
+  }
+});
+
 
 // @route   GET /api/admin/stats
 // @desc    Ambil statistik dashboard (Total User, dll)

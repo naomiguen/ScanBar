@@ -21,7 +21,8 @@ module.exports = async function (req, res, next) {
       return res.status(403).json({ msg: 'Akses ditolak. Profil tidak ditemukan.' });
     }
 
-    if (data.role !== 'admin') {
+    const roleBersih = data.role ? data.role.replace(/['"]+/g, '').trim() : '';
+    if (roleBersih !== 'admin') {
       return res.status(403).json({ msg: 'Akses ditolak. Anda bukan Admin.' });
     }
 
