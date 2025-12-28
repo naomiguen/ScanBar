@@ -9,7 +9,7 @@ const ProductRequest = require('../models/ProductRequest');
 const { MongoClient } = require('mongodb');
 const util = require('util');
 const { generateHeuristicAnalysis } = require('../utils/heuristic');
-
+const optionalAuth = require('../middleware/optionalAuth');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
@@ -629,12 +629,19 @@ router.get('/summary', auth, async (req, res) => {
 // @route   GET /api/foods/barcode/:barcode
 // @desc    Mencari produk berdasarkan barcode menggunakan Open Food Facts API
 // @access  Public (Siapa saja bisa mencari produk)
-router.get('/barcode/:barcode', async (req, res) => {
+router.get('/barcode/:barcode', optionalAuth, async (req, res) => {
   try {
     const db = req.app.locals.db;
     const { barcode } = req.params;
 
     console.log(`[BARCODE SEARCH] Raw input: "${barcode}"`);
+
+    // Log status user
+    if (req.user) {
+      console.log(`[BARCODE SEARCH] Logged in as: ${req.user.email || req.user.id}`);
+    } else {
+      console.log(`[BARCODE SEARCH] Guest access (not logged in)`);
+    }
 
     // Validasi dan normalisasi barcode
     if (!barcode || barcode.trim() === '') {

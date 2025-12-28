@@ -8,8 +8,7 @@ const ProductRequestSchema = new mongoose.Schema({
   },
   requestedBy: {
     type: String,
-    required: true,
-    index: true
+    required: true
   },
   requestedByName: {
     type: String,
