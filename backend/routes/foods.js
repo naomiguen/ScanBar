@@ -629,13 +629,12 @@ router.get('/summary', auth, async (req, res) => {
 // @route   GET /api/foods/barcode/:barcode
 // @desc    Mencari produk berdasarkan barcode menggunakan Open Food Facts API
 // @access  Public (Siapa saja bisa mencari produk)
-router.get('/barcode/:barcode', auth, async (req, res) => {
+router.get('/barcode/:barcode', async (req, res) => {
   try {
     const db = req.app.locals.db;
     const { barcode } = req.params;
 
     console.log(`[BARCODE SEARCH] Raw input: "${barcode}"`);
-    console.log(`[BARCODE SEARCH] User: ${req.user?.email || req.user?.id}`);
 
     // Validasi dan normalisasi barcode
     if (!barcode || barcode.trim() === '') {
@@ -650,10 +649,8 @@ router.get('/barcode/:barcode', auth, async (req, res) => {
 
     console.log(`[BARCODE SEARCH] Normalized: "${normalizedCode}"`);
 
-    //cek database
+    // Cek database lokal
     console.log(`[STEP 1] Checking local database for barcode: ${normalizedCode}`);
-    console.log(`   - DB object exists: ${!!db}`);
-    console.log(`   - Searching query: { code: "${normalizedCode}" }`);
     
     const localProduct = await db.collection('products').findOne({ 
       code: normalizedCode 
@@ -661,11 +658,6 @@ router.get('/barcode/:barcode', auth, async (req, res) => {
 
     if (localProduct) {
       console.log(` [LOCAL DB HIT] Product found in local database!`);
-      console.log(`   - Name: ${localProduct.product_name}`);
-      console.log(`   - Source: ${localProduct.source}`);
-      console.log(`   - Nutriments:`, localProduct.nutriments);
-      
-      // Return dengan format yang konsisten
       return res.json({
         code: localProduct.code,
         product_name: localProduct.product_name,
@@ -673,44 +665,11 @@ router.get('/barcode/:barcode', auth, async (req, res) => {
         image_url: localProduct.image_url || '',
         nutriments: localProduct.nutriments,
         source: localProduct.source || 'local_cache',
-        cached: true // Flag: data dari local DB
+        cached: true
       });
-    } else {
-      console.log(`   NOT FOUND in database`);
     }
 
-    // Jika tidak ditemukan di DB utama (mis. Anda pindah ke Atlas tapi masih punya data di Mongo lokal),
-    // coba fallback ke LOCAL_MONGODB_URI jika diset di environment.
-    if (!localProduct && process.env.LOCAL_MONGODB_URI) {
-      try {
-        console.log('[FALLBACK] LOCAL_MONGODB_URI diset, mencoba query ke Mongo lokal sebagai fallback...');
-        const localClient = new MongoClient(process.env.LOCAL_MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true });
-        await localClient.connect();
-        const localDb = localClient.db('scanbar');
-        const fallbackProduct = await localDb.collection('products').findOne({ code: normalizedCode });
-
-        if (fallbackProduct) {
-          console.log('[FALLBACK HIT] Product ditemukan di Mongo lokal (fallback).');
-          await localClient.close();
-          return res.json({
-            code: fallbackProduct.code,
-            product_name: fallbackProduct.product_name,
-            brands: fallbackProduct.brands || 'Tidak Diketahui',
-            image_url: fallbackProduct.image_url || '',
-            nutriments: fallbackProduct.nutriments,
-            source: fallbackProduct.source || 'local_fallback',
-            cached: true
-          });
-        }
-
-        await localClient.close();
-      } catch (fbErr) {
-        console.warn('[FALLBACK] Gagal query ke LOCAL_MONGODB_URI:', fbErr && fbErr.message ? fbErr.message : fbErr);
-        // tidak melempar error, lanjutkan ke cek ke Open Food Facts
-      }
-    }
-
-    // TIDAK ADA DI LOCAL → CEK OPEN FOOD FACTS API
+    // Cek Open Food Facts API
     console.log(` [STEP 2] Not found in local DB. Querying Open Food Facts API...`);
 
     try {
@@ -721,20 +680,21 @@ router.get('/barcode/:barcode', auth, async (req, res) => {
 
       const offData = offResponse.data;
 
-      // Validasi response dari API
       if (offData.status !== 1 || !offData.product) {
         console.log(`[API] Product not found in Open Food Facts`);
-        console.log(`[NOTIFICATION] Creating product request for ${normalizedCode}`);
-        console.log(`   - User ID: ${req.user.id}`);
-        console.log(`   - User Name: ${req.user.name || req.user.email}`);
 
-        await createOrUpdateProductRequest(
-          normalizedCode, 
-          req.user.id,
-          req.user.name || req.user.email || 'Unknown User',
-          req.user.email || 'unknown@example.com'
-        );
-       console.log(` [NOTIFICATION] Product request created successfully`);
+        // HANYA BUAT REQUEST JIKA USER SUDAH LOGIN
+        if (req.user) {
+          console.log(`[NOTIFICATION] Creating product request for ${normalizedCode}`);
+          await createOrUpdateProductRequest(
+            normalizedCode, 
+            req.user.id,
+            req.user.name || req.user.email || 'Unknown User',
+            req.user.email || 'unknown@example.com'
+          );
+        } else {
+          console.log(`[NOTIFICATION] Skipped product request (user not logged in)`);
+        }
 
         return res.status(404).json({ 
           msg: 'Produk tidak ditemukan di database manapun',
@@ -745,31 +705,28 @@ router.get('/barcode/:barcode', auth, async (req, res) => {
       const p = offData.product;
       const nutrients = p.nutriments || {};
 
-      console.log(`[API] Product found: ${p.product_name || 'Unnamed'}`);
-      console.log(`   - Validating nutrition data...`);
-
-      // Ambil nilai nutrisi dengan fallback
       const calories = nutrients["energy-kcal"] || nutrients["energy-kcal_100g"] || 0;
       const proteins = nutrients.proteins_100g || nutrients.proteins || 0;
       const carbs = nutrients.carbohydrates_100g || nutrients.carbohydrates || 0;
       const fat = nutrients.fat_100g || nutrients.fat || 0;
 
-      // Validasi: Minimal ada 1 nilai nutrisi > 0
       const hasValidNutrition = calories > 0 || proteins > 0 || carbs > 0 || fat > 0;
 
       if (!hasValidNutrition) {
         console.log(`VALIDASI GAGAL: Data nutrisi kosong atau tidak valid`);
-        console.log(`   Calories: ${calories}, Protein: ${proteins}, Carbs: ${carbs}, Fat: ${fat}`);
-        console.log(` [NOTIFICATION] Creating product request for incomplete nutrition`);
 
-        await createOrUpdateProductRequest(
-          normalizedCode,
-          req.user.id,
-          req.user.name || req.user.email || 'Unknown User',
-          req.user.email || 'unknown@example.com'
-        );
-
-        console.log(` [NOTIFICATION] Product request created successfully`);
+        // HANYA BUAT REQUEST JIKA USER SUDAH LOGIN
+        if (req.user) {
+          console.log(` [NOTIFICATION] Creating product request for incomplete nutrition`);
+          await createOrUpdateProductRequest(
+            normalizedCode,
+            req.user.id,
+            req.user.name || req.user.email || 'Unknown User',
+            req.user.email || 'unknown@example.com'
+          );
+        } else {
+          console.log(`[NOTIFICATION] Skipped product request (user not logged in)`);
+        }
 
         return res.status(404).json({ 
           msg: 'Produk ditemukan tetapi data nutrisi tidak lengkap',
@@ -778,18 +735,13 @@ router.get('/barcode/:barcode', auth, async (req, res) => {
         });
       }
 
-      console.log(`[VALIDATION PASSED] Nutrition data is valid`);
-      console.log(`   - Calories: ${calories} kcal`);
-      console.log(`   - Protein: ${proteins}g, Carbs: ${carbs}g, Fat: ${fat}g`);
-
-      // STEP 3: SIMPAN KE DATABASE LOKAL (CACHE)
+      // Simpan ke cache
       const productToCache = {
         code: normalizedCode,
         product_name: p.product_name || 'Tanpa Nama',
         brands: p.brands || 'Tidak Diketahui',
         image_url: p.image_front_url || p.image_url || '',
         nutriments: {
-          // PENTING: Gunakan format yang SAMA dengan input admin
           calories: parseFloat(calories) || 0,       
           proteins: parseFloat(proteins) || 0,       
           carbs: parseFloat(carbs) || 0,                       
@@ -805,14 +757,12 @@ router.get('/barcode/:barcode', auth, async (req, res) => {
       await db.collection('products').insertOne(productToCache);
       console.log(` [CACHE SAVED] Product cached to local database`);
 
-      // Return data yang sudah disimpan
       return res.json({
         ...productToCache,
-        cached: false // Flag: data fresh dari API
+        cached: false
       });
 
     } catch (apiError) {
-      // Handle error dari external API
       console.error(` [API ERROR]`, apiError.message);
 
       if (apiError.code === 'ECONNABORTED' || apiError.code === 'ETIMEDOUT') {
@@ -823,23 +773,24 @@ router.get('/barcode/:barcode', auth, async (req, res) => {
       }
 
       if (apiError.response?.status === 404) {
-        console.log(` [NOTIFICATION] Creating product request for API 404`);
-        
-        await createOrUpdateProductRequest(
-          normalizedCode,
-          req.user.id,
-          req.user.name || req.user.email || 'Unknown User',
-          req.user.email || 'unknown@example.com'
-        );
 
-        console.log(` [NOTIFICATION] Product request created successfully`);
+        //  HANYA BUAT REQUEST JIKA USER SUDAH LOGIN
+        if (req.user) {
+          console.log(` [NOTIFICATION] Creating product request for API 404`);
+          await createOrUpdateProductRequest(
+            normalizedCode,
+            req.user.id,
+            req.user.name || req.user.email || 'Unknown User',
+            req.user.email || 'unknown@example.com'
+          );
+        }
+        
         return res.status(404).json({ 
           msg: 'Produk tidak ditemukan',
           suggestion: 'Silakan gunakan fitur input manual'
         });
       }
 
-      // Error lainnya
       return res.status(503).json({ 
         msg: 'Gagal menghubungi server data eksternal',
         suggestion: 'Silakan coba lagi atau gunakan input manual',
@@ -855,6 +806,8 @@ router.get('/barcode/:barcode', auth, async (req, res) => {
     });
   }
 });
+
+  
 
 // @route   POST /api/foods/analyze
 // @desc    Menganalisis nutrisi makanan menggunakan AI (PUBLIK - tidak perlu login!)
